@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: platform
+  datasource:
+    url: jdbc:mysql://localhost:3306/platform?useSSL=false
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/platform
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+
+# 配置日志
+logging:
+  # 不打印项目的名称
+  include-application-name: false
+  level:
+    root: INFO
+  file:
+    name: logs/platform.log  # 日志文件路径
+  logback:
+    rolling-policy:
+      max-file-size: 10MB
+      max-history: 30
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: deleted  # 逻辑删除字段
+      logic-not-delete-value: 0
+      logic-delete-value: 1
