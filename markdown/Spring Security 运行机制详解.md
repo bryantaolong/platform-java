@@ -27,7 +27,7 @@ Spring Security 是一个功能强大且高度可定制的认证和授权框架�
 
 1. **请求登录**: 客户端（如 Postman）发送 POST 请求到 `/api/user/login`，携带 `username` 和 `password`。
 
-2. `UserController.login()`: 接收到请求，调用 `userService.login(loginDTO)`。
+2. `UserController.login()`: 接收到请求，调用 `userService.login(userLoginDTO)`。
 
 3. `UserServiceImpl.login()`:
    -

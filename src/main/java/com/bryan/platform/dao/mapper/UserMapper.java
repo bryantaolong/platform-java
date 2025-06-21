@@ -14,7 +14,6 @@ import org.apache.ibatis.annotations.Select;
  * Version: v1.0
  */
 public interface UserMapper extends BaseMapper<User> {
-    // 自定义查询示例（如按用户名查找）
     @Select("SELECT * FROM user WHERE username = #{username}")
     User selectByUsername(@Param("username") String username);
 }

@@ -156,6 +156,7 @@ public class JwtUtil {
         if (rolesString != null && !rolesString.isEmpty()) {
             return Arrays.stream(rolesString.split(","))
                     .map(String::trim)
+                    .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role) // 确保添加 ROLE_ 前缀
                     .collect(Collectors.toList());
         }
         return Collections.emptyList();
