@@ -209,6 +209,46 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     /**
+     * 封禁用户。
+     * 此操作通常需要管理员权限。
+     *
+     * @param userId 要更改角色的用户ID。
+     * @return 更新后的用户实体。
+     * @throws ResourceNotFoundException 如果用户不存在。
+     */
+    @Override
+    public User blockUser(Long userId) {
+        return Optional.ofNullable(userMapper.selectById(userId))
+                .map(existingUser -> {
+                    existingUser.setStatus(1);
+                    userMapper.updateById(existingUser);
+                    log.info("用户ID: {} 封禁成功", userId);
+                    return existingUser;
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
+
+    /**
+     * 解封用户。
+     * 此操作通常需要管理员权限。
+     *
+     * @param userId 要更改角色的用户ID。
+     * @return 更新后的用户实体。
+     * @throws ResourceNotFoundException 如果用户不存在。
+     */
+    @Override
+    public User unblockUser(Long userId) {
+        return Optional.ofNullable(userMapper.selectById(userId))
+                .map(existingUser -> {
+                    existingUser.setStatus(1);
+                    userMapper.updateById(existingUser);
+                    log.info("用户ID: {} 解封成功", userId);
+                    return existingUser;
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
+
+    /**
      * 删除用户（逻辑删除）。
      * 假设 User 实体配置了 @TableLogic 注解，此方法将执行逻辑删除。
      * 如果没有配置逻辑删除，它将执行物理删除。

@@ -15,8 +15,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class Result<T> {
+
     private int code;
+
     private String message;
+
     private T data;
 
     // 成功响应

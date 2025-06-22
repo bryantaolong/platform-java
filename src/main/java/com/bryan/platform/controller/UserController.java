@@ -24,10 +24,10 @@ import org.springframework.web.bind.annotation.*;
  * Create: 2025/6/19 - 19:51
  * Version: v1.0
  */
-@RestController // 标记为 REST 控制器，返回 JSON 或 XML 数据
-@RequestMapping("/api/user") // 设定所有接口的基础路径
-@RequiredArgsConstructor // 自动注入 final 声明的 UserService 字段
-@Validated // 启用方法参数验证，结合 jakarta.validation.Valid 使用
+@RestController
+@RequestMapping("/api/user")
+@RequiredArgsConstructor
+@Validated
 public class UserController {
 
     private final UserService userService; // 注入用户服务
@@ -38,9 +38,9 @@ public class UserController {
      * @param userRegisterDTO 用户注册数据传输对象，包含用户名、密码、邮箱等信息。
      * @return 注册成功的用户实体。
      */
-    @PostMapping("/register") // 处理 POST 请求，路径为 /api/user/register
+    @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED) // 设置响应状态码为 201 Created
-    public Result<User> register(@RequestBody @Valid UserRegisterDTO userRegisterDTO) { // @RequestBody 将请求体映射到 userDTO，@Valid 触发验证
+    public Result<User> register(@RequestBody @Valid UserRegisterDTO userRegisterDTO) {
         return Result.success(userService.register(userRegisterDTO));
     }
 
@@ -50,8 +50,8 @@ public class UserController {
      * @param userLoginDTO 用户登录数据传输对象，包含用户名和密码。
      * @return 登录成功后生成的 JWT Token 字符串。
      */
-    @PostMapping("/login") // 处理 POST 请求，路径为 /api/user/login
-    public Result<String> login(@RequestBody @Valid UserLoginDTO userLoginDTO) { // @RequestBody 将请求体映射到 loginDTO，@Valid 触发验证
+    @PostMapping("/login")
+    public Result<String> login(@RequestBody @Valid UserLoginDTO userLoginDTO) {
         return Result.success(userService.login(userLoginDTO));
     }
 
@@ -63,8 +63,8 @@ public class UserController {
      *
      * @return 包含所有用户数据的分页对象。
      */
-    @GetMapping("/all") // 处理 GET 请求，路径为 /api/user/all
-    @PreAuthorize("hasRole('ADMIN')") // 只有拥有 ADMIN 角色的用户才能访问
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result<Page<User>> getAllUsers() {
         return Result.success(userService.getAllUsers());
     }
@@ -74,8 +74,8 @@ public class UserController {
      *
      * @return 当前认证用户的实体。
      */
-    @GetMapping("/me") // 处理 GET 请求，路径为 /api/user/me
-    @PreAuthorize("isAuthenticated()") // 只有已认证（登录）的用户才能访问此接口
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public Result<User> getCurrentUser() {
         return Result.success(userService.getCurrentUser());
     }
@@ -87,9 +87,9 @@ public class UserController {
      * @param userId 要查询的用户 ID。
      * @return 对应 ID 的用户实体。
      */
-    @GetMapping("/{userId}") // 处理 GET 请求，路径为 /api/user/{userId}
-    @PreAuthorize("hasRole('ADMIN')") // 只有拥有 ADMIN 角色的用户才能访问
-    public Result<User> getUserById(@PathVariable Long userId) { // @PathVariable 从 URL 路径中获取 userId
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<User> getUserById(@PathVariable Long userId) {
         return Result.success(userService.getUserById(userId));
     }
 
@@ -100,9 +100,9 @@ public class UserController {
      * @param username 要查询的用户名。
      * @return 对应用户名的用户实体。
      */
-    @GetMapping("/username/{username}") // 处理 GET 请求，路径为 /api/user/username/{username}
-    @PreAuthorize("hasRole('ADMIN')") // 只有拥有 ADMIN 角色的用户才能访问
-    public Result<User> getUserByUsername(@PathVariable String username) { // @PathVariable 从 URL 路径中获取 username
+    @GetMapping("/username/{username}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<User> getUserByUsername(@PathVariable String username) {
         return Result.success(userService.getUserByUsername(username));
     }
 
@@ -114,7 +114,7 @@ public class UserController {
      * @param userUpdateDTO 包含需要更新的用户信息（用户名、邮箱）。
      * @return 更新后的用户实体。
      */
-    @PutMapping("/{userId}") // 处理 PUT 请求，路径为 /api/user/{userId}
+    @PutMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN') or (#userId == authentication.principal.id)")
     // 要求 ADMIN 角色，或当前认证用户ID与路径中的 userId 相同
     // 注意: authentication.principal 可能需要类型转换才能获取 id。
@@ -137,8 +137,8 @@ public class UserController {
      * @param roles  新的角色字符串，多个角色以逗号分隔（例如 "ROLE_USER,ROLE_ADMIN"）。
      * @return 更新后的用户实体。
      */
-    @PutMapping("/{userId}/role") // 处理 PUT 请求，路径为 /api/user/{userId}/role
-    @PreAuthorize("hasRole('ADMIN')") // 只有拥有 ADMIN 角色的用户才能访问
+    @PutMapping("/{userId}/role")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result<User> changeRole(
             @PathVariable Long userId,
             @RequestBody String roles) { // 直接接收 String 类型的角色字符串
@@ -153,7 +153,7 @@ public class UserController {
      * @param changePasswordDTO 包含旧密码和新密码的数据传输对象。
      * @return 更新后的用户实体。
      */
-    @PutMapping("/{userId}/password") // 处理 PUT 请求，路径为 /api/user/{userId}/password
+    @PutMapping("/{userId}/password")
     @PreAuthorize("hasRole('ADMIN') or (#userId == authentication.principal.id)")
     public Result<User> changePassword(
             @PathVariable Long userId,
@@ -172,8 +172,8 @@ public class UserController {
      * @param userId 要删除的用户 ID。
      * @return 被删除的用户实体。
      */
-    @DeleteMapping("/{userId}") // 处理 DELETE 请求，路径为 /api/user/{userId}
-    @PreAuthorize("hasRole('ADMIN')") // 只有拥有 ADMIN 角色的用户才能访问
+    @DeleteMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result<User> deleteUser(@PathVariable Long userId) {
         return Result.success(userService.deleteUser(userId));
     }

@@ -103,6 +103,26 @@ public interface UserService {
     User changePassword(Long userId, String oldPassword, String newPassword);
 
     /**
+     * 封禁用户。
+     * 此操作通常需要管理员权限。
+     *
+     * @param userId 要更改角色的用户ID。
+     * @return 更新后的用户实体。
+     * @throws ResourceNotFoundException 如果用户不存在。
+     */
+    User blockUser(Long userId);
+
+    /**
+     * 解封用户。
+     * 此操作通常需要管理员权限。
+     *
+     * @param userId 要更改角色的用户ID。
+     * @return 更新后的用户实体。
+     * @throws ResourceNotFoundException 如果用户不存在。
+     */
+    User unblockUser(Long userId);
+
+    /**
      * 删除用户（逻辑删除）。
      * 假设 User 实体配置了 @TableLogic 注解，此方法将执行逻辑删除。
      * 如果没有配置逻辑删除，它将执行物理删除。
