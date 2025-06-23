@@ -26,3 +26,18 @@ CREATE TABLE `post_favorite` (
                                  INDEX idx_post_id (`post_id`),
                                  INDEX idx_deleted (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='博文收藏记录表';
+
+CREATE TABLE `user_follows` (
+                                `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                `follower_id` bigint NOT NULL COMMENT '关注者ID',
+                                `following_id` bigint NOT NULL COMMENT '被关注者ID',
+                                `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '关注时间',
+                                PRIMARY KEY (`id`),
+                                UNIQUE KEY `uk_follower_following` (`follower_id`, `following_id`) COMMENT '防止重复关注',
+                                KEY `idx_follower_id` (`follower_id`) COMMENT '关注者索引',
+                                KEY `idx_following_id` (`following_id`) COMMENT '被关注者索引',
+                                CONSTRAINT `fk_user_follows_follower` FOREIGN KEY (`follower_id`)
+                                    REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+                                CONSTRAINT `fk_user_follows_following` FOREIGN KEY (`following_id`)
+                                    REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户关注关系表';
