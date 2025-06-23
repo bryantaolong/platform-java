@@ -12,3 +12,17 @@ CREATE TABLE `user` (
                         UNIQUE KEY `idx_username` (`username`) COMMENT '用户名唯一索引',
                         KEY `idx_deleted` (`deleted`) COMMENT '逻辑删除索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
+
+CREATE TABLE `post_favorite` (
+                                 `id` VARCHAR(64) NOT NULL COMMENT '主键ID (UUID)',
+                                 `user_id` VARCHAR(64) NOT NULL COMMENT '用户ID',
+                                 `post_id` VARCHAR(64) NOT NULL COMMENT '博文ID (MongoDB ObjectId)',
+                                 `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除: 0-未删除, 1-已删除',
+                                 `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                 `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+                                 PRIMARY KEY (`id`),
+                                 INDEX idx_user_id (`user_id`),
+                                 INDEX idx_post_id (`post_id`),
+                                 INDEX idx_deleted (`deleted`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='博文收藏记录表';
