@@ -27,9 +27,6 @@ public class MyBatisPlusConfig {
 
         // 乐观锁插件
         interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
-        // 如果配置多个插件, 分页插件需要最后添加
-        // 如果有多数据源可以不配具体类型, 否则都建议加上具体的 DbType
-//        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
 
         return interceptor;
     }
