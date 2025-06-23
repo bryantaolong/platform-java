@@ -1,4 +1,4 @@
-package com.bryan.platform.model.dto;
+package com.bryan.platform.model.request;
 
 import jakarta.validation.constraints.Email;
 import lombok.Data;
@@ -12,7 +12,7 @@ import lombok.Data;
  * Version: v1.0
  */
 @Data
-public class UserUpdateDTO {
+public class UserUpdateRequest {
 
     /**
      * 用户名。

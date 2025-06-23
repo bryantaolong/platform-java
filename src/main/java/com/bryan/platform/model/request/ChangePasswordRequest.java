@@ -1,4 +1,4 @@
-package com.bryan.platform.model.dto;
+package com.bryan.platform.model.request;
 
 import jakarta.validation.constraints.NotBlank; // 导入 NotBlank 注解
 import lombok.Data; // 导入 Lombok 的 Data 注解
@@ -13,7 +13,7 @@ import lombok.Data; // 导入 Lombok 的 Data 注解
  * Version: v1.0
  */
 @Data // Lombok 注解，自动生成 getter, setter, equals, hashCode, toString 方法
-public class ChangePasswordDTO {
+public class ChangePasswordRequest {
 
     /**
      * 旧密码。
