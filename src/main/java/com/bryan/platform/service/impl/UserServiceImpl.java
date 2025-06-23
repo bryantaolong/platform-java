@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
 import com.bryan.platform.common.util.JwtUtil;
-import com.bryan.platform.model.dto.UserUpdateDTO;
+import com.bryan.platform.model.request.LoginRequest;
+import com.bryan.platform.model.request.UserUpdateRequest;
 import com.bryan.platform.model.entity.User;
-import com.bryan.platform.model.dto.UserLoginDTO;
-import com.bryan.platform.model.dto.UserRegisterDTO;
+import com.bryan.platform.model.request.RegisterRequest;
 import com.bryan.platform.dao.mapper.UserMapper;
 import com.bryan.platform.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -44,21 +44,21 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     /**
      * 用户注册逻辑。
      *
-     * @param userRegisterDTO 用户注册数据传输对象
+     * @param registerRequest 用户注册数据传输对象
      * @return 注册成功的用户实体
      * @throws RuntimeException 如果用户名已存在
      */
     @Override
-    public User register(UserRegisterDTO userRegisterDTO) {
+    public User register(RegisterRequest registerRequest) {
         // 检查用户名是否已存在
-        if (userMapper.selectByUsername(userRegisterDTO.getUsername()) != null) {
+        if (userMapper.selectByUsername(registerRequest.getUsername()) != null) {
             throw new RuntimeException("用户名已存在");
         }
         // 构建用户实体，密码进行加密，默认状态为0，默认角色为 ROLE_USER
         User user = User.builder()
-                .username(userRegisterDTO.getUsername())
-                .password(passwordEncoder.encode(userRegisterDTO.getPassword()))
-                .email(userRegisterDTO.getEmail())
+                .username(registerRequest.getUsername())
+                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .email(registerRequest.getEmail())
                 .status(0)
                 .roles("ROLE_USER") // 注册时默认赋予 ROLE_USER 角色
                 .build();
@@ -69,15 +69,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     /**
      * 用户登录逻辑。
      *
-     * @param userLoginDTO 用户登录数据传输对象
+     * @param loginRequest 用户登录数据传输对象
      * @return JWT Token 字符串
      * @throws RuntimeException 如果用户名或密码错误
      */
     @Override
-    public String login(UserLoginDTO userLoginDTO) {
-        User user = userMapper.selectByUsername(userLoginDTO.getUsername());
+    public String login(LoginRequest loginRequest) {
+        User user = userMapper.selectByUsername(loginRequest.getUsername());
         // 验证用户名和密码
-        if (user == null || !passwordEncoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
+        if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new RuntimeException("用户名或密码错误");
         }
 
@@ -133,25 +133,25 @@ public class UserServiceImpl implements UserService, UserDetailsService {
      * 更新用户基本信息。
      *
      * @param userId  要更新的用户ID。
-     * @param userUpdateDTO 包含需要更新的用户信息（用户名、邮箱）。密码和角色修改请使用专门方法。
+     * @param userUpdateRequest 包含需要更新的用户信息（用户名、邮箱）。密码和角色修改请使用专门方法。
      * @return 更新后的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
      * @throws BusinessException         如果尝试更新的用户名已存在（且不是当前用户自身）。
      */
     @Override
-    public User updateUser(Long userId, UserUpdateDTO userUpdateDTO) {
+    public User updateUser(Long userId, UserUpdateRequest userUpdateRequest) {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
                     // 检查用户名是否重复且不是当前用户自身
-                    if (userUpdateDTO.getUsername() != null && !userUpdateDTO.getUsername().equals(existingUser.getUsername())) {
-                        User userWithSameUsername = userMapper.selectByUsername(userUpdateDTO.getUsername());
+                    if (userUpdateRequest.getUsername() != null && !userUpdateRequest.getUsername().equals(existingUser.getUsername())) {
+                        User userWithSameUsername = userMapper.selectByUsername(userUpdateRequest.getUsername());
                         if (userWithSameUsername != null && !userWithSameUsername.getId().equals(userId)) {
                             throw new BusinessException("用户名已存在");
                         }
-                        existingUser.setUsername(userUpdateDTO.getUsername());
+                        existingUser.setUsername(userUpdateRequest.getUsername());
                     }
-                    if (userUpdateDTO.getEmail() != null) {
-                        existingUser.setEmail(userUpdateDTO.getEmail());
+                    if (userUpdateRequest.getEmail() != null) {
+                        existingUser.setEmail(userUpdateRequest.getEmail());
                     }
                     userMapper.updateById(existingUser);
                     log.info("用户ID: {} 的信息更新成功", userId);

@@ -2,11 +2,11 @@ package com.bryan.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.model.Result;
-import com.bryan.platform.model.dto.UserLoginDTO;
-import com.bryan.platform.model.dto.UserUpdateDTO;
+import com.bryan.platform.model.request.LoginRequest;
+import com.bryan.platform.model.request.UserUpdateRequest;
 import com.bryan.platform.model.entity.User;
-import com.bryan.platform.model.dto.UserRegisterDTO;
-import com.bryan.platform.model.dto.ChangePasswordDTO;
+import com.bryan.platform.model.request.RegisterRequest;
+import com.bryan.platform.model.request.ChangePasswordRequest;
 import com.bryan.platform.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,24 +35,24 @@ public class UserController {
     /**
      * 用户注册接口。
      *
-     * @param userRegisterDTO 用户注册数据传输对象，包含用户名、密码、邮箱等信息。
+     * @param registerRequest 用户注册数据传输对象，包含用户名、密码、邮箱等信息。
      * @return 注册成功的用户实体。
      */
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED) // 设置响应状态码为 201 Created
-    public Result<User> register(@RequestBody @Valid UserRegisterDTO userRegisterDTO) {
-        return Result.success(userService.register(userRegisterDTO));
+    public Result<User> register(@RequestBody @Valid RegisterRequest registerRequest) {
+        return Result.success(userService.register(registerRequest));
     }
 
     /**
      * 用户登录接口。
      *
-     * @param userLoginDTO 用户登录数据传输对象，包含用户名和密码。
+     * @param loginRequest 用户登录数据传输对象，包含用户名和密码。
      * @return 登录成功后生成的 JWT Token 字符串。
      */
     @PostMapping("/login")
-    public Result<String> login(@RequestBody @Valid UserLoginDTO userLoginDTO) {
-        return Result.success(userService.login(userLoginDTO));
+    public Result<String> login(@RequestBody @Valid LoginRequest loginRequest) {
+        return Result.success(userService.login(loginRequest));
     }
 
     /**
@@ -111,7 +111,7 @@ public class UserController {
      * 允许用户更新自己的信息，或由管理员更新任意用户信息。
      *
      * @param userId  要更新的用户 ID。
-     * @param userUpdateDTO 包含需要更新的用户信息（用户名、邮箱）。
+     * @param userUpdateRequest 包含需要更新的用户信息（用户名、邮箱）。
      * @return 更新后的用户实体。
      */
     @PutMapping("/{userId}")
@@ -125,8 +125,8 @@ public class UserController {
     // 假设 UserDetails 实际就是你的 User 实体，且其 getId() 可用
     public Result<User> updateUser(
             @PathVariable Long userId,
-            @RequestBody @Valid UserUpdateDTO userUpdateDTO) {
-        return Result.success(userService.updateUser(userId, userUpdateDTO));
+            @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
+        return Result.success(userService.updateUser(userId, userUpdateRequest));
     }
 
     /**
@@ -150,18 +150,18 @@ public class UserController {
      * 允许用户更改自己的密码，或由管理员更改任意用户密码。
      *
      * @param userId            要更改密码的用户 ID。
-     * @param changePasswordDTO 包含旧密码和新密码的数据传输对象。
+     * @param changePasswordRequest 包含旧密码和新密码的数据传输对象。
      * @return 更新后的用户实体。
      */
     @PutMapping("/{userId}/password")
     @PreAuthorize("hasRole('ADMIN') or (#userId == authentication.principal.id)")
     public Result<User> changePassword(
             @PathVariable Long userId,
-            @RequestBody @Valid ChangePasswordDTO changePasswordDTO) {
+            @RequestBody @Valid ChangePasswordRequest changePasswordRequest) {
         return Result.success(userService.changePassword(
                 userId,
-                changePasswordDTO.getOldPassword(),
-                changePasswordDTO.getNewPassword()
+                changePasswordRequest.getOldPassword(),
+                changePasswordRequest.getNewPassword()
         ));
     }
 

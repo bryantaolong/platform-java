@@ -32,9 +32,13 @@ import java.util.stream.Collectors;
 public class User implements Serializable, UserDetails {
     @TableId(type = IdType.AUTO)
     private Long id;
+
     private String username;
+
     private String password;  // 实际存储加密后的密码
+
     private String email;
+
     private Integer status;   // 状态（0-正常，1-封禁）
 
     private String roles;

@@ -1,7 +1,6 @@
 package com.bryan.platform.dao.repository;
 
 import com.bryan.platform.model.entity.Post;
-// import com.bryan.platform.model.entity.User; // Removed, as we no longer query directly by User object
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -50,7 +49,17 @@ public interface PostRepository extends MongoRepository<Post, String> { // ID ty
     List<Post> fullTextSearch(String keyword);
 
     // Find published posts by a list of tags, sorted by creation date descending
-    // *** Core change: Return type changed from List<Post> to Page<Post> to support getContent() ***
+    // Core change: Return type changed from List<Post> to Page<Post> to support getContent()
     Page<Post> findByTagsInAndStatusOrderByCreatedAtDesc(List<String> tags, Post.PostStatus status, Pageable pageable);
 
+    /**
+     * 根据一组ID查询博文列表，并分页排序。
+     * 主要用于获取用户收藏的博文。
+     *
+     * @param ids      博文ID列表。
+     * @param pageable 分页和排序信息。
+     * @return 符合条件的博文分页列表。
+     */
+    @Query("{ '_id': { '$in': ?0 } }")
+    Page<Post> findByIdIn(List<String> ids, Pageable pageable);
 }

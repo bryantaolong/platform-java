@@ -4,7 +4,6 @@ import com.bryan.platform.model.entity.Comment;
 import com.bryan.platform.model.entity.Post;
 import com.bryan.platform.dao.repository.PostRepository;
 import com.bryan.platform.service.PostService;
-import com.bryan.platform.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

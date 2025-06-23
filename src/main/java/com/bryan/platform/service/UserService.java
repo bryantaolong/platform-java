@@ -3,10 +3,10 @@ package com.bryan.platform.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
-import com.bryan.platform.model.dto.UserLoginDTO;
-import com.bryan.platform.model.dto.UserUpdateDTO;
+import com.bryan.platform.model.request.LoginRequest;
+import com.bryan.platform.model.request.UserUpdateRequest;
 import com.bryan.platform.model.entity.User;
-import com.bryan.platform.model.dto.UserRegisterDTO;
+import com.bryan.platform.model.request.RegisterRequest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -24,18 +24,18 @@ public interface UserService {
     /**
      * 注册新用户。
      *
-     * @param userRegisterDTO 包含注册用户信息的DTO。
+     * @param registerRequest 包含注册用户信息的DTO。
      * @return 注册成功的用户实体。
      */
-    User register(UserRegisterDTO userRegisterDTO);
+    User register(RegisterRequest registerRequest);
 
     /**
      * 用户登录。
      *
-     * @param userLoginDTO 包含用户登录凭据的DTO（用户名和密码）。
+     * @param loginRequest 包含用户登录凭据的DTO（用户名和密码）。
      * @return 登录成功后生成的JWT Token字符串。
      */
-    String login(UserLoginDTO userLoginDTO);
+    String login(LoginRequest loginRequest);
 
     /**
      * 获取当前已认证的用户信息。
@@ -77,7 +77,7 @@ public interface UserService {
      * @throws ResourceNotFoundException 如果用户不存在。
      * @throws BusinessException 如果尝试更新的用户名已存在（且不是当前用户自身）。
      */
-    User updateUser(Long userId, UserUpdateDTO userUpdaterDTO);
+    User updateUser(Long userId, UserUpdateRequest userUpdaterDTO);
 
     /**
      * 更改用户角色。
