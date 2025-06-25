@@ -1,4 +1,4 @@
-package com.bryan.platform.model;
+package com.bryan.platform.model.response;
 
 import com.bryan.platform.common.constant.ErrorCode;
 import lombok.Data;

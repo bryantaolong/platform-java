@@ -1,6 +1,6 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.model.Result; // Changed from ApiResult to your Result class
+import com.bryan.platform.model.response.Result; // Changed from ApiResult to your Result class
 import com.bryan.platform.common.constant.ErrorCode; // Import your ErrorCode enum
 import com.bryan.platform.common.util.JwtUtil; // 用于获取当前用户ID
 import com.bryan.platform.model.request.PostFavoriteAddRequest;

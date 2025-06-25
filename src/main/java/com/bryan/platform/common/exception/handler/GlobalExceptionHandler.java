@@ -3,7 +3,7 @@ package com.bryan.platform.common.exception.handler;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
 import com.bryan.platform.common.exception.UnauthorizedException;
-import com.bryan.platform.model.Result;
+import com.bryan.platform.model.response.Result;
 import com.bryan.platform.common.constant.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;

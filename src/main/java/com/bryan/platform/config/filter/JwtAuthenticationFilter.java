@@ -1,6 +1,6 @@
 package com.bryan.platform.config.filter;
 
-import com.bryan.platform.model.Result;
+import com.bryan.platform.model.response.Result;
 import com.bryan.platform.common.constant.ErrorCode;
 import com.bryan.platform.common.util.JwtUtil;
 import com.bryan.platform.model.entity.User;

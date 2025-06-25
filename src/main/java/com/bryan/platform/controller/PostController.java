@@ -1,6 +1,6 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.model.Result;
+import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.entity.Comment; // 需要 Comment 实体
 import com.bryan.platform.model.entity.Post;
 import com.bryan.platform.model.entity.User; // 需要 User 实体来获取作者信息
@@ -198,6 +198,7 @@ public class PostController {
      * @return 匹配关键词的博文列表。
      */
     @GetMapping("/search")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Result<List<Post>>> searchPosts(@RequestParam String query) {
         return ResponseEntity.ok(Result.success(postService.fullTextSearch(query)));
     }
@@ -212,6 +213,7 @@ public class PostController {
      * @return 推荐的博文列表。
      */
     @GetMapping("/recommendations/{currentPostId}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Result<List<Post>>> getRecommendations(
             @PathVariable String currentPostId, // 从 URL 路径中获取当前博文 ID
             @RequestParam(defaultValue = "5") int limit) {
