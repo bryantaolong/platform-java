@@ -39,7 +39,6 @@ public class UserController {
      * @return 注册成功的用户实体。
      */
     @PostMapping("/register")
-    @PreAuthorize("permitAll()")
     @ResponseStatus(HttpStatus.CREATED) // 设置响应状态码为 201 Created
     public Result<User> register(@RequestBody @Valid RegisterRequest registerRequest) {
         return Result.success(userService.register(registerRequest));
@@ -52,7 +51,6 @@ public class UserController {
      * @return 登录成功后生成的 JWT Token 字符串。
      */
     @PostMapping("/login")
-    @PreAuthorize("permitAll()")
     public Result<String> login(@RequestBody @Valid LoginRequest loginRequest) {
         return Result.success(userService.login(loginRequest));
     }
