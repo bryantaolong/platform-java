@@ -1,5 +1,6 @@
 package com.bryan.platform.controller;
 
+import com.bryan.platform.common.util.JwtUtil;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.request.LoginRequest;
 import com.bryan.platform.model.entity.User;
@@ -9,6 +10,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,5 +63,37 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     public Result<User> getCurrentUser() {
         return Result.success(authService.getCurrentUser());
+    }
+
+    /**
+     * 验证 token
+     * @param token
+     * @param userDetails
+     * @return 验证结果
+     */
+    @GetMapping("/validate")
+    public Result<String> validate(
+            @RequestParam String token,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        // 1. 基础校验：Token 格式和签名
+        if (!authService.validateToken(token)) {
+            return Result.success("Invalid token");
+        }
+
+        // 2. 深度校验：用户状态（需已通过 Spring Security 认证）
+        if (userDetails != null) {
+            if (!userDetails.isAccountNonLocked()) {
+                return Result.success("Account locked");
+            }
+            if(userDetails.isAccountNonExpired()) {
+                return Result.success("Account expired");
+            }
+            if (!userDetails.isEnabled()) {
+                return Result.success("Account disabled");
+            }
+        }
+
+        return Result.success("Validation passed");
     }
 }

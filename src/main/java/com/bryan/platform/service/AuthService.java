@@ -100,6 +100,15 @@ public class AuthService implements UserDetailsService {
     }
 
     /**
+     * 验证 Token 的有效性
+     * @param token JWT Token
+     * @return true 如果 Token 有效，false 如果无效
+     */
+    public boolean validateToken(String token) {
+        return JwtUtil.validateToken(token);
+    }
+
+    /**
      * 实现 UserDetailsService 接口方法，用于 Spring Security 加载用户详情。
      *
      * @param username 用户名
