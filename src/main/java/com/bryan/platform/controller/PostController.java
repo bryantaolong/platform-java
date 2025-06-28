@@ -4,6 +4,7 @@ import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.entity.Comment; // 需要 Comment 实体
 import com.bryan.platform.model.entity.Post;
 import com.bryan.platform.model.entity.User; // 需要 User 实体来获取作者信息
+import com.bryan.platform.service.AuthService;
 import com.bryan.platform.service.PostService;
 import com.bryan.platform.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class PostController {
 
     private final PostService postService;
 
-    private final UserService userService; // 注入 UserService，用于获取认证用户的完整信息
+    private final AuthService authService;
 
     /**
      * 获取所有已发布的博文列表（支持分页和排序）。
@@ -87,7 +88,7 @@ public class PostController {
     public ResponseEntity<Result<Post>> createPost(
             @RequestBody Post post) {
         // 从 Spring Security 的 UserDetails 中获取用户名，并通过 UserService 加载完整的用户实体
-        User currentUser = userService.getCurrentUser();
+        User currentUser = authService.getCurrentUser();
         Long authorId = currentUser.getId(); // 获取用户ID (MySQL 中的 Long 类型 ID)
         String authorName = currentUser.getUsername(); // 获取用户名作为作者名称
 
@@ -110,7 +111,7 @@ public class PostController {
             @RequestBody Post postUpdates,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        User currentUser = userService.getCurrentUser();
+        User currentUser = authService.getCurrentUser();
         Long currentUserId = currentUser.getId();
         boolean isAdmin = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")); // 检查是否为管理员
@@ -132,7 +133,7 @@ public class PostController {
             @PathVariable String id, // 从 URL 路径中获取博文 ID
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        User currentUser = (User) userService.loadUserByUsername(userDetails.getUsername());
+        User currentUser = (User) authService.loadUserByUsername(userDetails.getUsername());
         Long currentUserId = currentUser.getId();
         boolean isAdmin = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -157,7 +158,7 @@ public class PostController {
             @RequestBody Comment comment,
             @AuthenticationPrincipal UserDetails userDetails) {
         // 从 Spring Security 的 UserDetails 中获取用户名，并通过 UserService 加载完整的用户实体
-        User currentUser = (User) userService.loadUserByUsername(userDetails.getUsername());
+        User currentUser = (User) authService.loadUserByUsername(userDetails.getUsername());
         Long authorId = currentUser.getId(); // 获取评论作者的用户ID (MySQL 中的 Long 类型 ID)
         String authorName = currentUser.getUsername(); // 获取评论作者的用户名
 
@@ -180,7 +181,7 @@ public class PostController {
             @PathVariable String commentId, // 从 URL 路径中获取评论 ID
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        User currentUser = (User) userService.loadUserByUsername(userDetails.getUsername());
+        User currentUser = (User) authService.loadUserByUsername(userDetails.getUsername());
         Long currentUserId = currentUser.getId();
         boolean isAdmin = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));

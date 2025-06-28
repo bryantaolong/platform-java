@@ -21,28 +21,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
  * Version: v1.0
  */
 public interface UserService {
-    /**
-     * 注册新用户。
-     *
-     * @param registerRequest 包含注册用户信息的DTO。
-     * @return 注册成功的用户实体。
-     */
-    User register(RegisterRequest registerRequest);
-
-    /**
-     * 用户登录。
-     *
-     * @param loginRequest 包含用户登录凭据的DTO（用户名和密码）。
-     * @return 登录成功后生成的JWT Token字符串。
-     */
-    String login(LoginRequest loginRequest);
-
-    /**
-     * 获取当前已认证的用户信息。
-     *
-     * @return 当前用户的实体。
-     */
-    User getCurrentUser();
 
     /**
      * 获取所有用户列表（支持分页，但此处由于接口未提供 Pageable，默认返回所有用户）。
@@ -132,14 +110,4 @@ public interface UserService {
      * @throws ResourceNotFoundException 如果用户不存在。
      */
     User deleteUser(Long userId);
-
-    /**
-     * 根据用户名加载用户详情，用于 Spring Security 认证。
-     * 此方法也暴露在 UserService 接口中，方便其他服务调用以获取完整的 User 对象。
-     *
-     * @param username 用户名。
-     * @return 用户详情 (User 实体，已实现 UserDetails 接口)。
-     * @throws UsernameNotFoundException 如果用户不存在。
-     */
-    UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
 }
