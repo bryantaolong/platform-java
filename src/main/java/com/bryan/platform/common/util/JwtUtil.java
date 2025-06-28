@@ -161,4 +161,23 @@ public class JwtUtil {
         }
         return Collections.emptyList();
     }
+
+    /**
+     * 验证 JWT Token 的有效性。
+     *
+     * @param token JWT Token 字符串
+     * @return true 如果 Token 有效，false 如果无效
+     */
+    public static boolean validateToken(String token) {
+        try {
+            // 解析 Token，如果解析成功且未抛出异常，则说明 Token 有效
+            Jwts.parser()
+                    .verifyWith(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
