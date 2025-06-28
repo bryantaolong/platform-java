@@ -1,41 +1,60 @@
 package com.bryan.platform.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
-import com.bryan.platform.model.request.LoginRequest;
 import com.bryan.platform.model.request.UserUpdateRequest;
 import com.bryan.platform.model.entity.User;
-import com.bryan.platform.model.request.RegisterRequest;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.bryan.platform.dao.mapper.UserMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
 
 /**
- * ClassName: UserService
- * Package: com.bryan.platform.service
- * Description: 用户服务接口。
- * 定义了用户相关的核心业务操作，包括用户注册、登录、信息查询等。
- * 同时，它也扩展了 Spring Security 的 UserDetailsService 职责，用于加载用户详情。
+ * ClassName: UserServiceImpl
+ * Package: com.bryan.platform.service.impl
+ * Description: 用户服务实现类，处理用户注册、登录、信息获取等业务。
  * Author: Bryan Long
- * Create: 2025/6/19 - 19:49
+ * Create: 2025/6/19 - 19:50
  * Version: v1.0
  */
-public interface UserService {
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class UserService implements UserService {
+
+    private final UserMapper userMapper;
+
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * 获取所有用户列表（支持分页，但此处由于接口未提供 Pageable，默认返回所有用户）。
      *
      * @return 包含所有用户数据的 Page 对象。
      */
-    Page<User> getAllUsers();
+    @Override
+    public Page<User> getAllUsers() {
+        // 创建一个 Page 对象，表示获取所有数据，currentPage=1, pageSize=Integer.MAX_VALUE
+        // 如果需要真正的分页，UserService 接口的 getAllUsers 方法应接受 Pageable 参数
+        Page<User> page = new Page<>(1, Integer.MAX_VALUE);
+        return userMapper.selectPage(page, new QueryWrapper<>()); // 查询所有用户
+    }
 
     /**
      * 根据用户ID获取用户实体。
      *
-     * @param userId 要查询的用户ID。
-     * @return 对应ID的用户实体。
+     * @param userId 用户的数据库主键 ID。
+     * @return 对应的用户实体，如果不存在则返回 null。
      */
-    User getUserById(Long userId);
+    @Override
+    public User getUserById(Long userId) {
+        return userMapper.selectById(userId);
+    }
 
     /**
      * 根据用户名获取用户实体。
@@ -44,18 +63,41 @@ public interface UserService {
      * @param username 用户名。
      * @return 对应的用户实体，如果不存在则返回 null。
      */
-    User getUserByUsername(String username);
+    @Override
+    public User getUserByUsername(String username) {
+        return userMapper.selectByUsername(username);
+    }
 
     /**
      * 更新用户基本信息。
      *
      * @param userId  要更新的用户ID。
-     * @param userUpdaterDTO 包含需要更新的用户信息（用户名、邮箱）。密码和角色修改请使用专门方法。
+     * @param userUpdateRequest 包含需要更新的用户信息（用户名、邮箱）。密码和角色修改请使用专门方法。
      * @return 更新后的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
-     * @throws BusinessException 如果尝试更新的用户名已存在（且不是当前用户自身）。
+     * @throws BusinessException         如果尝试更新的用户名已存在（且不是当前用户自身）。
      */
-    User updateUser(Long userId, UserUpdateRequest userUpdaterDTO);
+    @Override
+    public User updateUser(Long userId, UserUpdateRequest userUpdateRequest) {
+        return Optional.ofNullable(userMapper.selectById(userId))
+                .map(existingUser -> {
+                    // 检查用户名是否重复且不是当前用户自身
+                    if (userUpdateRequest.getUsername() != null && !userUpdateRequest.getUsername().equals(existingUser.getUsername())) {
+                        User userWithSameUsername = userMapper.selectByUsername(userUpdateRequest.getUsername());
+                        if (userWithSameUsername != null && !userWithSameUsername.getId().equals(userId)) {
+                            throw new BusinessException("用户名已存在");
+                        }
+                        existingUser.setUsername(userUpdateRequest.getUsername());
+                    }
+                    if (userUpdateRequest.getEmail() != null) {
+                        existingUser.setEmail(userUpdateRequest.getEmail());
+                    }
+                    userMapper.updateById(existingUser);
+                    log.info("用户ID: {} 的信息更新成功", userId);
+                    return existingUser;
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
 
     /**
      * 更改用户角色。
@@ -66,7 +108,17 @@ public interface UserService {
      * @return 更新后的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
      */
-    User changeRole(Long userId, String roles);
+    @Override
+    public User changeRole(Long userId, String roles) {
+        return Optional.ofNullable(userMapper.selectById(userId))
+                .map(existingUser -> {
+                    existingUser.setRoles(roles);
+                    userMapper.updateById(existingUser);
+                    log.info("用户ID: {} 的角色更新成功为: {}", userId, roles);
+                    return existingUser;
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
 
     /**
      * 更改用户密码。
@@ -76,9 +128,24 @@ public interface UserService {
      * @param newPassword 新密码（明文）。
      * @return 更新后的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
-     * @throws BusinessException 如果旧密码不正确。
+     * @throws BusinessException         如果旧密码不正确。
      */
-    User changePassword(Long userId, String oldPassword, String newPassword);
+    @Override
+    public User changePassword(Long userId, String oldPassword, String newPassword) {
+        return Optional.ofNullable(userMapper.selectById(userId))
+                .map(existingUser -> {
+                    // 验证旧密码是否正确
+                    if (!passwordEncoder.matches(oldPassword, existingUser.getPassword())) {
+                        throw new BusinessException("旧密码不正确");
+                    }
+                    // 加密新密码并设置
+                    existingUser.setPassword(passwordEncoder.encode(newPassword));
+                    userMapper.updateById(existingUser);
+                    log.info("用户ID: {} 的密码更新成功", userId);
+                    return existingUser;
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
 
     /**
      * 封禁用户。
@@ -88,7 +155,17 @@ public interface UserService {
      * @return 更新后的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
      */
-    User blockUser(Long userId);
+    @Override
+    public User blockUser(Long userId) {
+        return Optional.ofNullable(userMapper.selectById(userId))
+                .map(existingUser -> {
+                    existingUser.setStatus(1);
+                    userMapper.updateById(existingUser);
+                    log.info("用户ID: {} 封禁成功", userId);
+                    return existingUser;
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
 
     /**
      * 解封用户。
@@ -98,7 +175,17 @@ public interface UserService {
      * @return 更新后的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
      */
-    User unblockUser(Long userId);
+    @Override
+    public User unblockUser(Long userId) {
+        return Optional.ofNullable(userMapper.selectById(userId))
+                .map(existingUser -> {
+                    existingUser.setStatus(1);
+                    userMapper.updateById(existingUser);
+                    log.info("用户ID: {} 解封成功", userId);
+                    return existingUser;
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
 
     /**
      * 删除用户（逻辑删除）。
@@ -109,5 +196,15 @@ public interface UserService {
      * @return 被删除的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
      */
-    User deleteUser(Long userId);
+    @Override
+    public User deleteUser(Long userId) {
+        return Optional.ofNullable(userMapper.selectById(userId))
+                .map(existingUser -> {
+                    // Mybatis-Plus 的 deleteById 会根据 @TableLogic 注解执行逻辑删除
+                    userMapper.deleteById(userId);
+                    log.info("用户ID: {} 删除成功 (逻辑删除)", userId);
+                    return existingUser;
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
 }

@@ -6,7 +6,6 @@ import com.bryan.platform.model.entity.Post;
 import com.bryan.platform.model.entity.User; // 需要 User 实体来获取作者信息
 import com.bryan.platform.service.AuthService;
 import com.bryan.platform.service.PostService;
-import com.bryan.platform.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
