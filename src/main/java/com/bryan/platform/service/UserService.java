@@ -35,7 +35,7 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final ExcelService excelService;
+    private final ExcelExportService excelExportService;
 
     /**
      * 获取所有用户列表（支持分页，但此处由于接口未提供 Pageable，默认返回所有用户）。
@@ -251,7 +251,7 @@ public class UserService {
 
         // 调用通用ExcelService导出
         String fileName = (request.getFileName() == null || request.getFileName().isEmpty()) ? "用户数据" : request.getFileName();
-        excelService.exportDynamicExcel(response, filteredData, selectedFields, fileName);
+        excelExportService.exportDynamicExcel(response, filteredData, selectedFields, fileName);
         log.info("导出用户数据完成，导出条数：{}", filteredData.size());
     }
 
@@ -276,7 +276,7 @@ public class UserService {
         }).toList();
 
         String finalFileName = (fileName == null || fileName.isEmpty()) ? "用户数据" : fileName;
-        excelService.exportToExcel(response, users, UserExportVO.class, finalFileName);
+        excelExportService.exportToExcel(response, users, UserExportVO.class, finalFileName);
         log.info("导出所有用户数据完成，条数：{}", users.size());
     }
 }

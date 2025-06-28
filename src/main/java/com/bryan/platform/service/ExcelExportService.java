@@ -22,7 +22,7 @@ import java.util.Map;
  * Version: v1.0
  */
 @Service
-public class ExcelService {
+public class ExcelExportService {
 
     /**
      * 导出数据到 Excel 文件（下载）
