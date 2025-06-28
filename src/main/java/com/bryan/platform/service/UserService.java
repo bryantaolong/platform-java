@@ -4,15 +4,18 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
+import com.bryan.platform.model.request.UserExportRequest;
 import com.bryan.platform.model.request.UserUpdateRequest;
 import com.bryan.platform.model.entity.User;
 import com.bryan.platform.dao.mapper.UserMapper;
+import com.bryan.platform.model.vo.UserExportVO;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.*;
 
 
 /**
@@ -26,18 +29,19 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserService {
+public class UserService {
 
     private final UserMapper userMapper;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final ExcelService excelService;
 
     /**
      * 获取所有用户列表（支持分页，但此处由于接口未提供 Pageable，默认返回所有用户）。
      *
      * @return 包含所有用户数据的 Page 对象。
      */
-    @Override
     public Page<User> getAllUsers() {
         // 创建一个 Page 对象，表示获取所有数据，currentPage=1, pageSize=Integer.MAX_VALUE
         // 如果需要真正的分页，UserService 接口的 getAllUsers 方法应接受 Pageable 参数
@@ -51,7 +55,6 @@ public class UserService implements UserService {
      * @param userId 用户的数据库主键 ID。
      * @return 对应的用户实体，如果不存在则返回 null。
      */
-    @Override
     public User getUserById(Long userId) {
         return userMapper.selectById(userId);
     }
@@ -63,7 +66,6 @@ public class UserService implements UserService {
      * @param username 用户名。
      * @return 对应的用户实体，如果不存在则返回 null。
      */
-    @Override
     public User getUserByUsername(String username) {
         return userMapper.selectByUsername(username);
     }
@@ -77,7 +79,6 @@ public class UserService implements UserService {
      * @throws ResourceNotFoundException 如果用户不存在。
      * @throws BusinessException         如果尝试更新的用户名已存在（且不是当前用户自身）。
      */
-    @Override
     public User updateUser(Long userId, UserUpdateRequest userUpdateRequest) {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
@@ -108,7 +109,6 @@ public class UserService implements UserService {
      * @return 更新后的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
      */
-    @Override
     public User changeRole(Long userId, String roles) {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
@@ -130,7 +130,6 @@ public class UserService implements UserService {
      * @throws ResourceNotFoundException 如果用户不存在。
      * @throws BusinessException         如果旧密码不正确。
      */
-    @Override
     public User changePassword(Long userId, String oldPassword, String newPassword) {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
@@ -155,7 +154,6 @@ public class UserService implements UserService {
      * @return 更新后的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
      */
-    @Override
     public User blockUser(Long userId) {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
@@ -175,7 +173,6 @@ public class UserService implements UserService {
      * @return 更新后的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
      */
-    @Override
     public User unblockUser(Long userId) {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
@@ -196,7 +193,6 @@ public class UserService implements UserService {
      * @return 被删除的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
      */
-    @Override
     public User deleteUser(Long userId) {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
@@ -206,5 +202,81 @@ public class UserService implements UserService {
                     return existingUser;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
+    private static final LinkedHashMap<String, String> EXPORT_FIELDS;
+    static {
+        EXPORT_FIELDS = new LinkedHashMap<>();
+        EXPORT_FIELDS.put("id", "用户ID");
+        EXPORT_FIELDS.put("username", "用户名");
+        EXPORT_FIELDS.put("email", "邮箱");
+        EXPORT_FIELDS.put("roles", "角色");
+        EXPORT_FIELDS.put("statusText", "状态");
+        EXPORT_FIELDS.put("createTime", "创建时间");
+        EXPORT_FIELDS.put("updateTime", "更新时间");
+    }
+
+    /**
+     * 支持动态字段选择的用户数据导出
+     */
+    public void exportUsers(HttpServletResponse response, UserExportRequest request) {
+        List<Map<String, Object>> userData = userMapper.selectUsersForExport(request.getStatus());
+
+        // 状态字段转换成文字显示
+        for (Map<String, Object> row : userData) {
+            Integer status = (Integer) row.get("status");
+            row.put("statusText", status != null && status == 0 ? "正常" : "封禁");
+        }
+
+        // 根据请求字段过滤（默认导出全部）
+        LinkedHashMap<String, String> selectedFields = new LinkedHashMap<>();
+        if (request.getFields() == null || request.getFields().isEmpty()) {
+            selectedFields.putAll(EXPORT_FIELDS);
+        } else {
+            for (String key : EXPORT_FIELDS.keySet()) {
+                if (request.getFields().contains(key)) {
+                    selectedFields.put(key, EXPORT_FIELDS.get(key));
+                }
+            }
+        }
+
+        // 过滤数据字段，只保留选中的字段
+        List<Map<String, Object>> filteredData = new ArrayList<>();
+        for (Map<String, Object> row : userData) {
+            Map<String, Object> filteredRow = new LinkedHashMap<>();
+            for (String key : selectedFields.keySet()) {
+                filteredRow.put(key, row.get(key));
+            }
+            filteredData.add(filteredRow);
+        }
+
+        // 调用通用ExcelService导出
+        String fileName = (request.getFileName() == null || request.getFileName().isEmpty()) ? "用户数据" : request.getFileName();
+        excelService.exportDynamicExcel(response, filteredData, selectedFields, fileName);
+        log.info("导出用户数据完成，导出条数：{}", filteredData.size());
+    }
+
+    /**
+     * 导出所有用户数据，包含所有字段（实体类方式）
+     */
+    public void exportAllUsers(HttpServletResponse response, Integer status, String fileName) {
+        List<UserExportVO> users = userMapper.selectUsersForExport(status).stream().map(map -> {
+            UserExportVO vo = new UserExportVO();
+            vo.setId(Long.valueOf(map.get("id").toString()));
+            vo.setUsername((String) map.get("username"));
+            vo.setEmail((String) map.get("email"));
+            vo.setRoles((String) map.get("roles"));
+
+            Integer s = (Integer) map.get("status");
+            vo.setStatus(s);
+            vo.setStatusText(s != null && s == 0 ? "正常" : "封禁");
+
+            vo.setCreateTime((String) map.get("createTime"));
+            vo.setUpdateTime((String) map.get("updateTime"));
+            return vo;
+        }).toList();
+
+        String finalFileName = (fileName == null || fileName.isEmpty()) ? "用户数据" : fileName;
+        excelService.exportToExcel(response, users, UserExportVO.class, finalFileName);
+        log.info("导出所有用户数据完成，条数：{}", users.size());
     }
 }

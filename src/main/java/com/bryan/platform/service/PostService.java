@@ -27,7 +27,7 @@ import java.util.UUID; // 用于生成评论 ID
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostService implements PostService {
+public class PostService {
 
     private final PostRepository postRepository;
 
@@ -39,7 +39,6 @@ public class PostService implements PostService {
      * @param authorName 作者名称 (MySQL User 的 username)
      * @return 创建后的博文实体
      */
-    @Override
     public Post createPost(Post post, Long authorId, String authorName) {
         // 设置作者 ID 和作者名称
         post.setAuthorId(authorId);
@@ -66,7 +65,6 @@ public class PostService implements PostService {
      * @return 更新后的博文实体
      * @throws RuntimeException 如果博文不存在或无权限
      */
-    @Override
     public Post updatePost(String id, Post postUpdates, Long currentUserId, boolean isAdmin) {
         return postRepository.findById(id)
                 .map(existingPost -> {
@@ -105,7 +103,6 @@ public class PostService implements PostService {
      * @param isAdmin 当前操作用户是否为管理员，用于权限校验
      * @throws RuntimeException 如果博文不存在或无权限
      */
-    @Override
     public void deletePost(String id, Long currentUserId, boolean isAdmin) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
@@ -124,7 +121,6 @@ public class PostService implements PostService {
      * @return 博文实体
      * @throws RuntimeException 如果博文不存在
      */
-    @Override
     public Post getPostBySlug(String slug) {
         return postRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Post not found with slug: " + slug));
@@ -137,7 +133,6 @@ public class PostService implements PostService {
      * @return 博文实体
      * @throws RuntimeException 如果博文不存在
      */
-    @Override
     public Post getPostById(String id) {
         return postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
@@ -149,7 +144,6 @@ public class PostService implements PostService {
      * @param pageable 分页信息
      * @return 分页的博文列表
      */
-    @Override
     public Page<Post> getPublishedPosts(Pageable pageable) {
         return postRepository.findByStatusOrderByCreatedAtDesc(Post.PostStatus.PUBLISHED, pageable);
     }
@@ -164,7 +158,6 @@ public class PostService implements PostService {
      * @return 添加评论后的 Post 实体（包含新的评论）
      * @throws RuntimeException 如果博文不存在
      */
-    @Override
     public Post addComment(String postId, Comment comment, Long authorId, String authorName) {
         // 验证博文是否存在
         Post post = postRepository.findById(postId)
@@ -185,7 +178,6 @@ public class PostService implements PostService {
      *
      * @param postId 博文ID (String 类型)
      */
-    @Override
     public void incrementViews(String postId) {
         postRepository.findById(postId).ifPresent(post -> {
             post.getStats().setViews(post.getStats().getViews() + 1);
@@ -199,7 +191,6 @@ public class PostService implements PostService {
      * @param keyword 搜索关键词
      * @return 匹配的博文列表
      */
-    @Override
     public List<Post> fullTextSearch(String keyword) {
         // 利用 MongoDB 的文本索引
         return postRepository.fullTextSearch(keyword);
@@ -212,7 +203,6 @@ public class PostService implements PostService {
      * @param limit         推荐数量限制
      * @return 推荐的博文列表
      */
-    @Override
     public List<Post> recommendPosts(String currentPostId, int limit) {
         Post currentPost = postRepository.findById(currentPostId)
                 .orElseThrow(() -> new RuntimeException("Current post not found with id: " + currentPostId));
@@ -241,7 +231,6 @@ public class PostService implements PostService {
      * @return 更新后的博文实体
      * @throws RuntimeException 如果博文或评论不存在或无权限
      */
-    @Override
     public Post deleteComment(String postId, String commentId, Long currentUserId, boolean isAdmin) {
         return postRepository.findById(postId)
                 .map(post -> {

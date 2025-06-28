@@ -36,7 +36,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/user/login", "/api/user/register").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         .requestMatchers("/api/posts/search", "/api/posts/recommendations/{currentPostId}").permitAll()
                         .requestMatchers("/api/chat/**").permitAll()
                         .anyRequest().authenticated()

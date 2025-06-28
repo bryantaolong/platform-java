@@ -1,16 +1,21 @@
 package com.bryan.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bryan.platform.model.request.UserExportRequest;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.request.UserUpdateRequest;
 import com.bryan.platform.model.entity.User;
 import com.bryan.platform.model.request.ChangePasswordRequest;
 import com.bryan.platform.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * ClassName: UserController
@@ -139,5 +144,45 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public Result<User> deleteUser(@PathVariable Long userId) {
         return Result.success(userService.deleteUser(userId));
+    }
+
+    /**
+     * 导出用户数据（支持字段选择）
+     * 只有管理员可以导出用户数据
+     */
+    @PostMapping("/export")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void exportUsers(HttpServletResponse response,
+                            @RequestBody UserExportRequest request) {
+        userService.exportUsers(response, request);
+    }
+
+    /**
+     * 导出所有用户数据（包含所有字段）
+     * 只有管理员可以导出用户数据
+     */
+    @GetMapping("/export/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void exportAllUsers(HttpServletResponse response,
+                               @RequestParam(required = false) Integer status,
+                               @RequestParam(required = false, defaultValue = "用户数据") String fileName) {
+        userService.exportAllUsers(response, status, fileName);
+    }
+
+    /**
+     * 获取可导出的字段列表（供前端选择）
+     */
+    @GetMapping("/export/fields")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<Map<String, String>> getExportFields() {
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("id", "用户ID");
+        fields.put("username", "用户名");
+        fields.put("email", "邮箱");
+        fields.put("roles", "角色");
+        fields.put("statusText", "状态");
+        fields.put("createTime", "创建时间");
+        fields.put("updateTime", "更新时间");
+        return Result.success(fields);
     }
 }

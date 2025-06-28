@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(rollbackFor = Exception.class) // 启用事务管理，遇到异常回滚
 @RequiredArgsConstructor
-public class PostFavoriteService implements PostFavoriteService {
+public class PostFavoriteService {
 
     private final FavoriteMapper favoriteMapper;
 
@@ -51,7 +51,6 @@ public class PostFavoriteService implements PostFavoriteService {
      * @return 该用户收藏的博文分页列表。
      * @throws ResourceNotFoundException 如果用户不存在。
      */
-    @Override
     public Page<Post> getFavoritePostsByUserId(Long userId, Pageable pageable) {
         // 1. 检查用户是否存在
         User user = userService.getUserById(userId);
@@ -91,7 +90,6 @@ public class PostFavoriteService implements PostFavoriteService {
      * @throws ResourceNotFoundException 如果用户或博文不存在。
      * @throws BusinessException 如果博文已被收藏。
      */
-    @Override
     public int addFavorite(Long userId, String postId) {
         // 1. 校验用户是否存在
         User user = userService.getUserById(userId);
@@ -138,7 +136,6 @@ public class PostFavoriteService implements PostFavoriteService {
      * @return 成功删除的记录数 (通常为 1)。
      * @throws ResourceNotFoundException 如果收藏记录不存在。
      */
-    @Override
     public int deleteFavoriteById(String postFavoriteId) {
         PostFavorite existingFavorite = favoriteMapper.selectById(postFavoriteId);
         if (existingFavorite == null || existingFavorite.getDeleted() == 1) { // 检查是否已存在且未删除
@@ -160,7 +157,6 @@ public class PostFavoriteService implements PostFavoriteService {
      * @return 成功删除的记录数 (通常为 1)。
      * @throws ResourceNotFoundException 如果收藏记录不存在。
      */
-    @Override
     public int deleteFavoriteByUserIdAndPostId(Long userId, String postId) {
         QueryWrapper<PostFavorite> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId.toString());
@@ -186,7 +182,6 @@ public class PostFavoriteService implements PostFavoriteService {
      * @param postId 要检查的博文ID (MongoDB ID)。
      * @return 如果已收藏返回 true，否则返回 false。
      */
-    @Override
     public Boolean checkFavorite(Long userId, String postId) {
         // 获取当前认证用户的ID
 

@@ -21,12 +21,12 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserFollowService implements UserFollowService {
+public class UserFollowService {
 
     private final UserFollowMapper userFollowMapper;
+
     private final UserMapper userMapper;
 
-    @Override
     public Boolean followUser(Long followerId, Long followingId) {
         // 验证用户是否存在
         if (userMapper.selectById(followerId) == null) {
@@ -44,7 +44,6 @@ public class UserFollowService implements UserFollowService {
         return userFollowMapper.insertFollow(followerId, followingId) > 0;
     }
 
-    @Override
     public Boolean unfollowUser(Long followerId, Long followingId) {
         if (!isFollowing(followerId, followingId)) {
             throw new RuntimeException("您尚未关注该用户");
@@ -52,7 +51,6 @@ public class UserFollowService implements UserFollowService {
         return userFollowMapper.deleteFollow(followerId, followingId) > 0;
     }
 
-    @Override
     public Page<User> getFollowingUsers(Long userId, Integer pageNum, Integer pageSize) {
         if (userMapper.selectById(userId) == null) {
             throw new RuntimeException("用户不存在");
@@ -71,7 +69,6 @@ public class UserFollowService implements UserFollowService {
         return page.setRecords(records).setTotal(total);
     }
 
-    @Override
     public Page<User> getFollowerUsers(Long userId, Integer pageNum, Integer pageSize) {
         if (userMapper.selectById(userId) == null) {
             throw new RuntimeException("用户不存在");
@@ -90,7 +87,6 @@ public class UserFollowService implements UserFollowService {
         return page.setRecords(records).setTotal(total);
     }
 
-    @Override
     public Boolean isFollowing(Long followerId, Long followingId) {
         if (userMapper.selectById(followerId) == null) {
             throw new RuntimeException("未登录无法查看关注列表");
