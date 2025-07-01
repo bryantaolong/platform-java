@@ -1,15 +1,10 @@
 package com.bryan.platform.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bryan.platform.common.exception.BusinessException;
-import com.bryan.platform.common.exception.ResourceNotFoundException;
-import com.bryan.platform.common.util.JwtUtil;
+import com.bryan.platform.util.JwtUtil;
 import com.bryan.platform.dao.mapper.UserMapper;
 import com.bryan.platform.model.entity.User;
 import com.bryan.platform.model.request.LoginRequest;
 import com.bryan.platform.model.request.RegisterRequest;
-import com.bryan.platform.model.request.UserUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * ClassName: AuthService

@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static cn.hutool.core.lang.Console.log;
+
 
 /**
  * ClassName: UserServiceImpl
@@ -73,7 +75,7 @@ public class UserService {
     /**
      * 更新用户基本信息。
      *
-     * @param userId  要更新的用户ID。
+     * @param userId            要更新的用户ID。
      * @param userUpdateRequest 包含需要更新的用户信息（用户名、邮箱）。密码和角色修改请使用专门方法。
      * @return 更新后的用户实体。
      * @throws ResourceNotFoundException 如果用户不存在。
@@ -94,7 +96,7 @@ public class UserService {
                         existingUser.setEmail(userUpdateRequest.getEmail());
                     }
                     userMapper.updateById(existingUser);
-                    log.info("用户ID: {} 的信息更新成功", userId);
+                    UserService.log.info("用户ID: {} 的信息更新成功", userId);
                     return existingUser;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
@@ -114,7 +116,7 @@ public class UserService {
                 .map(existingUser -> {
                     existingUser.setRoles(roles);
                     userMapper.updateById(existingUser);
-                    log.info("用户ID: {} 的角色更新成功为: {}", userId, roles);
+                    UserService.log.info("用户ID: {} 的角色更新成功为: {}", userId, roles);
                     return existingUser;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
@@ -140,7 +142,7 @@ public class UserService {
                     // 加密新密码并设置
                     existingUser.setPassword(passwordEncoder.encode(newPassword));
                     userMapper.updateById(existingUser);
-                    log.info("用户ID: {} 的密码更新成功", userId);
+                    UserService.log.info("用户ID: {} 的密码更新成功", userId);
                     return existingUser;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
@@ -159,7 +161,7 @@ public class UserService {
                 .map(existingUser -> {
                     existingUser.setStatus(1);
                     userMapper.updateById(existingUser);
-                    log.info("用户ID: {} 封禁成功", userId);
+                    UserService.log.info("用户ID: {} 封禁成功", userId);
                     return existingUser;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
@@ -178,10 +180,16 @@ public class UserService {
                 .map(existingUser -> {
                     existingUser.setStatus(1);
                     userMapper.updateById(existingUser);
-                    log.info("用户ID: {} 解封成功", userId);
+                    UserService.log.info("用户ID: {} 解封成功", userId);
                     return existingUser;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
+
+    public void validateUserExists(Long userId) {
+        if(userMapper.selectById(userId) == null) {
+            throw new BusinessException("UserService.validateUserExists: user does not exists");
+        }
     }
 
     /**
@@ -198,12 +206,14 @@ public class UserService {
                 .map(existingUser -> {
                     // Mybatis-Plus 的 deleteById 会根据 @TableLogic 注解执行逻辑删除
                     userMapper.deleteById(userId);
-                    log.info("用户ID: {} 删除成功 (逻辑删除)", userId);
+                    UserService.log.info("用户ID: {} 删除成功 (逻辑删除)", userId);
                     return existingUser;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
     }
+
     private static final LinkedHashMap<String, String> EXPORT_FIELDS;
+
     static {
         EXPORT_FIELDS = new LinkedHashMap<>();
         EXPORT_FIELDS.put("id", "用户ID");
@@ -252,7 +262,7 @@ public class UserService {
         // 调用通用ExcelService导出
         String fileName = (request.getFileName() == null || request.getFileName().isEmpty()) ? "用户数据" : request.getFileName();
         excelExportService.exportDynamicExcel(response, filteredData, selectedFields, fileName);
-        log.info("导出用户数据完成，导出条数：{}", filteredData.size());
+        UserService.log.info("导出用户数据完成，导出条数：{}", filteredData.size());
     }
 
     /**
@@ -277,6 +287,6 @@ public class UserService {
 
         String finalFileName = (fileName == null || fileName.isEmpty()) ? "用户数据" : fileName;
         excelExportService.exportToExcel(response, users, UserExportVO.class, finalFileName);
-        log.info("导出所有用户数据完成，条数：{}", users.size());
+        UserService.log.info("导出所有用户数据完成，条数：{}", users.size());
     }
 }

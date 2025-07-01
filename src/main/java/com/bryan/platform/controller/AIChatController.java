@@ -22,9 +22,9 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/chat")
+@RequestMapping("/api/ai/chat")
 @RequiredArgsConstructor
-public class ChatController {
+public class AIChatController {
 
     private final DeepSeekService deepSeekService;
 

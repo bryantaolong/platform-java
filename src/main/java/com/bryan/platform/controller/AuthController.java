@@ -1,6 +1,5 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.common.util.JwtUtil;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.request.LoginRequest;
 import com.bryan.platform.model.entity.User;

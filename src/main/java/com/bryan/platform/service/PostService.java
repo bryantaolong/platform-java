@@ -10,11 +10,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils; // 引入 StringUtils
 
 import java.time.LocalDateTime;
+import java.util.ArrayList; // 确保导入，用于初始化评论列表
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID; // 用于生成评论 ID
+import java.util.Optional; // 引入 Optional
+import java.util.UUID;
 
 /**
  * ClassName: PostServiceImpl
@@ -43,15 +46,28 @@ public class PostService {
         // 设置作者 ID 和作者名称
         post.setAuthorId(authorId);
         post.setAuthorName(authorName);
-        post.setSlug(generateSlug(post.getTitle()));
+
+        // **核心修复：生成唯一的 slug**
+        post.setSlug(generateUniqueSlug(post.getTitle(), null)); // null 表示没有要排除的旧ID
+
         post.setStatus(Post.PostStatus.DRAFT); // 默认草稿状态
         // createdAt 和 updatedAt 由 Spring Data MongoDB 自动填充，但为了明确性也可以手动设置
-        // post.setCreatedAt(LocalDateTime.now());
-        // post.setUpdatedAt(LocalDateTime.now());
-        // 初始化统计数据
+        if (post.getCreatedAt() == null) { // 确保没有重复设置
+            post.setCreatedAt(LocalDateTime.now());
+        }
+        post.setUpdatedAt(LocalDateTime.now());
+
+        // 初始化统计数据、评论和标签列表，防止 NPE
         if (post.getStats() == null) {
             post.setStats(new Post.PostStats());
         }
+        if (post.getComments() == null) { // 确保评论列表不为 null
+            post.setComments(new ArrayList<>());
+        }
+        if (post.getTags() == null) { // 确保标签集合不为 null
+            post.setTags(new ArrayList<>());
+        }
+
         return postRepository.save(post);
     }
 
@@ -73,14 +89,15 @@ public class PostService {
                         throw new RuntimeException("Unauthorized: You are not the author of this post.");
                     }
 
-                    if (postUpdates.getTitle() != null) {
+                    boolean titleChanged = false;
+                    if (postUpdates.getTitle() != null && !postUpdates.getTitle().equals(existingPost.getTitle())) {
                         existingPost.setTitle(postUpdates.getTitle());
-                        existingPost.setSlug(generateSlug(postUpdates.getTitle())); // 标题更新，slug也更新
+                        titleChanged = true;
                     }
                     if (postUpdates.getContent() != null) {
                         existingPost.setContent(postUpdates.getContent());
                     }
-                    if (postUpdates.getTags() != null) { // 直接设置 List<String> 标签
+                    if (postUpdates.getTags() != null) {
                         existingPost.setTags(postUpdates.getTags());
                     }
                     if (postUpdates.getStatus() != null) {
@@ -89,7 +106,19 @@ public class PostService {
                     if (postUpdates.getFeaturedImage() != null) {
                         existingPost.setFeaturedImage(postUpdates.getFeaturedImage());
                     }
-                    // updatedAt 由 Spring Data MongoDB 自动填充
+
+                    // **核心修复：如果标题改变，重新生成 slug，并确保其唯一性**
+                    if (titleChanged) {
+                        existingPost.setSlug(generateUniqueSlug(existingPost.getTitle(), existingPost.getId()));
+                    } else if (postUpdates.getSlug() != null && !postUpdates.getSlug().equals(existingPost.getSlug())) {
+                        // 如果前端明确提供了新的 slug 并且与旧的不同，也更新并验证唯一性
+                        existingPost.setSlug(generateUniqueSlug(postUpdates.getSlug(), existingPost.getId()));
+                    } else if (StringUtils.isEmpty(existingPost.getSlug())) {
+                        // 如果现有 slug 为空（针对旧数据），也要生成
+                        existingPost.setSlug(generateUniqueSlug(existingPost.getTitle(), existingPost.getId()));
+                    }
+
+                    existingPost.setUpdatedAt(LocalDateTime.now()); // 更新时间
                     return postRepository.save(existingPost);
                 })
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
@@ -122,6 +151,10 @@ public class PostService {
      * @throws RuntimeException 如果博文不存在
      */
     public Post getPostBySlug(String slug) {
+        // 确保 slug 不为 null 或空，避免后端查询 null
+        if (slug == null || slug.trim().isEmpty()) {
+            throw new RuntimeException("Invalid slug: slug cannot be null or empty.");
+        }
         return postRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Post not found with slug: " + slug));
     }
@@ -169,6 +202,10 @@ public class PostService {
         comment.setAuthorName(authorName); // 设置评论作者名称
         comment.setCreatedAt(LocalDateTime.now());
 
+        // 确保评论列表已初始化
+        if (post.getComments() == null) {
+            post.setComments(new ArrayList<>());
+        }
         post.getComments().add(comment); // 将评论添加到内嵌列表中
         return postRepository.save(post); // 保存更新后的 Post 文档
     }
@@ -208,7 +245,7 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("Current post not found with id: " + currentPostId));
 
         List<String> tags = currentPost.getTags(); // 获取当前博文的标签列表
-        if (tags.isEmpty()) {
+        if (tags == null || tags.isEmpty()) { // 检查 tags 是否为 null 或空
             return Collections.emptyList(); // 如果没有标签，不进行推荐
         }
 
@@ -234,6 +271,10 @@ public class PostService {
     public Post deleteComment(String postId, String commentId, Long currentUserId, boolean isAdmin) {
         return postRepository.findById(postId)
                 .map(post -> {
+                    // 确保评论列表已初始化，否则查找会报错
+                    if (post.getComments() == null) {
+                        post.setComments(new ArrayList<>());
+                    }
                     // 找到要删除的评论
                     Comment commentToRemove = post.getComments().stream()
                             .filter(comment -> comment.getId().equals(commentId))
@@ -253,12 +294,54 @@ public class PostService {
 
 
     /**
-     * 生成博文的 Slug。
+     * 生成一个唯一的 slug。
      *
-     * @param title 博文标题
-     * @return 生成的 Slug 字符串
+     * @param title      博文标题或基础字符串
+     * @param excludeId  要排除的博文ID (用于更新时避免和自身冲突)，如果是创建新博文则传 null
+     * @return 唯一的 slug
      */
-    private String generateSlug(String title) {
-        return title;
+    private String generateUniqueSlug(String title, String excludeId) {
+        // 1. 清理并标准化标题
+        String baseSlug = title == null ? "post" : title.toLowerCase()
+                .replaceAll("[^a-zA-Z0-9\\u4e00-\\u9fa5\\s-]", "") // 允许字母、数字、中文、空格、连字符
+                .replaceAll("\\s+", "-")       // 将空格替换为连字符
+                .replaceAll("-+", "-")         // 替换多个连字符为单个
+                .trim();
+
+        if (baseSlug.isEmpty()) { // 防止空标题生成空slug
+            baseSlug = "post";
+        }
+        // 移除开头和结尾的连字符，以防万一
+        if (baseSlug.startsWith("-")) {
+            baseSlug = baseSlug.substring(1);
+        }
+        if (baseSlug.endsWith("-")) {
+            baseSlug = baseSlug.substring(0, baseSlug.length() - 1);
+        }
+        if (baseSlug.isEmpty()) { // 再次检查是否为空，如果只包含特殊字符导致清理后为空
+            baseSlug = "untitled-post";
+        }
+
+
+        String uniqueSlug = baseSlug;
+        int counter = 0;
+        // 2. 检查唯一性并添加后缀
+        while (true) {
+            Optional<Post> existingPost = postRepository.findBySlug(uniqueSlug);
+            if (existingPost.isPresent()) {
+                // 如果找到现有博文，且其ID不是当前正在更新的博文ID (excludeId)
+                if (excludeId == null || !existingPost.get().getId().equals(excludeId)) {
+                    counter++;
+                    uniqueSlug = baseSlug + "-" + counter;
+                } else {
+                    // 找到的博文就是当前正在更新的博文，说明 slug 唯一
+                    break;
+                }
+            } else {
+                // 没有找到同 slug 的博文，说明 slug 唯一
+                break;
+            }
+        }
+        return uniqueSlug;
     }
 }

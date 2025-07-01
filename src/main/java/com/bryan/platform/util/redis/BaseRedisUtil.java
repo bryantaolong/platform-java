@@ -1,4 +1,4 @@
-package com.bryan.platform.common.util.redis;
+package com.bryan.platform.util.redis;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
