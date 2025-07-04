@@ -62,12 +62,26 @@ public class PostController {
     }
 
     /**
+     * 根据博文 ID 获取详情。
+     * 此接口对所有用户开放（包括未登录用户）。
+     *
+     * @param id 博文 ID (MongoDB 的 String 类型 ID)
+     * @return 博文实体
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Result<Post>> getPostById(@PathVariable String id) {
+        return ResponseEntity.ok(Result.success(postService.getPostById(id)));
+    }
+
+
+    /**
      * 根据 Slug 获取单篇博文详情，并自动增加该博文的浏览量。
      *
      * @param slug 博文的唯一标识符（URL 友好）。
      * @return 博文实体。
      */
-    @GetMapping("/{slug}")
+    @GetMapping("/slug/{slug}")
     public ResponseEntity<Result<Post>> getPostBySlug(@PathVariable String slug) {
         Post post = postService.getPostBySlug(slug);
         postService.incrementViews(post.getId()); // 增加浏览量，MongoDB 的 ID 是 String 类型
