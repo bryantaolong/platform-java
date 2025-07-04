@@ -1,6 +1,6 @@
 # Platform
 
-My Platform System.
+My Platform system backend service code source
 
 ## Environment
 
