@@ -29,6 +29,7 @@ public class AIChatController {
     private final DeepSeekService deepSeekService;
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public Map<String, String> chat(@RequestBody Map<String, String> payload) {
         log.info("Received message: {}", payload.get("message"));
 
