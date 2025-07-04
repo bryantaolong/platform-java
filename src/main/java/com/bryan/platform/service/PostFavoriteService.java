@@ -183,13 +183,20 @@ public class PostFavoriteService {
      * @return 如果已收藏返回 true，否则返回 false。
      */
     public Boolean checkFavorite(Long userId, String postId) {
-        // 获取当前认证用户的ID
-
         QueryWrapper<PostFavorite> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("post_id", postId);
         queryWrapper.eq("deleted", 0); // 只检查未逻辑删除的记录
 
+        Long count = favoriteMapper.selectCount(queryWrapper);
+        return count > 0;
+    }
+
+    public Boolean checkFavoriteOwnership(String favoriteId, Long userId) {
+        QueryWrapper<PostFavorite> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId.toString());
+        queryWrapper.eq("favoriteId", favoriteId);
+        queryWrapper.eq("deleted", 0);
         Long count = favoriteMapper.selectCount(queryWrapper);
         return count > 0;
     }

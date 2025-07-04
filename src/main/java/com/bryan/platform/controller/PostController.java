@@ -1,5 +1,6 @@
 package com.bryan.platform.controller;
 
+import com.bryan.platform.common.constant.ErrorCode;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.entity.Comment; // 需要 Comment 实体
 import com.bryan.platform.model.entity.Post;
@@ -11,8 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -48,7 +47,7 @@ public class PostController {
      * @return 包含分页博文数据的 ResponseEntity。
      */
     @GetMapping
-    public ResponseEntity<Result<Page<Post>>> getAllPublishedPosts(
+    public Result<Page<Post>> getAllPublishedPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -58,7 +57,7 @@ public class PostController {
         // 创建 Pageable 对象，包含分页和排序信息
         Pageable pageable = PageRequest.of(page, size, sort);
         // 调用服务层方法获取分页博文
-        return ResponseEntity.ok(Result.success(postService.getPublishedPosts(pageable)));
+        return Result.success(postService.getPublishedPosts(pageable));
     }
 
     /**
@@ -69,9 +68,8 @@ public class PostController {
      * @return 博文实体
      */
     @GetMapping("/{id}")
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<Result<Post>> getPostById(@PathVariable String id) {
-        return ResponseEntity.ok(Result.success(postService.getPostById(id)));
+    public Result<Post> getPostById(@PathVariable String id) {
+        return Result.success(postService.getPostById(id));
     }
 
 
@@ -82,10 +80,10 @@ public class PostController {
      * @return 博文实体。
      */
     @GetMapping("/slug/{slug}")
-    public ResponseEntity<Result<Post>> getPostBySlug(@PathVariable String slug) {
+    public Result<Post> getPostBySlug(@PathVariable String slug) {
         Post post = postService.getPostBySlug(slug);
         postService.incrementViews(post.getId()); // 增加浏览量，MongoDB 的 ID 是 String 类型
-        return ResponseEntity.ok(Result.success(post));
+        return Result.success(post);
     }
 
     /**
@@ -96,16 +94,14 @@ public class PostController {
      * @return 创建后的博文实体。
      */
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED) // HTTP 状态码 201 Created
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Result<Post>> createPost(
+    public Result<Post> createPost(
             @RequestBody Post post) {
         // 从 Spring Security 的 UserDetails 中获取用户名，并通过 UserService 加载完整的用户实体
         User currentUser = authService.getCurrentUser();
         Long authorId = currentUser.getId(); // 获取用户ID (MySQL 中的 Long 类型 ID)
         String authorName = currentUser.getUsername(); // 获取用户名作为作者名称
 
-        return ResponseEntity.ok(Result.success(postService.createPost(post, authorId, authorName)));
+        return Result.success(postService.createPost(post, authorId, authorName));
     }
 
     /**
@@ -119,7 +115,7 @@ public class PostController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    public ResponseEntity<Result<Post>> updatePost(
+    public Result<Post> updatePost(
             @PathVariable String id, // 从 URL 路径中获取博文 ID
             @RequestBody Post postUpdates,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -129,7 +125,7 @@ public class PostController {
         boolean isAdmin = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")); // 检查是否为管理员
 
-        return ResponseEntity.ok(Result.success(postService.updatePost(id, postUpdates, currentUserId, isAdmin)));
+        return Result.success(postService.updatePost(id, postUpdates, currentUserId, isAdmin));
     }
 
     /**
@@ -142,7 +138,7 @@ public class PostController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Result<Void>> deletePost(
+    public Result<Void> deletePost(
             @PathVariable String id, // 从 URL 路径中获取博文 ID
             @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -152,7 +148,7 @@ public class PostController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         postService.deletePost(id, currentUserId, isAdmin);
-        return ResponseEntity.noContent().build(); // 返回 204 No Content 状态码
+        return Result.error(ErrorCode.INTERNAL_ERROR);
     }
 
     /**
@@ -165,8 +161,7 @@ public class PostController {
      * @return 添加评论后的完整博文实体（因为评论内嵌在博文文档中）。
      */
     @PostMapping("/{postId}/comments")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Result<Post>> addComment(
+    public Result<Post> addComment(
             @PathVariable String postId, // 从 URL 路径中获取博文 ID
             @RequestBody Comment comment,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -175,7 +170,7 @@ public class PostController {
         Long authorId = currentUser.getId(); // 获取评论作者的用户ID (MySQL 中的 Long 类型 ID)
         String authorName = currentUser.getUsername(); // 获取评论作者的用户名
 
-        return ResponseEntity.ok(Result.success(postService.addComment(postId, comment, authorId, authorName)));
+        return Result.success(postService.addComment(postId, comment, authorId, authorName));
     }
 
     /**
@@ -189,7 +184,7 @@ public class PostController {
      */
     @DeleteMapping("/{postId}/comments/{commentId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Result<Post>> deleteComment(
+    public Result<Post> deleteComment(
             @PathVariable String postId, // 从 URL 路径中获取博文 ID
             @PathVariable String commentId, // 从 URL 路径中获取评论 ID
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -200,7 +195,7 @@ public class PostController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         Post updatedPost = postService.deleteComment(postId, commentId, currentUserId, isAdmin);
-        return ResponseEntity.ok(Result.success(updatedPost));
+        return Result.success(updatedPost);
     }
 
 
@@ -212,9 +207,8 @@ public class PostController {
      * @return 匹配关键词的博文列表。
      */
     @GetMapping("/search")
-    @PreAuthorize("true")
-    public ResponseEntity<Result<List<Post>>> searchPosts(@RequestParam String query) {
-        return ResponseEntity.ok(Result.success(postService.fullTextSearch(query)));
+    public Result<List<Post>> searchPosts(@RequestParam String query) {
+        return Result.success(postService.fullTextSearch(query));
     }
 
     /**
@@ -227,11 +221,10 @@ public class PostController {
      * @return 推荐的博文列表。
      */
     @GetMapping("/recommendations/{currentPostId}")
-    @PreAuthorize("true")
-    public ResponseEntity<Result<List<Post>>> getRecommendations(
+    public Result<List<Post>> getRecommendations(
             @PathVariable String currentPostId, // 从 URL 路径中获取当前博文 ID
             @RequestParam(defaultValue = "5") int limit) {
         List<Post> recommendedPosts = postService.recommendPosts(currentPostId, limit);
-        return ResponseEntity.ok(Result.success(recommendedPosts));
+        return Result.success(recommendedPosts);
     }
 }

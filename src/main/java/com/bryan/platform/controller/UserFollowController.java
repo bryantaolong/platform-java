@@ -7,7 +7,6 @@ import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.entity.User;
 import com.bryan.platform.service.UserFollowService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -26,7 +25,6 @@ public class UserFollowController {
     private final UserFollowService userFollowService;
 
     @PostMapping("/follow/{followingId}")
-    @PreAuthorize("hasRole('USER')")
     public Result<Boolean> followUser(
             @PathVariable Long followingId) {
         try {
@@ -38,7 +36,6 @@ public class UserFollowController {
     }
 
     @PostMapping("/unfollow/{followingId}")
-    @PreAuthorize("hasRole('USER')")
     public Result<Boolean> unfollowUser(
             @PathVariable Long followingId) {
         try {

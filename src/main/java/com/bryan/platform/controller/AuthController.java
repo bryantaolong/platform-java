@@ -59,7 +59,6 @@ public class AuthController {
      * @return 当前认证用户的实体。
      */
     @GetMapping("/me")
-    @PreAuthorize("isAuthenticated()")
     public Result<User> getCurrentUser() {
         return Result.success(authService.getCurrentUser());
     }

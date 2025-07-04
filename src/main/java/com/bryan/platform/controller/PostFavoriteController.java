@@ -45,9 +45,7 @@ public class PostFavoriteController {
      * @return 收藏博文的分页数据
      */
     @GetMapping("/my")
-    // 只有认证用户才能访问
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Result<Page<Post>>> getMyFavorites(
+    public Result<Page<Post>> getMyFavorites(
             @PageableDefault(size = 10, sort = {"createdAt"}, direction = Sort.Direction.DESC) Pageable pageable) {
 
         Long currentUserId = JwtUtil.getCurrentUserId();
@@ -55,13 +53,13 @@ public class PostFavoriteController {
         if (currentUserId == null) {
             log.warn("未认证用户尝试访问收藏列表。");
             // Corrected: Use ErrorCode.UNAUTHORIZED
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。"));
+            return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
         }
 
         log.info("获取用户ID: {} 的收藏列表, 分页信息: {}", currentUserId, pageable);
         Page<Post> favoritePosts = postFavoriteService.getFavoritePostsByUserId(currentUserId, pageable);
         // Using Result.success to wrap the paginated data
-        return ResponseEntity.ok(Result.success(favoritePosts));
+        return Result.success(favoritePosts);
     }
 
     /**
@@ -73,19 +71,18 @@ public class PostFavoriteController {
      * @return 成功信息
      */
     @PostMapping
-    @PreAuthorize("isAuthenticated()") // 只有认证用户才能添加收藏
-    public ResponseEntity<Result<String>> addFavorite(@Valid @RequestBody PostFavoriteAddRequest request) {
+    public Result<String> addFavorite(@Valid @RequestBody PostFavoriteAddRequest request) {
         Long currentUserId = JwtUtil.getCurrentUserId();
         if (currentUserId == null) {
             log.warn("未认证用户尝试添加收藏。");
             // Corrected: Use ErrorCode.UNAUTHORIZED
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。"));
+            return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
         }
 
         log.info("用户ID: {} 尝试收藏博文ID: {}", currentUserId, request.getPostId());
         postFavoriteService.addFavorite(currentUserId, request.getPostId());
         // Using Result.success for success message
-        return ResponseEntity.status(HttpStatus.CREATED).body(Result.success("收藏成功。"));
+        return Result.success("收藏成功。");
     }
 
     /**
@@ -97,13 +94,18 @@ public class PostFavoriteController {
      */
     @DeleteMapping("/{favoriteId}")
     // 只有认证用户，并且是该收藏记录的拥有者或管理员才能删除
-    @PreAuthorize("isAuthenticated() and (hasRole('ADMIN') or @postFavoriteService.checkFavoriteOwnership(#favoriteId, authentication.principal.id))")
-    public ResponseEntity<Result<String>> deleteFavoriteById(@PathVariable String favoriteId) {
-        // @PreAuthorize 已经处理了用户身份和所有权检查
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public Result<String> deleteFavoriteById(@PathVariable String favoriteId) {
         log.info("尝试删除收藏记录ID: {}", favoriteId);
+
+        Long currentUserId = JwtUtil.getCurrentUserId();
+        if(!postFavoriteService.checkFavoriteOwnership(favoriteId, currentUserId)) {
+            return Result.error(ErrorCode.UNAUTHORIZED);
+        }
+
         postFavoriteService.deleteFavoriteById(favoriteId);
         // Using Result.success for success message
-        return ResponseEntity.ok(Result.success("收藏记录已取消。"));
+        return Result.success("收藏记录已取消。");
     }
 
     /**
@@ -114,19 +116,18 @@ public class PostFavoriteController {
      * @return 成功信息
      */
     @DeleteMapping("/post/{postId}")
-    @PreAuthorize("isAuthenticated()") // 只有认证用户才能取消自己的收藏
-    public ResponseEntity<Result<String>> deleteFavoriteByPostId(@PathVariable String postId) {
+    public Result<String> deleteFavoriteByPostId(@PathVariable String postId) {
         Long currentUserId = JwtUtil.getCurrentUserId();
         if (currentUserId == null) {
             log.warn("未认证用户尝试根据博文ID取消收藏。");
             // Corrected: Use ErrorCode.UNAUTHORIZED
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。"));
+            return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
         }
 
         log.info("用户ID: {} 尝试取消博文ID: {} 的收藏", currentUserId, postId);
         postFavoriteService.deleteFavoriteByUserIdAndPostId(currentUserId, postId);
         // Using Result.success for success message
-        return ResponseEntity.ok(Result.success("对博文 '" + postId + "' 的收藏已取消。"));
+        return Result.success("对博文 '" + postId + "' 的收藏已取消。");
     }
 
     /**
@@ -138,15 +139,15 @@ public class PostFavoriteController {
      */
     @GetMapping("/check/{postId}")
     // 允许未认证用户访问，因为服务层会处理用户ID为空的情况，返回false
-    public ResponseEntity<Result<Boolean>> checkFavorite(@PathVariable String postId) {
+    public Result<Boolean> checkFavorite(@PathVariable String postId) {
         log.info("检查用户是否收藏博文ID: {}", postId);
         Long currentUserId = JwtUtil.getCurrentUserId();
         if (currentUserId == null) {
-            return ResponseEntity.notFound().build();
+            return Result.error(ErrorCode.UNAUTHORIZED);
         }
 
         Boolean isFavorite = postFavoriteService.checkFavorite(currentUserId, postId);
         // Using Result.success to wrap the boolean result
-        return ResponseEntity.ok(Result.success(isFavorite));
+        return Result.success(isFavorite);
     }
 }
