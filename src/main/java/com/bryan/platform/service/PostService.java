@@ -172,6 +172,18 @@ public class PostService {
     }
 
     /**
+     * 根据作者ID获取博文。
+     *
+     * @param authorId 博文ID
+     * @return 博文实体
+     * @throws RuntimeException 如果博文不存在
+     */
+    public Page<Post> getPostsByAuthorId(Long authorId, Pageable pageable) {
+        return postRepository.findByAuthorIdOrderByCreatedAtDesc(authorId, pageable);
+    }
+
+
+    /**
      * 获取所有已发布的博文列表（分页）。
      *
      * @param pageable 分页信息

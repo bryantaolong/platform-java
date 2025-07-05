@@ -72,6 +72,45 @@ public class PostController {
         return Result.success(postService.getPostById(id));
     }
 
+    /**
+     * 获取指定用户发布的所有博文（分页）。
+     * 支持公开访问（例如个人主页浏览），无需登录。
+     *
+     * @param authorId 用户的 authorId（MySQL 中的 Long 类型 ID）
+     * @param page     页码，默认 0
+     * @param size     每页大小，默认 10
+     * @param sortBy   排序字段，默认 createdAt
+     * @param sortDir  排序方向，默认 DESC
+     * @return 指定用户发布的博文分页列表
+     */
+    @GetMapping("/author/{authorId}")
+    public Result<Page<Post>> getPostsByAuthorId(
+            @PathVariable Long authorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return Result.success(postService.getPostsByAuthorId(authorId, pageable));
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public Result<Page<Post>> getMyPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
+
+        User currentUser = authService.getCurrentUser();
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return Result.success(postService.getPostsByAuthorId(currentUser.getId(), pageable));
+    }
+
+
 
     /**
      * 根据 Slug 获取单篇博文详情，并自动增加该博文的浏览量。
