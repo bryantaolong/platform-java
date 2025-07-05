@@ -1,6 +1,5 @@
 package com.bryan.platform.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
 import com.bryan.platform.dao.mapper.PostFavoriteMapper;
@@ -16,10 +15,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * ClassName: PostFavoriteServiceImpl
@@ -37,9 +36,7 @@ import java.util.stream.Collectors;
 public class PostFavoriteService {
 
     private final PostFavoriteMapper postFavoriteMapper;
-
     private final PostRepository postRepository;
-
     private final UserService userService;
 
     public Page<Post> getFavoritePostsByUserId(Long userId, Pageable pageable) {
@@ -48,21 +45,12 @@ public class PostFavoriteService {
             throw new ResourceNotFoundException("用户未找到，ID: " + userId);
         }
 
-        QueryWrapper<PostFavorite> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId.toString());
-        queryWrapper.eq("deleted", 0);
-        queryWrapper.select("post_id");
-
-        List<PostFavorite> favoriteEntities = postFavoriteMapper.selectList(queryWrapper);
-        List<String> favoritePostIds = favoriteEntities.stream()
-                .map(PostFavorite::getPostId)
-                .collect(Collectors.toList());
-
-        if (favoritePostIds.isEmpty()) {
+        List<String> postIds = postFavoriteMapper.selectPostIdsByUserId(userId);
+        if (postIds.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
-        return postRepository.findByIdIn(favoritePostIds, pageable);
+        return postRepository.findByIdIn(postIds, pageable);
     }
 
     public int addFavorite(Long userId, String postId) {
@@ -76,20 +64,23 @@ public class PostFavoriteService {
             throw new ResourceNotFoundException("被收藏博文未找到，ID: " + postId);
         }
 
-        QueryWrapper<PostFavorite> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId.toString());
-        queryWrapper.eq("post_id", postId);
-        queryWrapper.eq("deleted", 0);
-        Long existingFavoriteCount = postFavoriteMapper.selectCount(queryWrapper);
-
-        if (existingFavoriteCount > 0) {
-            throw new BusinessException("该博文已被收藏，无需重复收藏。");
+        PostFavorite existing = postFavoriteMapper.selectByUserIdAndPostId(userId, postId);
+        if (existing != null) {
+            if (existing.getDeleted() == 0) {
+                throw new BusinessException("该博文已被收藏，无需重复收藏。");
+            } else {
+                existing.setDeleted(0);
+                existing.setUpdateTime(LocalDateTime.now());
+                return postFavoriteMapper.update(existing);
+            }
         }
 
         PostFavorite favorite = PostFavorite.builder()
-                .userId(userId.toString())
+                .userId(userId)
                 .postId(postId)
                 .deleted(0)
+                .createTime(LocalDateTime.now())
+                .updateTime(LocalDateTime.now())
                 .build();
 
         int rowsAffected = postFavoriteMapper.insert(favorite);
@@ -99,26 +90,15 @@ public class PostFavoriteService {
         return rowsAffected;
     }
 
-    /**
-     * 根据用户ID和博文ID删除收藏记录（用于取消收藏，逻辑删除）。
-     *
-     * @param userId 收藏用户的ID。
-     * @param postId 被取消收藏博文的ID (MongoDB ID)。
-     * @return 成功删除的记录数 (通常为 1)。
-     * @throws ResourceNotFoundException 如果收藏记录不存在。
-     */
     public int deleteFavorite(Long userId, String postId) {
-        QueryWrapper<PostFavorite> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId.toString());
-        queryWrapper.eq("post_id", postId);
-        queryWrapper.eq("deleted", 0);
-
-        PostFavorite existingFavorite = postFavoriteMapper.selectOne(queryWrapper);
-        if (existingFavorite == null) {
+        PostFavorite existing = postFavoriteMapper.selectActiveByUserIdAndPostId(userId, postId);
+        if (existing == null) {
             throw new ResourceNotFoundException("用户ID: " + userId + " 未收藏博文ID: " + postId + "。");
         }
 
-        int rowsAffected = postFavoriteMapper.delete(queryWrapper);
+        existing.setDeleted(1);
+        existing.setUpdateTime(LocalDateTime.now());
+        int rowsAffected = postFavoriteMapper.update(existing);
         if (rowsAffected > 0) {
             log.info("用户ID: {} 取消收藏博文ID: {}", userId, postId);
         }
@@ -126,12 +106,7 @@ public class PostFavoriteService {
     }
 
     public Boolean checkFavorite(Long userId, String postId) {
-        QueryWrapper<PostFavorite> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId);
-        queryWrapper.eq("post_id", postId);
-        queryWrapper.eq("deleted", 0);
-
-        Long count = postFavoriteMapper.selectCount(queryWrapper);
-        return count > 0;
+        PostFavorite favorite = postFavoriteMapper.selectActiveByUserIdAndPostId(userId, postId);
+        return favorite != null;
     }
 }

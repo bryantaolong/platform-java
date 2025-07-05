@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 public class PostFavorite implements Serializable {
 
     // 用户ID，复合主键的一部分
-    private String userId;
+    private Long userId;
 
     // 博文ID，复合主键的一部分
     private String postId;
