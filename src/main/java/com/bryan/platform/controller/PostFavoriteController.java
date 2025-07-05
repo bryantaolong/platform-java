@@ -34,18 +34,27 @@ public class PostFavoriteController {
 
     private final PostFavoriteService postFavoriteService;
 
-    @GetMapping("/my")
-    public Result<Page<Post>> getMyFavorites(
+    /**
+     * Retrieve paginated list of favorite posts for a specific user by their ID.
+     * Restricted to admins or the user themselves.
+     *
+     * @param userId   The ID of the user whose favorites are being queried
+     * @param pageable Pagination and sorting parameters
+     * @return Result containing a page of favorite posts
+     */
+    @GetMapping("/{userId}")
+    public Result<Page<Post>> getFavoritesByUserId(
+            @PathVariable Long userId,
             @PageableDefault(size = 10, sort = {"createdAt"}, direction = Sort.Direction.DESC) Pageable pageable) {
 
         Long currentUserId = JwtUtil.getCurrentUserId();
         if (currentUserId == null) {
-            log.warn("未认证用户尝试访问收藏列表。");
-            return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
+            log.warn("Unauthorized user attempted to access favorite posts for user ID: {}.", userId);
+            return Result.error(ErrorCode.UNAUTHORIZED, "User not logged in or authentication failed.");
         }
 
-        log.info("获取用户ID: {} 的收藏列表, 分页信息: {}", currentUserId, pageable);
-        Page<Post> favoritePosts = postFavoriteService.getFavoritePostsByUserId(currentUserId, pageable);
+        log.info("Fetching favorite posts for user ID: {}, requested by user ID: {}, pagination: {}", userId, currentUserId, pageable);
+        Page<Post> favoritePosts = postFavoriteService.getFavoritePostsByUserId(userId, pageable);
         return Result.success(favoritePosts);
     }
 
