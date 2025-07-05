@@ -13,19 +13,26 @@ CREATE TABLE `user` (
                         KEY `idx_deleted` (`deleted`) COMMENT '逻辑删除索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
 
-CREATE TABLE `post_favorite` (
-                                 `id` VARCHAR(64) NOT NULL COMMENT '主键ID (UUID)',
-                                 `user_id` VARCHAR(64) NOT NULL COMMENT '用户ID',
-                                 `post_id` VARCHAR(64) NOT NULL COMMENT '博文ID (MongoDB ObjectId)',
-                                 `deleted` TINYINT DEFAULT 0 COMMENT '逻辑删除: 0-未删除, 1-已删除',
-                                 `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                                 `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+create table post_favorite
+(
+    user_id     varchar(64)                        not null comment '用户ID',
+    post_id     varchar(64)                        not null comment '博文ID (MongoDB ObjectId)',
+    deleted     tinyint  default 0                 null comment '逻辑删除: 0-未删除, 1-已删除',
+    create_time datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    update_time datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    primary key (user_id, post_id) comment '复合主键: user_id + post_id'
+)
+    comment '博文收藏记录表';
 
-                                 PRIMARY KEY (`id`),
-                                 INDEX idx_user_id (`user_id`),
-                                 INDEX idx_post_id (`post_id`),
-                                 INDEX idx_deleted (`deleted`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='博文收藏记录表';
+-- 保留原有索引
+create index idx_deleted
+    on post_favorite (deleted);
+
+create index idx_post_id
+    on post_favorite (post_id);
+
+create index idx_user_id
+    on post_favorite (user_id);
 
 CREATE TABLE `user_follows` (
                                 `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',

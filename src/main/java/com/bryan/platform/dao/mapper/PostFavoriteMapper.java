@@ -13,5 +13,5 @@ import org.apache.ibatis.annotations.Mapper;
  * Version: v1.0
  */
 @Mapper
-public interface FavoriteMapper extends BaseMapper<PostFavorite> {
+public interface PostFavoriteMapper extends BaseMapper<PostFavorite> {
 }
