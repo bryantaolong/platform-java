@@ -18,17 +18,14 @@ import java.util.Map;
  */
 public interface UserMapper extends BaseMapper<User> {
 
-    @Select("SELECT * FROM user WHERE username = #{username}")
+    @Select("SELECT * FROM \"user\" WHERE username = #{username}")
     User selectByUsername(@Param("username") String username);
 
-    /**
-     * 根据状态查询用户列表用于导出
-     */
     @Select("<script>" +
             "SELECT id, username, email, roles, status, " +
-            "DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as createTime, " +
-            "DATE_FORMAT(update_time, '%Y-%m-%d %H:%i:%s') as updateTime " +
-            "FROM user " +
+            "to_char(create_time, 'YYYY-MM-DD HH24:MI:SS') as createTime, " +
+            "to_char(update_time, 'YYYY-MM-DD HH24:MI:SS') as updateTime " +
+            "FROM \"user\" " +
             "WHERE deleted = 0 " +
             "<if test='status != null'> AND status = #{status}</if> " +
             "ORDER BY create_time DESC" +

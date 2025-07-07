@@ -48,3 +48,23 @@ CREATE TABLE `user_follows` (
                                 CONSTRAINT `fk_user_follows_following` FOREIGN KEY (`following_id`)
                                     REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户关注关系表';
+
+CREATE TABLE friendship (
+                            user_id BIGINT NOT NULL,
+                            friend_id BIGINT NOT NULL,
+                            create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                            deleted TINYINT DEFAULT 0,
+                            PRIMARY KEY (user_id, friend_id)
+);
+
+CREATE TABLE friend_request (
+                                id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                from_user_id BIGINT NOT NULL,
+                                to_user_id BIGINT NOT NULL,
+                                message VARCHAR(255),
+                                status ENUM('pending', 'accepted', 'rejected', 'cancelled') DEFAULT 'pending',
+                                create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                UNIQUE (from_user_id, to_user_id)
+);

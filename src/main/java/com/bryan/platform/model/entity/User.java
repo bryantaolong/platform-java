@@ -25,12 +25,13 @@ import java.util.stream.Collectors;
  * Version: v1.0
  */
 @Data
-@TableName("user")  // MyBatis-Plus 注解
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@TableName("\"user\"")
+@KeySequence(value = "user_id_seq") // 指定序列名称
 public class User implements Serializable, UserDetails {
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT) // 改为 INPUT 类型
     private Long id;
 
     private String username;

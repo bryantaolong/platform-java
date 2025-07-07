@@ -18,12 +18,13 @@ import java.util.Date;
  * Version: v1.0
  */
 @Data
-@TableName("user_follows") // 映射到 user_follows 表
+@TableName("user_follows")
+@KeySequence(value = "user_follows_id_seq")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class UserFollow implements Serializable {
-    @TableId(type = IdType.AUTO) // ID 自动增长
+    @TableId(type = IdType.INPUT) // 改为 INPUT 类型
     private Long id;
 
     private Long followerId; // 关注者ID
