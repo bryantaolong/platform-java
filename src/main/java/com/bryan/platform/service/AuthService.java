@@ -84,6 +84,15 @@ public class AuthService implements UserDetailsService {
     }
 
     /**
+     * 获取当前登录用户ID。
+     *
+     * @return 当前登录用户实体
+     */
+    public Long getCurrentUserId() {
+        return JwtUtil.getCurrentUserId();
+    }
+
+    /**
      * 获取当前登录用户实体。
      *
      * @return 当前登录用户实体
@@ -91,6 +100,14 @@ public class AuthService implements UserDetailsService {
     public User getCurrentUser() {
         Long userId = JwtUtil.getCurrentUserId();
         return userMapper.selectById(userId);
+    }
+
+    /**
+     * 检查当前用户是否是管理员
+     */
+    public boolean isAdmin(UserDetails userDetails) {
+        return userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")); // 检查是否为管理员
     }
 
     /**

@@ -36,7 +36,9 @@ import java.util.Optional;
 public class PostFavoriteService {
 
     private final PostFavoriteMapper postFavoriteMapper;
+
     private final PostRepository postRepository;
+
     private final UserService userService;
 
     public Page<Post> getFavoritePostsByUserId(Long userId, Pageable pageable) {

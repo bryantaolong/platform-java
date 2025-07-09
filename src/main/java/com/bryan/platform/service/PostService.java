@@ -3,12 +3,10 @@ package com.bryan.platform.service;
 import com.bryan.platform.model.entity.Comment;
 import com.bryan.platform.model.entity.Post;
 import com.bryan.platform.dao.repository.PostRepository;
+import com.bryan.platform.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils; // 引入 StringUtils
 
@@ -18,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional; // 引入 Optional
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * ClassName: PostServiceImpl
@@ -33,6 +32,89 @@ import java.util.UUID;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final UserFollowService userFollowService;
+
+    /**
+     * 根据 Slug 获取博文。
+     *
+     * @param slug 博文的唯一标识符
+     * @return 博文实体
+     * @throws RuntimeException 如果博文不存在
+     */
+    public Post getPostBySlug(String slug) {
+        // 确保 slug 不为 null 或空，避免后端查询 null
+        if (slug == null || slug.trim().isEmpty()) {
+            throw new RuntimeException("Invalid slug: slug cannot be null or empty.");
+        }
+        return postRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Post not found with slug: " + slug));
+    }
+
+    /**
+     * 根据ID获取博文。
+     *
+     * @param id 博文ID
+     * @return 博文实体
+     * @throws RuntimeException 如果博文不存在
+     */
+    public Post getPostById(String id) {
+        return postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+    }
+
+    /**
+     * 根据作者ID获取博文。
+     *
+     * @param authorId 博文ID
+     * @return 博文实体
+     * @throws RuntimeException 如果博文不存在
+     */
+    public Page<Post> getPostsByAuthorId(Long authorId, Pageable pageable) {
+        return postRepository.findByAuthorIdOrderByCreatedAtDesc(authorId, pageable);
+    }
+
+    /**
+     * 根据作者ID列表和状态获取博文（分页）
+     * 获取用户关注的人的博文（分页）
+     */
+    public Page<Post> getFollowingPosts(Long userId, Pageable pageable) {
+        // 1. 获取当前用户关注的所有用户
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<User> followingUsers =
+                userFollowService.getFollowingUsers(
+                        userId,
+                        pageable.getPageNumber() + 1, // MyBatis-Plus 页码从1开始
+                        pageable.getPageSize()
+                );
+
+        // 2. 如果没有关注任何人，返回空分页
+        if (followingUsers.getRecords().isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        // 3. 提取关注用户的ID列表
+        List<Long> followingIds = followingUsers.getRecords()
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+
+        // 4. 查询这些用户发布的已发布博文
+        return postRepository.findByAuthorIdInAndStatusOrderByCreatedAtDesc(
+                followingIds,
+                Post.PostStatus.PUBLISHED,
+                pageable
+        );
+    }
+
+
+    /**
+     * 获取所有已发布的博文列表（分页）。
+     *
+     * @param pageable 分页信息
+     * @return 分页的博文列表
+     */
+    public Page<Post> getPublishedPosts(Pageable pageable) {
+        return postRepository.findByStatusOrderByCreatedAtDesc(Post.PostStatus.PUBLISHED, pageable);
+    }
 
     /**
      * 创建新博文。
@@ -141,56 +223,6 @@ public class PostService {
             throw new RuntimeException("Unauthorized: You are not the author of this post.");
         }
         postRepository.deleteById(id);
-    }
-
-    /**
-     * 根据 Slug 获取博文。
-     *
-     * @param slug 博文的唯一标识符
-     * @return 博文实体
-     * @throws RuntimeException 如果博文不存在
-     */
-    public Post getPostBySlug(String slug) {
-        // 确保 slug 不为 null 或空，避免后端查询 null
-        if (slug == null || slug.trim().isEmpty()) {
-            throw new RuntimeException("Invalid slug: slug cannot be null or empty.");
-        }
-        return postRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Post not found with slug: " + slug));
-    }
-
-    /**
-     * 根据ID获取博文。
-     *
-     * @param id 博文ID
-     * @return 博文实体
-     * @throws RuntimeException 如果博文不存在
-     */
-    public Post getPostById(String id) {
-        return postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
-    }
-
-    /**
-     * 根据作者ID获取博文。
-     *
-     * @param authorId 博文ID
-     * @return 博文实体
-     * @throws RuntimeException 如果博文不存在
-     */
-    public Page<Post> getPostsByAuthorId(Long authorId, Pageable pageable) {
-        return postRepository.findByAuthorIdOrderByCreatedAtDesc(authorId, pageable);
-    }
-
-
-    /**
-     * 获取所有已发布的博文列表（分页）。
-     *
-     * @param pageable 分页信息
-     * @return 分页的博文列表
-     */
-    public Page<Post> getPublishedPosts(Pageable pageable) {
-        return postRepository.findByStatusOrderByCreatedAtDesc(Post.PostStatus.PUBLISHED, pageable);
     }
 
     /**

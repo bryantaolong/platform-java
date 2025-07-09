@@ -1,8 +1,9 @@
 package com.bryan.platform.controller;
 
+import com.bryan.platform.model.entity.User;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.common.constant.ErrorCode;
-import com.bryan.platform.util.JwtUtil;
+import com.bryan.platform.service.AuthService;
 import com.bryan.platform.model.request.PostFavoriteAddRequest;
 import com.bryan.platform.model.entity.Post;
 import com.bryan.platform.service.PostFavoriteService;
@@ -33,6 +34,7 @@ import jakarta.validation.Valid;
 public class PostFavoriteController {
 
     private final PostFavoriteService postFavoriteService;
+    private final AuthService authService;
 
     /**
      * Retrieve paginated list of favorite posts for a specific user by their ID.
@@ -47,7 +49,7 @@ public class PostFavoriteController {
             @PathVariable Long userId,
             @PageableDefault(size = 10, sort = {"createdAt"}, direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Long currentUserId = JwtUtil.getCurrentUserId();
+        Long currentUserId = authService.getCurrentUserId();
         if (currentUserId == null) {
             log.warn("Unauthorized user attempted to access favorite posts for user ID: {}.", userId);
             return Result.error(ErrorCode.UNAUTHORIZED, "User not logged in or authentication failed.");
@@ -60,7 +62,7 @@ public class PostFavoriteController {
 
     @PostMapping
     public Result<String> addFavorite(@Valid @RequestBody PostFavoriteAddRequest request) {
-        Long currentUserId = JwtUtil.getCurrentUserId();
+        Long currentUserId = authService.getCurrentUserId();
         if (currentUserId == null) {
             log.warn("未认证用户尝试添加收藏。");
             return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
@@ -74,7 +76,7 @@ public class PostFavoriteController {
     @DeleteMapping("/post/{postId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public Result<String> deleteFavorite(@PathVariable String postId) {
-        Long currentUserId = JwtUtil.getCurrentUserId();
+        Long currentUserId = authService.getCurrentUserId();
         if (currentUserId == null) {
             log.warn("未认证用户尝试根据博文ID取消收藏。");
             return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
@@ -92,7 +94,7 @@ public class PostFavoriteController {
     @GetMapping("/check/{postId}")
     public Result<Boolean> checkFavorite(@PathVariable String postId) {
         log.info("检查用户是否收藏博文ID: {}", postId);
-        Long currentUserId = JwtUtil.getCurrentUserId();
+        Long currentUserId = authService.getCurrentUserId();
         if (currentUserId == null) {
             return Result.error(ErrorCode.UNAUTHORIZED);
         }

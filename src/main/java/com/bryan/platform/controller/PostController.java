@@ -1,10 +1,9 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.common.constant.ErrorCode;
 import com.bryan.platform.model.response.Result;
-import com.bryan.platform.model.entity.Comment; // 需要 Comment 实体
+import com.bryan.platform.model.entity.Comment;
 import com.bryan.platform.model.entity.Post;
-import com.bryan.platform.model.entity.User; // 需要 User 实体来获取作者信息
+import com.bryan.platform.model.entity.User;
 import com.bryan.platform.service.AuthService;
 import com.bryan.platform.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,7 @@ import java.util.List;
  * 适配 MongoDB 作为数据存储，并集成 Spring Security 进行认证和授权管理。
  * Author: Bryan Long
  * Create: 2025/6/20
- * Version: v1.0
+ * Version: v1.2 - Redundancy Removed
  */
 @RestController
 @RequestMapping("/api/posts")
@@ -34,17 +33,17 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
-
-    private final AuthService authService;
+    private final AuthService authService; // Used to retrieve current user details
 
     /**
      * 获取所有已发布的博文列表（支持分页和排序）。
+     * Accessible by anyone.
      *
      * @param page    页码 (默认为 0，表示第一页)。
      * @param size    每页大小 (默认为 10)。
      * @param sortBy  排序字段 (默认为 "createdAt"，博文创建时间)。
      * @param sortDir 排序方向 (默认为 "DESC"，降序)。
-     * @return 包含分页博文数据的 ResponseEntity。
+     * @return 包含分页博文数据的 Result。
      */
     @GetMapping
     public Result<Page<Post>> getAllPublishedPosts(
@@ -52,11 +51,7 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDir) {
-        // 根据传入的排序方向和字段构建 Sort 对象
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
-        // 创建 Pageable 对象，包含分页和排序信息
-        Pageable pageable = PageRequest.of(page, size, sort);
-        // 调用服务层方法获取分页博文
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
         return Result.success(postService.getPublishedPosts(pageable));
     }
 
@@ -70,6 +65,20 @@ public class PostController {
     @GetMapping("/{id}")
     public Result<Post> getPostById(@PathVariable String id) {
         return Result.success(postService.getPostById(id));
+    }
+
+    /**
+     * 根据 Slug 获取单篇博文详情，并自动增加该博文的浏览量。
+     * Accessible by anyone.
+     *
+     * @param slug 博文的唯一标识符（URL 友好）。
+     * @return 博文实体。
+     */
+    @GetMapping("/slug/{slug}")
+    public Result<Post> getPostBySlug(@PathVariable String slug) {
+        Post post = postService.getPostBySlug(slug);
+        postService.incrementViews(post.getId());
+        return Result.success(post);
     }
 
     /**
@@ -90,12 +99,20 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDir) {
-
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
         return Result.success(postService.getPostsByAuthorId(authorId, pageable));
     }
 
+    /**
+     * 获取当前认证用户发布的所有博文（分页）。
+     * Requires 'USER' or 'ADMIN' role.
+     *
+     * @param page    页码，默认 0
+     * @param size    每页大小，默认 10
+     * @param sortBy  排序字段，默认 createdAt
+     * @param sortDir 排序方向，默认 DESC
+     * @return 当前用户发布的博文分页列表
+     */
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Result<Page<Post>> getMyPosts(
@@ -103,144 +120,134 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDir) {
-
-        User currentUser = authService.getCurrentUser();
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
-        Pageable pageable = PageRequest.of(page, size, sort);
-        return Result.success(postService.getPostsByAuthorId(currentUser.getId(), pageable));
+        Long currentUserId = authService.getCurrentUserId();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
+        return Result.success(postService.getPostsByAuthorId(currentUserId, pageable));
     }
 
-
-
     /**
-     * 根据 Slug 获取单篇博文详情，并自动增加该博文的浏览量。
+     * 获取当前认证用户关注的人发布的博文。
+     * Accessible by authenticated users.
      *
-     * @param slug 博文的唯一标识符（URL 友好）。
-     * @return 博文实体。
+     * @param page    页码，默认 0
+     * @param size    每页大小，默认 10
+     * @param sortBy  排序字段，默认 createdAt
+     * @param sortDir 排序方向，默认 DESC
+     * @return 关注用户发布的博文分页列表
      */
-    @GetMapping("/slug/{slug}")
-    public Result<Post> getPostBySlug(@PathVariable String slug) {
-        Post post = postService.getPostBySlug(slug);
-        postService.incrementViews(post.getId()); // 增加浏览量，MongoDB 的 ID 是 String 类型
-        return Result.success(post);
+    @GetMapping("/following")
+    public Result<Page<Post>> getFollowingPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
+        Long currentUserId = authService.getCurrentUserId();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
+        Page<Post> posts = postService.getFollowingPosts(currentUserId, pageable);
+        return Result.success(posts);
     }
 
     /**
      * 创建新博文。
-     * 只有拥有 'USER' 角色认证。
+     * Only users with 'USER' or 'ADMIN' role can create posts.
      *
-     * @param post        博文数据，通过请求体传入。
+     * @param post 博文数据，通过请求体传入。
      * @return 创建后的博文实体。
      */
     @PostMapping
-    public Result<Post> createPost(
-            @RequestBody Post post) {
-        // 从 Spring Security 的 UserDetails 中获取用户名，并通过 UserService 加载完整的用户实体
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public Result<Post> createPost(@RequestBody Post post) {
         User currentUser = authService.getCurrentUser();
-        Long authorId = currentUser.getId(); // 获取用户ID (MySQL 中的 Long 类型 ID)
-        String authorName = currentUser.getUsername(); // 获取用户名作为作者名称
-
-        return Result.success(postService.createPost(post, authorId, authorName));
+        return Result.success(postService.createPost(post, currentUser.getId(), currentUser.getUsername()));
     }
 
     /**
      * 更新博文。
-     * 只有拥有 'ADMIN' 角色或博文作者才能执行此操作。
+     * Only 'ADMIN' role or the post author can perform this operation.
+     * Authorization logic (owner or admin) is handled within the service layer.
      *
      * @param id          博文ID (MongoDB 的 String 类型 ID)。
      * @param postUpdates 包含更新内容的博文实体，通过请求体传入。
-     * @param userDetails 当前认证用户的 Spring Security UserDetails 对象。
      * @return 更新后的博文实体。
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Result<Post> updatePost(
-            @PathVariable String id, // 从 URL 路径中获取博文 ID
+            @PathVariable String id,
             @RequestBody Post postUpdates,
             @AuthenticationPrincipal UserDetails userDetails) {
-
-        User currentUser = authService.getCurrentUser();
-        Long currentUserId = currentUser.getId();
-        boolean isAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")); // 检查是否为管理员
-
+        Long currentUserId = authService.getCurrentUserId();
+        boolean isAdmin = authService.isAdmin(userDetails);
+        // The service layer should handle the authorization check (is current user owner or admin?)
         return Result.success(postService.updatePost(id, postUpdates, currentUserId, isAdmin));
     }
 
     /**
      * 删除博文。
-     * 只有拥有 'ADMIN' 角色或博文作者才能执行此操作。
+     * Only 'ADMIN' role or the post author can perform this operation.
+     * Authorization logic (owner or admin) is handled within the service layer.
      *
-     * @param id 博文ID (MongoDB 的 String 类型 ID)。
-     * @param userDetails 当前认证用户的 Spring Security UserDetails 对象。
-     * @return 无内容响应 (HTTP 204 No Content)。
+     * @param id          博文ID (MongoDB 的 String 类型 ID)。
+     * @return Result indicating success.
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Result<Void> deletePost(
-            @PathVariable String id, // 从 URL 路径中获取博文 ID
+            @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
-
-        User currentUser = (User) authService.loadUserByUsername(userDetails.getUsername());
-        Long currentUserId = currentUser.getId();
-        boolean isAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        Long currentUserId = authService.getCurrentUserId();
+        boolean isAdmin = authService.isAdmin(userDetails);
 
         postService.deletePost(id, currentUserId, isAdmin);
-        return Result.error(ErrorCode.INTERNAL_ERROR);
+        // Correctly return success after deletion
+        return Result.success(null);
     }
 
     /**
      * 为指定博文添加评论。
-     * 只有拥有 'USER' 角色认证。
+     * Only users with 'USER' or 'ADMIN' role can add comments.
      *
      * @param postId      博文ID (MongoDB 的 String 类型 ID)。
      * @param comment     评论内容，通过请求体传入。
-     * @param userDetails 当前认证用户的 Spring Security UserDetails 对象。
      * @return 添加评论后的完整博文实体（因为评论内嵌在博文文档中）。
      */
     @PostMapping("/{postId}/comments")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Result<Post> addComment(
-            @PathVariable String postId, // 从 URL 路径中获取博文 ID
-            @RequestBody Comment comment,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        // 从 Spring Security 的 UserDetails 中获取用户名，并通过 UserService 加载完整的用户实体
-        User currentUser = (User) authService.loadUserByUsername(userDetails.getUsername());
-        Long authorId = currentUser.getId(); // 获取评论作者的用户ID (MySQL 中的 Long 类型 ID)
-        String authorName = currentUser.getUsername(); // 获取评论作者的用户名
+            @PathVariable String postId,
+            @RequestBody Comment comment) {
+        User currentUser = authService.getCurrentUser();
+        Long authorId = currentUser.getId();
+        String authorName = currentUser.getUsername();
 
         return Result.success(postService.addComment(postId, comment, authorId, authorName));
     }
 
     /**
      * 删除博文中的评论。
-     * 只有拥有 'ADMIN' 角色或评论作者才能执行此操作。
+     * Only 'ADMIN' role or the comment author can perform this operation.
+     * Authorization logic (owner or admin) is handled within the service layer.
      *
      * @param postId      博文ID (MongoDB 的 String 类型 ID)。
      * @param commentId   评论ID (MongoDB 内嵌评论的 String 类型 ID)。
-     * @param userDetails 当前认证用户的 Spring Security UserDetails 对象。
      * @return 更新后的博文实体（评论已被移除）。
      */
     @DeleteMapping("/{postId}/comments/{commentId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Result<Post> deleteComment(
-            @PathVariable String postId, // 从 URL 路径中获取博文 ID
-            @PathVariable String commentId, // 从 URL 路径中获取评论 ID
+            @PathVariable String postId,
+            @PathVariable String commentId,
             @AuthenticationPrincipal UserDetails userDetails) {
-
-        User currentUser = (User) authService.loadUserByUsername(userDetails.getUsername());
-        Long currentUserId = currentUser.getId();
-        boolean isAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        Long currentUserId = authService.getCurrentUserId();
+        boolean isAdmin = authService.isAdmin(userDetails);
 
         Post updatedPost = postService.deleteComment(postId, commentId, currentUserId, isAdmin);
         return Result.success(updatedPost);
     }
 
-
     /**
      * 对已发布的博文执行全文搜索。
-     * 此接口无需认证，对所有用户开放。
+     * Accessible by anyone.
      *
      * @param query 搜索关键词。
      * @return 匹配关键词的博文列表。
@@ -253,7 +260,7 @@ public class PostController {
     /**
      * 推荐博文。
      * 根据当前博文的标签，推荐其他相关的已发布博文。
-     * 此接口无需认证，对所有用户开放。
+     * Accessible by anyone.
      *
      * @param currentPostId 当前博文ID (MongoDB 的 String 类型 ID)。
      * @param limit         推荐数量限制 (默认为 5)。
@@ -261,7 +268,7 @@ public class PostController {
      */
     @GetMapping("/recommendations/{currentPostId}")
     public Result<List<Post>> getRecommendations(
-            @PathVariable String currentPostId, // 从 URL 路径中获取当前博文 ID
+            @PathVariable String currentPostId,
             @RequestParam(defaultValue = "5") int limit) {
         List<Post> recommendedPosts = postService.recommendPosts(currentPostId, limit);
         return Result.success(recommendedPosts);

@@ -2,7 +2,7 @@ package com.bryan.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.constant.ErrorCode;
-import com.bryan.platform.util.JwtUtil;
+import com.bryan.platform.service.AuthService;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.entity.User;
 import com.bryan.platform.service.UserFollowService;
@@ -23,12 +23,13 @@ import org.springframework.web.bind.annotation.*;
 public class UserFollowController {
 
     private final UserFollowService userFollowService;
+    private final AuthService authService;
 
     @PostMapping("/follow/{followingId}")
     public Result<Boolean> followUser(
             @PathVariable Long followingId) {
         try {
-            Long currentUserId = JwtUtil.getCurrentUserId();
+            Long currentUserId = authService.getCurrentUserId();
             return Result.success(userFollowService.followUser(currentUserId, followingId));
         } catch (RuntimeException e) {
             return Result.error(ErrorCode.BAD_REQUEST, e.getMessage());
@@ -39,7 +40,8 @@ public class UserFollowController {
     public Result<Boolean> unfollowUser(
             @PathVariable Long followingId) {
         try {
-            Long currentUserId = JwtUtil.getCurrentUserId();
+            User currentUser = authService.getCurrentUser();
+            Long currentUserId = currentUser.getId();
             return Result.success(userFollowService.unfollowUser(currentUserId, followingId));
         } catch (RuntimeException e) {
             return Result.error(ErrorCode.BAD_REQUEST, e.getMessage());
@@ -74,7 +76,7 @@ public class UserFollowController {
     public Result<Boolean> isFollowing(
             @PathVariable Long followingId) {
         try {
-            Long currentUserId = JwtUtil.getCurrentUserId();
+            Long currentUserId = authService.getCurrentUserId();
             return Result.success(userFollowService.isFollowing(currentUserId, followingId));
         } catch (RuntimeException e) {
             return Result.error(ErrorCode.BAD_REQUEST, e.getMessage());

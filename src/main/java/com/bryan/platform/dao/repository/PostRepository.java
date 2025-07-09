@@ -37,6 +37,12 @@ public interface PostRepository extends MongoRepository<Post, String> { // ID ty
     // Modified to: Find posts by authorId and status
     Page<Post> findByAuthorIdAndStatus(Long authorId, Post.PostStatus status, Pageable pageable);
 
+    Page<Post> findByAuthorIdInAndStatusOrderByCreatedAtDesc(
+            List<Long> authorIds,
+            Post.PostStatus status,
+            Pageable pageable
+    );
+
     // --- MODIFICATION END ---
 
     // Find post by slug
