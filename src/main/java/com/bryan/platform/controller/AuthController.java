@@ -8,19 +8,18 @@ import com.bryan.platform.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * ClassName: AuthController
- * Package: com.bryan.platform.controller
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/28 - 14:18
- * Version: v1.0
+ * 控制器：认证与授权接口
+ * 提供用户注册、登录、当前用户信息获取及 Token 校验等接口。
+ *
+ * @author Bryan
+ * @version 1.0
+ * @since 2025/6/28
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -28,70 +27,89 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class AuthController {
 
-    private final AuthService authService; // 注入用户服务
+    private final AuthService authService;
 
     /**
-     * 用户注册接口。
+     * 用户注册接口
      *
-     * @param registerRequest 用户注册数据传输对象，包含用户名、密码、邮箱等信息。
-     * @return 注册成功的用户实体。
+     * @param registerRequest 用户注册信息，包括用户名、密码、邮箱等
+     * @return 注册成功的用户对象封装在统一响应结构中
      */
     @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED) // 设置响应状态码为 201 Created
+    @ResponseStatus(HttpStatus.CREATED) // 设置 HTTP 状态码为 201 Created
     public Result<User> register(@RequestBody @Valid RegisterRequest registerRequest) {
-        return Result.success(authService.register(registerRequest));
+        // 1. 调用注册服务，创建新用户
+        User user = authService.register(registerRequest);
+
+        // 2. 返回注册结果
+        return Result.success(user);
     }
 
     /**
-     * 用户登录接口。
+     * 用户登录接口
      *
-     * @param loginRequest 用户登录数据传输对象，包含用户名和密码。
-     * @return 登录成功后生成的 JWT Token 字符串。
+     * @param loginRequest 用户登录信息，包括用户名和密码
+     * @return 登录成功后生成的 JWT Token 字符串封装在统一响应结构中
      */
     @PostMapping("/login")
     public Result<String> login(@RequestBody @Valid LoginRequest loginRequest) {
-        return Result.success(authService.login(loginRequest));
+        // 1. 调用认证服务进行登录验证
+        String token = authService.login(loginRequest);
+
+        // 2. 返回生成的 JWT Token
+        return Result.success(token);
     }
 
     /**
-     * 获取当前认证用户的信息。
+     * 获取当前认证用户信息
      *
-     * @return 当前认证用户的实体。
+     * @return 当前登录用户的 User 实体对象封装在统一响应结构中
      */
     @GetMapping("/me")
     public Result<User> getCurrentUser() {
-        return Result.success(authService.getCurrentUser());
+        // 1. 从 Spring Security 上下文中获取当前登录用户
+        User currentUser = authService.getCurrentUser();
+
+        // 2. 返回用户信息
+        return Result.success(currentUser);
     }
 
     /**
-     * 验证 token
-     * @param token
-     * @param userDetails
-     * @return 验证结果
+     * 验证 Token 合法性及用户状态
+     *
+     * @param token JWT Token 字符串
+     * @param userDetails 当前已认证的用户信息（通过 Spring Security 注入）
+     * @return 验证结果字符串封装在统一响应结构中
      */
     @GetMapping("/validate")
     public Result<String> validate(
             @RequestParam String token,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        // 1. 基础校验：Token 格式和签名
+        // 1. 验证 Token 格式与签名是否合法
         if (!authService.validateToken(token)) {
             return Result.success("Invalid token");
         }
 
-        // 2. 深度校验：用户状态（需已通过 Spring Security 认证）
+        // 2. 校验用户账户状态（仅在已认证情况下执行）
         if (userDetails != null) {
+            // 2.1 检查账户是否被锁定
             if (!userDetails.isAccountNonLocked()) {
                 return Result.success("Account locked");
             }
-            if(userDetails.isAccountNonExpired()) {
+
+            // 2.2 检查账户是否过期
+            if (!userDetails.isAccountNonExpired()) {
                 return Result.success("Account expired");
             }
+
+            // 2.3 检查账户是否被禁用
             if (!userDetails.isEnabled()) {
                 return Result.success("Account disabled");
             }
         }
 
+        // 3. 校验通过
         return Result.success("Validation passed");
     }
 }
