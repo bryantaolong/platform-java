@@ -25,7 +25,6 @@ import java.util.Collections;
 public class DeepSeekService {
 
     private final DeepSeekApiProperties properties;
-
     private final RestTemplate restTemplate;
 
     /**
