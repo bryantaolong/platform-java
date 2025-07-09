@@ -18,12 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * ClassName: AuthService
- * Package: com.bryan.platform.service
- * Description: 用户认证服务类，处理注册、登录、鉴权、当前用户信息等逻辑。
- * Author: Bryan Long
- * Create: 2025/6/28 - 14:18
- * Version: v2.0
+ * 用户认证服务类，处理注册、登录、鉴权、当前用户信息等逻辑。
+ *
+ * @author Bryan Long
+ * @version 2.0
+ * @since 2025/6/28
  */
 @Slf4j
 @Service
