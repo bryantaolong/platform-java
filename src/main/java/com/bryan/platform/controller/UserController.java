@@ -18,13 +18,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * ClassName: UserController
- * Package: com.bryan.platform.controller
- * Description: 用户相关的 RESTful API 控制器。
- * 负责处理用户注册、登录、信息获取、更新、权限变更、密码修改和删除等操作。
- * Author: Bryan Long
- * Create: 2025/6/19 - 19:51
- * Version: v1.0
+ * 用户控制器：提供用户相关的 RESTful API 接口。
+ * 包括用户信息查询、更新、角色变更、密码修改、逻辑删除及用户数据导出等功能。
+ * 依赖 Spring Security 进行权限控制，支持管理员和普通用户不同权限的接口访问。
+ *
+ * @author Bryan
+ * @version 1.0
+ * @since 2025/6/19
  */
 @RestController
 @RequestMapping("/api/user")
@@ -32,100 +32,98 @@ import java.util.Map;
 @Validated
 public class UserController {
 
-    private final UserService userService; // 注入用户服务
+    private final UserService userService;
 
     /**
-     * 获取所有用户列表。
-     * 此接口通常需要 'ADMIN' 角色权限才能访问。
-     * 注意：由于 UserService 接口的 getAllUsers() 没有分页参数，这里直接调用服务层获取所有用户。
-     * 在实际项目中，建议在服务层和控制器层都添加分页参数。
+     * 获取所有用户列表（不分页）。
+     * <p>仅允许拥有 ADMIN 角色的用户访问。</p>
      *
-     * @return 包含所有用户数据的分页对象。
+     * @return 包含所有用户数据的分页对象（目前不支持分页参数，建议后续优化）。
      */
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<Page<User>> getAllUsers() {
+        // 1. 调用服务层获取所有用户列表
         return Result.success(userService.getAllUsers());
     }
 
     /**
-     * 根据用户 ID 获取用户信息。
-     * 只有拥有 'ADMIN' 角色的用户才能访问此接口。
+     * 根据用户 ID 查询用户信息。
+     * <p>仅允许 ADMIN 角色访问。</p>
      *
-     * @param userId 要查询的用户 ID。
-     * @return 对应 ID 的用户实体。
+     * @param userId 目标用户ID
+     * @return 对应用户实体
      */
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<User> getUserById(@PathVariable Long userId) {
+        // 1. 调用服务获取用户信息
         return Result.success(userService.getUserById(userId));
     }
 
     /**
-     * 根据用户名获取用户信息。
-     * 此接口通常需要 'ADMIN' 角色权限才能访问。
+     * 根据用户名查询用户信息。
+     * <p>仅允许 ADMIN 角色访问。</p>
      *
-     * @param username 要查询的用户名。
-     * @return 对应用户名的用户实体。
+     * @param username 用户名
+     * @return 对应用户实体
      */
     @GetMapping("/username/{username}")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<User> getUserByUsername(@PathVariable String username) {
+        // 1. 调用服务获取用户信息
         return Result.success(userService.getUserByUsername(username));
     }
 
     /**
      * 更新用户基本信息。
-     * 允许用户更新自己的信息，或由管理员更新任意用户信息。
+     * <p>允许管理员更新任意用户信息，或用户本人更新自己的信息。</p>
      *
-     * @param userId  要更新的用户 ID。
-     * @param userUpdateRequest 包含需要更新的用户信息（用户名、邮箱）。
-     * @return 更新后的用户实体。
+     * @param userId             目标用户ID
+     * @param userUpdateRequest  包含需要更新的信息（用户名、邮箱等）
+     * @return 更新后的用户实体
+     * @throws IllegalArgumentException 当权限校验失败时抛出
      */
     @PutMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN') or (#userId == authentication.principal.id)")
-    // 要求 ADMIN 角色，或当前认证用户ID与路径中的 userId 相同
-    // 注意: authentication.principal 可能需要类型转换才能获取 id。
-    // 如果 authentication.principal 是 UserDetails 类型，且 UserDetails 的 username 是 userId 的字符串形式，
-    // 则可以使用 @PreAuthorize("hasRole('ADMIN') or (#userId == authentication.name)")
-    // 但鉴于我们之前为了 getId() 进行了类型转换，此处可能需要更复杂的 SpEL 表达式。
-    // 最简化的方式是：@PreAuthorize("hasRole('ADMIN') or (isAuthenticated() and #userId.toString() == authentication.principal.id.toString())")
-    // 假设 UserDetails 实际就是你的 User 实体，且其 getId() 可用
     public Result<User> updateUser(
             @PathVariable Long userId,
             @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
+        // 1. 调用服务更新用户信息
         return Result.success(userService.updateUser(userId, userUpdateRequest));
     }
 
     /**
-     * 更改用户角色。
-     * 只有拥有 'ADMIN' 角色的用户才能执行此操作。
+     * 修改用户角色。
+     * <p>仅管理员可操作。</p>
      *
-     * @param userId 要更改角色的用户 ID。
-     * @param roles  新的角色字符串，多个角色以逗号分隔（例如 "ROLE_USER,ROLE_ADMIN"）。
-     * @return 更新后的用户实体。
+     * @param userId 目标用户ID
+     * @param roles  新角色字符串，逗号分隔（如 "ROLE_USER,ROLE_ADMIN"）
+     * @return 更新后的用户实体
      */
     @PutMapping("/{userId}/role")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<User> changeRole(
             @PathVariable Long userId,
-            @RequestBody String roles) { // 直接接收 String 类型的角色字符串
+            @RequestBody String roles) {
+        // 1. 调用服务变更角色
         return Result.success(userService.changeRole(userId, roles));
     }
 
     /**
-     * 更改用户密码。
-     * 允许用户更改自己的密码，或由管理员更改任意用户密码。
+     * 修改用户密码。
+     * <p>管理员可修改任意用户密码，用户本人可修改自己的密码。</p>
      *
-     * @param userId            要更改密码的用户 ID。
-     * @param changePasswordRequest 包含旧密码和新密码的数据传输对象。
-     * @return 更新后的用户实体。
+     * @param userId               目标用户ID
+     * @param changePasswordRequest 包含旧密码和新密码的请求体
+     * @return 更新后的用户实体
      */
     @PutMapping("/{userId}/password")
     @PreAuthorize("hasRole('ADMIN') or (#userId == authentication.principal.id)")
     public Result<User> changePassword(
             @PathVariable Long userId,
             @RequestBody @Valid ChangePasswordRequest changePasswordRequest) {
+        // 1. 调用服务层执行密码修改
         return Result.success(userService.changePassword(
                 userId,
                 changePasswordRequest.getOldPassword(),
@@ -135,46 +133,60 @@ public class UserController {
 
     /**
      * 删除用户（逻辑删除）。
-     * 只有拥有 'ADMIN' 角色的用户才能执行此操作。
+     * <p>仅管理员可执行。</p>
      *
-     * @param userId 要删除的用户 ID。
-     * @return 被删除的用户实体。
+     * @param userId 目标用户ID
+     * @return 被删除的用户实体
      */
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<User> deleteUser(@PathVariable Long userId) {
+        // 1. 调用服务执行逻辑删除
         return Result.success(userService.deleteUser(userId));
     }
 
     /**
-     * 导出用户数据（支持字段选择）
-     * 只有管理员可以导出用户数据
+     * 导出用户数据，支持字段选择。
+     * <p>仅管理员可执行。</p>
+     *
+     * @param response HTTP 响应对象，用于写出导出文件
+     * @param request  导出请求体，包含导出字段和筛选条件
      */
     @PostMapping("/export")
     @PreAuthorize("hasRole('ADMIN')")
     public void exportUsers(HttpServletResponse response,
                             @RequestBody UserExportRequest request) {
+        // 1. 调用服务执行导出
         userService.exportUsers(response, request);
     }
 
     /**
-     * 导出所有用户数据（包含所有字段）
-     * 只有管理员可以导出用户数据
+     * 导出所有用户数据，包含所有字段。
+     * <p>仅管理员可执行。</p>
+     *
+     * @param response HTTP 响应对象
+     * @param status   用户状态筛选，非必填
+     * @param fileName 导出文件名，默认 "用户数据"
      */
     @GetMapping("/export/all")
     @PreAuthorize("hasRole('ADMIN')")
     public void exportAllUsers(HttpServletResponse response,
                                @RequestParam(required = false) Integer status,
                                @RequestParam(required = false, defaultValue = "用户数据") String fileName) {
+        // 1. 调用服务执行导出
         userService.exportAllUsers(response, status, fileName);
     }
 
     /**
-     * 获取可导出的字段列表（供前端选择）
+     * 获取可供导出的字段列表，供前端动态选择。
+     * <p>仅管理员可访问。</p>
+     *
+     * @return 字段名与中文描述的映射表
      */
     @GetMapping("/export/fields")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<Map<String, String>> getExportFields() {
+        // 1. 准备字段映射
         Map<String, String> fields = new LinkedHashMap<>();
         fields.put("id", "用户ID");
         fields.put("username", "用户名");
@@ -183,6 +195,8 @@ public class UserController {
         fields.put("statusText", "状态");
         fields.put("createTime", "创建时间");
         fields.put("updateTime", "更新时间");
+
+        // 2. 返回字段映射结果
         return Result.success(fields);
     }
 }
