@@ -13,12 +13,14 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * ClassName: ChatController
- * Package: com.bryan.platform.controller
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/25 - 11:18
- * Version: v1.0
+ * 控制器：AI 聊天接口
+ * <p>
+ * 提供与 AI 聊天机器人进行对话的接口，接受用户输入并返回 AI 的回复。
+ * </p>
+ *
+ * @author Bryan
+ * @version 1.0
+ * @since 2025/6/25
  */
 @Slf4j
 @RestController
@@ -28,12 +30,30 @@ public class AIChatController {
 
     private final DeepSeekService deepSeekService;
 
+    /**
+     * 与 AI 进行对话
+     *
+     * @param payload 请求体，包含用户输入的消息，格式为 {"message": "用户输入"}
+     * @return 返回 AI 回复的消息，格式为 {"reply": "AI 回复内容"}
+     *
+     * @throws IllegalArgumentException 如果消息内容为空或格式不正确
+     */
     @PostMapping
     public Map<String, String> chat(@RequestBody Map<String, String> payload) {
-        log.info("Received message: {}", payload.get("message"));
-
+        // 1. 从请求体中获取用户输入的消息
         String userMessage = payload.get("message");
+        log.info("接收到用户消息: {}", userMessage);
+
+        // 2. 校验消息内容是否为空
+        if (userMessage == null || userMessage.trim().isEmpty()) {
+            log.warn("消息内容为空");
+            throw new IllegalArgumentException("消息内容不能为空");
+        }
+
+        // 3. 调用 AI 服务获取回复内容
         String reply = deepSeekService.getChatResponse(userMessage);
+
+        // 4. 封装回复结果返回
         return Collections.singletonMap("reply", reply);
     }
 }
