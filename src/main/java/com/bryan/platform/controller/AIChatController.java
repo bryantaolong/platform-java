@@ -58,4 +58,22 @@ public class AIChatController {
         // 5. 封装回复结果返回
         return Collections.singletonMap("reply", reply);
     }
+
+    /**
+     * 清空当前用户的聊天上下文
+     *
+     * @return 返回清空结果提示信息，格式为 {"message": "上下文已清空"}
+     */
+    @PostMapping("/clear")
+    public Map<String, String> clearContext() {
+        // 1. 获取当前登录用户 ID
+        Long currentUserId = authService.getCurrentUserId();
+        log.info("请求清空用户 {} 的上下文", currentUserId);
+
+        // 2. 调用服务清空对应上下文数据
+        deepSeekService.clearContext(currentUserId);
+
+        // 3. 返回成功提示信息
+        return Collections.singletonMap("message", "上下文已清空");
+    }
 }
