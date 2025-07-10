@@ -160,7 +160,7 @@ public class PostController {
      * @param post 博文数据
      * @return 创建后的博文
      */
-    @PostMapping
+    @PostMapping("/post")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Result<Post> createPost(@RequestBody Post post) {
         // 1. 获取当前用户信息
