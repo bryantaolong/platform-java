@@ -1,9 +1,9 @@
 package com.bryan.platform.controller;
 
+import com.bryan.platform.service.AuthService;
 import com.bryan.platform.service.DeepSeekService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +27,7 @@ import java.util.Map;
 public class AIChatController {
 
     private final DeepSeekService deepSeekService;
+    private final AuthService authService;
 
     /**
      * 与 AI 进行对话
@@ -38,20 +39,23 @@ public class AIChatController {
      */
     @PostMapping
     public Map<String, String> chat(@RequestBody Map<String, String> payload) {
-        // 1. 从请求体中获取用户输入的消息
+        // 1. 获取用户 ID
+        Long currentUserId = authService.getCurrentUserId();
+
+        // 2. 从请求体中获取用户输入的消息
         String userMessage = payload.get("message");
         log.info("接收到用户消息: {}", userMessage);
 
-        // 2. 校验消息内容是否为空
+        // 3. 校验消息内容是否为空
         if (userMessage == null || userMessage.trim().isEmpty()) {
             log.warn("消息内容为空");
             throw new IllegalArgumentException("消息内容不能为空");
         }
 
-        // 3. 调用 AI 服务获取回复内容
-        String reply = deepSeekService.getChatResponse(userMessage);
+        // 4. 调用 AI 服务获取回复内容
+        String reply = deepSeekService.getChatResponse(currentUserId, userMessage);
 
-        // 4. 封装回复结果返回
+        // 5. 封装回复结果返回
         return Collections.singletonMap("reply", reply);
     }
 }
