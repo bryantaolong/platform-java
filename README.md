@@ -1,6 +1,6 @@
 # Platform Java
 
-My Platform system backend service code source
+My Platform system Java backend service code source
 
 ## Environment
 
