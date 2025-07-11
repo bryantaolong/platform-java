@@ -31,6 +31,38 @@ public class PostService {
     private final UserFollowService userFollowService;
 
     /**
+     * 获取所有博文（管理员专用，支持分页和排序）
+     *
+     * @param pageable 分页参数
+     * @return 所有博文分页结果
+     */
+    public Page<Post> getAllPosts(Pageable pageable) {
+        return postRepository.findAll(pageable);
+    }
+
+    /**
+     * 获取所有已发布博文（分页）
+     *
+     * @param pageable 分页参数
+     * @return 博文分页结果
+     */
+    public Page<Post> getPublishedPosts(Pageable pageable) {
+        return postRepository.findByStatusOrderByCreatedAtDesc(Post.PostStatus.PUBLISHED, pageable);
+    }
+
+    /**
+     * 根据 ID 获取博文
+     *
+     * @param id 博文 ID
+     * @return 博文实体
+     * @throws RuntimeException 如果博文不存在
+     */
+    public Post getPostById(String id) {
+        return postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+    }
+
+    /**
      * 根据 slug 获取博文
      *
      * @param slug 博文唯一标识符
@@ -46,18 +78,6 @@ public class PostService {
         // 2. 查询博文
         return postRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Post not found with slug: " + slug));
-    }
-
-    /**
-     * 根据 ID 获取博文
-     *
-     * @param id 博文 ID
-     * @return 博文实体
-     * @throws RuntimeException 如果博文不存在
-     */
-    public Post getPostById(String id) {
-        return postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
     }
 
     /**
@@ -103,16 +123,6 @@ public class PostService {
                 Post.PostStatus.PUBLISHED,
                 pageable
         );
-    }
-
-    /**
-     * 获取所有已发布博文（分页）
-     *
-     * @param pageable 分页参数
-     * @return 博文分页结果
-     */
-    public Page<Post> getPublishedPosts(Pageable pageable) {
-        return postRepository.findByStatusOrderByCreatedAtDesc(Post.PostStatus.PUBLISHED, pageable);
     }
 
     /**

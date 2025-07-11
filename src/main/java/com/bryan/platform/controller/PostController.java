@@ -35,6 +35,28 @@ public class PostController {
     private final AuthService authService;
 
     /**
+     * 管理员获取所有博文（支持分页与排序）
+     *
+     * @param page    页码
+     * @param size    每页大小
+     * @param sortBy  排序字段
+     * @param sortDir 排序方向
+     * @return 所有博文分页数据
+     */
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<Page<Post>> getAllPostsForAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDir
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
+        return Result.success(postService.getAllPosts(pageable));
+    }
+
+
+    /**
      * 获取所有已发布博文（支持分页与排序）。
      *
      * @param page    页码，默认 0
@@ -161,7 +183,6 @@ public class PostController {
      * @return 创建后的博文
      */
     @PostMapping("/post")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Result<Post> createPost(@RequestBody Post post) {
         // 1. 获取当前用户信息
         User currentUser = authService.getCurrentUser();

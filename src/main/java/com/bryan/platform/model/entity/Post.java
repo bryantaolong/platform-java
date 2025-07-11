@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.index.CompoundIndex; // MongoDB 复
 import org.springframework.data.mongodb.core.index.Indexed; // MongoDB 单字段索引
 import org.springframework.data.mongodb.core.mapping.Document; // MongoDB 文档注解
 import org.springframework.data.mongodb.core.mapping.Field; // 用于字段映射
-// import org.springframework.data.mongodb.core.mapping.DBRef; // 不再需要 DBRef
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -19,12 +18,11 @@ import java.util.ArrayList; // For list initialization
 import java.util.List;
 
 /**
- * ClassName: Post
- * Package: com.bryan.platform.model.entity
- * Description: 博文实体，作为 MongoDB 的顶层文档。
- * Author: Bryan Long
- * Create: 2025/6/19 - 19:45 (Reference initial project User entity create date)
- * Version: v1.0
+ * 博文实体，作为 MongoDB 的顶层文档。
+ *
+ * @author Bryan Long
+ * @version 1.0
+ * @since 2025/6/19
  */
 @Data
 @Document(collection = "posts") // 映射到 MongoDB 的 'posts' 集合
@@ -38,12 +36,15 @@ public class Post implements Serializable {
     private String id;
 
     @Indexed(unique = true) // 唯一索引，确保 slug 唯一
+    @Field("slug")
     private String slug;
 
     // @NotBlank // 验证注解通常在 DTO 或 Controller 层使用
+    @Field("title")
     private String title;
 
     // @NotBlank // 验证注解通常在 DTO 或 Controller 层使用
+    @Field("content")
     private String content;
 
 //    @DBRef // 引用用户文档，【已移除】
@@ -56,20 +57,26 @@ public class Post implements Serializable {
     @Field("authorName") // MongoDB 中存储的字段名
     private String authorName; // 存储用户的显示名称（用户名）
 
+    @Field("tags")
     private List<String> tags = new ArrayList<>(); // 标签列表
 
     // 评论列表，作为内嵌文档存储在 Post 文档中
+    @Field("comments")
     private List<Comment> comments = new ArrayList<>();
 
+    @Field("featuredImage")
     private String featuredImage; // 封面图片URL
 
     @CreatedDate // Spring Data MongoDB 自动填充创建时间
+    @Field("createAt")
     private LocalDateTime createdAt;
 
     @LastModifiedDate // Spring Data MongoDB 自动填充最后修改时间
+    @Field("updateAt")
     private LocalDateTime updatedAt;
 
     // 博文状态
+    @Field("status")
     private PostStatus status = PostStatus.DRAFT;
 
     // 博文统计数据，作为内嵌对象
