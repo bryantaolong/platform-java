@@ -35,6 +35,20 @@ public class PostController {
     private final AuthService authService;
 
     /**
+     * 创建新博文。
+     *
+     * @param post 博文数据
+     * @return 创建后的博文
+     */
+    @PostMapping("/post")
+    public Result<Post> createPost(@RequestBody Post post) {
+        // 1. 获取当前用户信息
+        User currentUser = authService.getCurrentUser();
+        // 2. 创建博文
+        return Result.success(postService.createPost(post, currentUser.getId(), currentUser.getUsername()));
+    }
+
+    /**
      * 管理员获取所有博文（支持分页与排序）
      *
      * @param page    页码
@@ -45,7 +59,7 @@ public class PostController {
      */
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result<Page<Post>> getAllPostsForAdmin(
+    public Result<Page<Post>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -174,20 +188,6 @@ public class PostController {
         // 3. 获取关注博文
         Page<Post> posts = postService.getFollowingPosts(currentUserId, pageable);
         return Result.success(posts);
-    }
-
-    /**
-     * 创建新博文。
-     *
-     * @param post 博文数据
-     * @return 创建后的博文
-     */
-    @PostMapping("/post")
-    public Result<Post> createPost(@RequestBody Post post) {
-        // 1. 获取当前用户信息
-        User currentUser = authService.getCurrentUser();
-        // 2. 创建博文
-        return Result.success(postService.createPost(post, currentUser.getId(), currentUser.getUsername()));
     }
 
     /**

@@ -35,6 +35,31 @@ public class PostFavoriteController {
     private final AuthService authService;
 
     /**
+     * 添加博文收藏。
+     *
+     * @param request 收藏请求体，包含博文ID
+     * @return 操作结果信息
+     */
+    @PostMapping
+    public Result<String> createFavorite(@Valid @RequestBody PostFavoriteAddRequest request) {
+        // 1. 获取当前登录用户ID
+        Long currentUserId = authService.getCurrentUserId();
+        if (currentUserId == null) {
+            log.warn("未认证用户尝试添加收藏。");
+            return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
+        }
+
+        // 2. 记录操作日志
+        log.info("用户ID: {} 尝试收藏博文ID: {}", currentUserId, request.getPostId());
+
+        // 3. 调用服务添加收藏
+        postFavoriteService.addFavorite(currentUserId, request.getPostId());
+
+        // 4. 返回成功提示
+        return Result.success("收藏成功。");
+    }
+
+    /**
      * 分页获取指定用户的收藏博文列表。
      * <p>仅允许管理员或用户本人访问。</p>
      *
@@ -61,31 +86,6 @@ public class PostFavoriteController {
 
         // 4. 返回成功结果
         return Result.success(favoritePosts);
-    }
-
-    /**
-     * 添加博文收藏。
-     *
-     * @param request 收藏请求体，包含博文ID
-     * @return 操作结果信息
-     */
-    @PostMapping
-    public Result<String> addFavorite(@Valid @RequestBody PostFavoriteAddRequest request) {
-        // 1. 获取当前登录用户ID
-        Long currentUserId = authService.getCurrentUserId();
-        if (currentUserId == null) {
-            log.warn("未认证用户尝试添加收藏。");
-            return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
-        }
-
-        // 2. 记录操作日志
-        log.info("用户ID: {} 尝试收藏博文ID: {}", currentUserId, request.getPostId());
-
-        // 3. 调用服务添加收藏
-        postFavoriteService.addFavorite(currentUserId, request.getPostId());
-
-        // 4. 返回成功提示
-        return Result.success("收藏成功。");
     }
 
     /**
