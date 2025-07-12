@@ -2,6 +2,7 @@ package com.bryan.platform.controller;
 
 import com.bryan.platform.common.constant.ErrorCode;
 import com.bryan.platform.model.entity.Moment;
+import com.bryan.platform.model.entity.User;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.service.MomentService;
 import com.bryan.platform.service.AuthService;
@@ -41,31 +42,17 @@ public class MomentController {
     @PostMapping
     public Result<Moment> createMoment(@RequestBody Moment moment) {
         // 1. 获取当前用户信息
-        Long currentUserId = authService.getCurrentUserId();
+        User currentUser = authService.getCurrentUser();
 
         // 2. 设置作者信息
-        moment.setAuthorId(currentUserId);
+        moment.setAuthorId(currentUser.getId());
+        moment.setAuthorName(currentUser.getUsername());
 
         // 3. 执行业务逻辑
         Moment savedMoment = momentService.save(moment);
 
         // 4. 返回成功响应
         return Result.success(savedMoment);
-    }
-
-    /**
-     * 获取动态详情（公开接口）
-     *
-     * @param id 动态ID
-     * @return 动态详情数据
-     * @throws IllegalArgumentException 如果ID无效
-     */
-    @GetMapping("/{id}")
-    public Result<Moment> getMomentById(@PathVariable String id) {
-        // 1. 查询动态
-        return momentService.findById(id)
-                .map(Result::success)
-                .orElseGet(() -> Result.error(ErrorCode.NOT_FOUND));
     }
 
     /**
@@ -97,26 +84,18 @@ public class MomentController {
     }
 
     /**
-     * 删除动态（需作者或管理员权限）
+     * 获取动态详情（公开接口）
      *
      * @param id 动态ID
-     * @param userDetails 当前用户认证信息
-     * @return 空响应体
-     * @throws SecurityException 如果无操作权限
+     * @return 动态详情数据
+     * @throws IllegalArgumentException 如果ID无效
      */
-    @DeleteMapping("/{id}")
-    public Result<Void> deleteMoment(
-            @PathVariable String id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        // 1. 获取当前用户权限信息
-        Long currentUserId = authService.getCurrentUserId();
-        boolean isAdmin = authService.isAdmin(userDetails);
-
-        // 2. 执行删除（权限校验在服务层实现）
-        momentService.deleteMoment(id, currentUserId, isAdmin);
-
-        // 3. 返回成功响应
-        return Result.success(null);
+    @GetMapping("/{id}")
+    public Result<Moment> getMomentById(@PathVariable String id) {
+        // 1. 查询动态
+        return momentService.findById(id)
+                .map(Result::success)
+                .orElseGet(() -> Result.error(ErrorCode.NOT_FOUND));
     }
 
     /**
@@ -185,6 +164,50 @@ public class MomentController {
     }
 
     /**
+     * 批量获取动态（公开接口）
+     *
+     * @param ids 动态ID列表
+     * @return 动态列表
+     * @throws IllegalArgumentException 如果ID列表为空
+     */
+    @PostMapping("/batch")
+    public Result<List<Moment>> getMomentsByIds(@RequestBody List<String> ids) {
+        // 1. 参数校验
+        if (ids == null || ids.isEmpty()) {
+            return Result.error(ErrorCode.BAD_REQUEST, "动态ID列表不能为空");
+        }
+
+        // 2. 执行查询
+        List<Moment> moments = momentService.findByIds(ids);
+
+        // 3. 返回结果
+        return Result.success(moments);
+    }
+
+    /**
+     * 删除动态（需作者或管理员权限）
+     *
+     * @param id 动态ID
+     * @param userDetails 当前用户认证信息
+     * @return 空响应体
+     * @throws SecurityException 如果无操作权限
+     */
+    @DeleteMapping("/{id}")
+    public Result<Void> deleteMoment(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        // 1. 获取当前用户权限信息
+        Long currentUserId = authService.getCurrentUserId();
+        boolean isAdmin = authService.isAdmin(userDetails);
+
+        // 2. 执行删除（权限校验在服务层实现）
+        momentService.deleteMoment(id, currentUserId, isAdmin);
+
+        // 3. 返回成功响应
+        return Result.success(null);
+    }
+
+    /**
      * 搜索动态内容（公开接口）
      *
      * @param keyword 搜索关键词
@@ -223,27 +246,6 @@ public class MomentController {
 
         // 2. 执行查询
         Page<Moment> moments = momentService.findPopularMoments(minLikes, pageable);
-
-        // 3. 返回结果
-        return Result.success(moments);
-    }
-
-    /**
-     * 批量获取动态（公开接口）
-     *
-     * @param ids 动态ID列表
-     * @return 动态列表
-     * @throws IllegalArgumentException 如果ID列表为空
-     */
-    @PostMapping("/batch")
-    public Result<List<Moment>> getMomentsByIds(@RequestBody List<String> ids) {
-        // 1. 参数校验
-        if (ids == null || ids.isEmpty()) {
-            return Result.error(ErrorCode.BAD_REQUEST, "动态ID列表不能为空");
-        }
-
-        // 2. 执行查询
-        List<Moment> moments = momentService.findByIds(ids);
 
         // 3. 返回结果
         return Result.success(moments);
