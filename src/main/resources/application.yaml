@@ -1,54 +1,37 @@
 spring:
   application:
     name: platform
-  datasource:
-    url: jdbc:postgresql://localhost:5432/platform
-    username: platform_user  # PostgreSQL默认超级用户
-    password: 123456    # 建议改为更安全的密码
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 20
-    #  datasource:
-    #    url: jdbc:mysql://localhost:3306/platform?useSSL=false
-    #    username: root
-    #    password: 123456
-    #    driver-class-name: com.mysql.cj.jdbc.Driver
-  data:
-    mongodb:
-      uri: mongodb://localhost:27017/platform
-    redis:
-      host: localhost
-      port: 6379
-      password: 123456
+  profiles:
+    active: dev
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
 
-# 配置日志
+# 日志配置（通用）
 logging:
-  # 不打印项目的名称
   include-application-name: false
   level:
     root: INFO
   file:
-    name: logs/platform.log  # 日志文件路径
+    name: logs/platform.log
   logback:
     rolling-policy:
       max-file-size: 10MB
       max-history: 30
 
+# MyBatis-Plus 配置（通用）
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
   global-config:
     db-config:
-      logic-delete-field: deleted  # 逻辑删除字段
+      logic-delete-field: deleted
       logic-not-delete-value: 0
       logic-delete-value: 1
 
+# 第三方 API 配置（通用）
 deepseek:
   api:
-    key: "your-deepseek-api-key"
+    key: "${DEEPSEEK_API_KEY}" # Set your own api key as environment variable
     url: "https://api.deepseek.com/chat/completions"
     model: "deepseek-chat"
