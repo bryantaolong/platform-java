@@ -1,6 +1,6 @@
 package com.bryan.platform.config;
 
-import com.bryan.platform.config.filter.JwtAuthenticationFilter;
+import com.bryan.platform.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

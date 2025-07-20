@@ -1,4 +1,4 @@
-package com.bryan.platform.config.filter;
+package com.bryan.platform.filter;
 
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.common.enums.ErrorCode;
