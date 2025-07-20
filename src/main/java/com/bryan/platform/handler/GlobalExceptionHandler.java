@@ -1,4 +1,4 @@
-package com.bryan.platform.common.exception.handler;
+package com.bryan.platform.handler;
 
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
