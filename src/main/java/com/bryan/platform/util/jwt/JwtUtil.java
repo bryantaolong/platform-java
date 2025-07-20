@@ -1,4 +1,4 @@
-package com.bryan.platform.util;
+package com.bryan.platform.util.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

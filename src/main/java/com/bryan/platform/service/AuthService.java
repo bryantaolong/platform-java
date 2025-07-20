@@ -1,7 +1,7 @@
 package com.bryan.platform.service;
 
 import com.bryan.platform.common.exception.BusinessException;
-import com.bryan.platform.util.JwtUtil;
+import com.bryan.platform.util.jwt.JwtUtil;
 import com.bryan.platform.dao.mapper.UserMapper;
 import com.bryan.platform.model.entity.User;
 import com.bryan.platform.model.request.LoginRequest;
