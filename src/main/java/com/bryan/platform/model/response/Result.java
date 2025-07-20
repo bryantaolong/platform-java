@@ -1,6 +1,6 @@
 package com.bryan.platform.model.response;
 
-import com.bryan.platform.common.constant.ErrorCode;
+import com.bryan.platform.common.enums.ErrorCode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

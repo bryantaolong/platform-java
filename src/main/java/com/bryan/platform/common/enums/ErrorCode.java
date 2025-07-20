@@ -1,4 +1,4 @@
-package com.bryan.platform.common.constant;
+package com.bryan.platform.common.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

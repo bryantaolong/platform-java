@@ -1,5 +1,8 @@
 package com.bryan.platform.common.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 /**
  * ClassName: ResourceNotFoundException
  * Package: com.bryan.platform.common.exception
@@ -10,6 +13,7 @@ package com.bryan.platform.common.exception;
  * Create: 2025/6/19 - 20:26
  * Version: v1.0
  */
+@ResponseStatus(HttpStatus.NOT_FOUND)
 public class ResourceNotFoundException extends RuntimeException {
 
     /**

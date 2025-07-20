@@ -1,7 +1,7 @@
 package com.bryan.platform.controller;
 
 import com.bryan.platform.model.response.Result;
-import com.bryan.platform.common.constant.ErrorCode;
+import com.bryan.platform.common.enums.ErrorCode;
 import com.bryan.platform.service.AuthService;
 import com.bryan.platform.model.request.PostFavoriteAddRequest;
 import com.bryan.platform.model.entity.Post;

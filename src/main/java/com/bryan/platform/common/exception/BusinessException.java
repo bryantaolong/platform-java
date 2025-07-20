@@ -1,5 +1,8 @@
 package com.bryan.platform.common.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 /**
  * ClassName: BusinessException
  * Package: com.bryan.platform.common.exception
@@ -11,6 +14,7 @@ package com.bryan.platform.common.exception;
  * Create: 2025/6/19 - 20:30
  * Version: v1.0
  */
+@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 public class BusinessException extends RuntimeException {
 
     /**

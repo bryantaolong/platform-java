@@ -4,7 +4,7 @@ import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
 import com.bryan.platform.common.exception.UnauthorizedException;
 import com.bryan.platform.model.response.Result;
-import com.bryan.platform.common.constant.ErrorCode;
+import com.bryan.platform.common.enums.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.FieldError;
@@ -15,19 +15,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.stream.Collectors;
 
 /**
- * ClassName: GlobalExceptionHandler
- * Package: com.bryan.platform.common.exception
- * Description: 全局异常处理器（替代 WebMvcConfig 中的异常处理逻辑）
- * Author: Bryan Long
- * Create: 2025/6/19 - 20:02
- * Version: v1.0
+ * 全局异常处理器（替代 WebMvcConfig 中的异常处理逻辑）
+ * @author Bryan Long
+ * @version  v1.0
+ * @since  2025/6/19 - 20:02
  */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
-     * 处理业务异常
+     * 处理运行时异常
      */
     @ExceptionHandler(RuntimeException.class)
     public Result<String> handleRuntimeException(HttpServletRequest request, RuntimeException e) {
@@ -50,9 +48,9 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理404异常（需配合Spring Boot的ErrorController）
+     * 处理 404 异常（需配合Spring Boot的 ErrorController）
      */
-    @ExceptionHandler(ResourceNotFoundException.class) // 自定义异常示例
+    @ExceptionHandler(ResourceNotFoundException.class)
     public Result<String> handleNotFoundException(ResourceNotFoundException e) {
         log.warn("资源不存在: {}", e.getMessage());
         return Result.error(ErrorCode.NOT_FOUND);

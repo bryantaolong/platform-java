@@ -1,6 +1,6 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.common.constant.ErrorCode;
+import com.bryan.platform.common.enums.ErrorCode;
 import com.bryan.platform.model.entity.Moment;
 import com.bryan.platform.model.entity.User;
 import com.bryan.platform.model.response.Result;
