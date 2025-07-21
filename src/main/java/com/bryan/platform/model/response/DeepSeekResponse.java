@@ -8,12 +8,11 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * ClassName: DeepSeekResponse
- * Package: com.bryan.platform.model.response
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/25 - 11:12
- * Version: v1.0
+ * DeepSeek API 响应对象
+ *
+ * @author Bryan Long
+ * @since 2025/6/25 - 11:12
+ * @version 1.0
  */
 @Data
 public class DeepSeekResponse {
@@ -28,6 +27,4 @@ public class DeepSeekResponse {
 @Setter
 class Choice {
     private DeepSeekMessage message;
-
-    // getters and setters
 }

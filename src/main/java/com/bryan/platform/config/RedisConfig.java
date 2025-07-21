@@ -8,12 +8,11 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
- * ClassName: RedisConfig
- * Package: com.bryan.platform.config
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/19 - 20:00
- * Version: v1.0
+ * RedisConfig Redis 配置类
+ *
+ * @author Bryan Long
+ * @since 2025/6/19 - 20:00
+ * @version 1.0
  */
 @Configuration
 public class RedisConfig {

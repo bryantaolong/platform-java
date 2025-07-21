@@ -17,12 +17,11 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
- * ClassName: User
- * Package: com.bryan.platform.entity
- * Description: 用户实体类，实现 UserDetails 接口用于 Spring Security。
- * Author: Bryan Long
- * Create: 2025/6/19 - 19:45
- * Version: v1.0
+ * User 用户实体类，实现 UserDetails 接口用于 Spring Security。
+ *
+ * @author Bryan Long
+ * @version 1.0
+ * @since 2025/6/19 - 19:45
  */
 @Data
 @Builder

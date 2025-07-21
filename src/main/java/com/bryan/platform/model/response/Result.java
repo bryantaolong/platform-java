@@ -5,17 +5,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * ClassName: Result
- * Package: com.bryan.platform.common
- * Description: 统一响应封装
- * Author: Bryan Long
- * Create: 2025/6/19 - 19:51
- * Version: v1.0
+ * 统一响应封装
+ *
+ * @author Bryan Long
+ * @since 2025/6/19 - 19:51
+ * @version 1.0
  */
 @Data
 @NoArgsConstructor
 public class Result<T> {
-
     private int code;
 
     private String message;

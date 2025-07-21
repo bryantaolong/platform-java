@@ -24,12 +24,11 @@ import java.util.List; // 新增导入
 import java.util.stream.Collectors; // 新增导入
 
 /**
- * ClassName: JwtAuthenticationFilter
- * Package: com.bryan.platform.config.filter
- * Description: JWT 认证过滤器，用于解析Token并设置Spring Security上下文。
- * Author: Bryan Long
- * Create: 2025/6/19 - 20:02
- * Version: v1.0
+ * JWT 认证过滤器，用于解析Token并设置Spring Security上下文。
+ *
+ * @author Bryan Long
+ * @since 2025/6/19 - 20:02
+ * @version 1.0
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

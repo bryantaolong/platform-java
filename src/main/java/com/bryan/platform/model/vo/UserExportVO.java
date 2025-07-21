@@ -7,18 +7,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * ClassName: UserExportVO
- * Package: com.bryan.platform.model.vo
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/28 - 21:12
- * Version: v1.0
+ * 用户导出视图对象
+ *
+ * @author Bryan Long
+ * @since 2025/6/28 - 21:12
+ * @version 1.0
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserExportVO {
-
     @ExcelProperty("用户ID")
     private Long id;
 

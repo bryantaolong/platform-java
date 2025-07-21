@@ -7,12 +7,11 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 /**
- * ClassName: CreateUpdateTimeHandler
- * Package: com.bryan.platform.config.handler
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/19 - 20:01
- * Version: v1.0
+ * MyBatis-Plus 自动填充处理器
+ *
+ * @author Bryan Long
+ * @since 2025/6/19 - 20:01
+ * @version 1.0
  */
 @Component
 public class CreateUpdateTimeHandler implements MetaObjectHandler {

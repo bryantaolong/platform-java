@@ -35,7 +35,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Moment implements Serializable {
-
     @Id
     private String id;
 

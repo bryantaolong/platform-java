@@ -10,13 +10,12 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * ClassName: PostFavorite
- * Package: com.bryan.platform.model.entity
- * Description: 博文收藏实体类。
- * 记录用户对特定博文的收藏行为。存储在 MySQL 数据库。
- * Author: Bryan Long
- * Create: 2025/6/22 - 16:14
- * Version: v2.0
+ * 博文收藏实体类
+ * 记录用户对特定博文的收藏行为。存储在 PostgreSQL 数据库。
+ *
+ * @author Bryan Long
+ * @since 2025/6/22 - 16:14
+ * @version 2.0
  */
 @Data
 @TableName("post_favorite")
@@ -24,7 +23,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class PostFavorite implements Serializable {
-
     // 用户ID，复合主键的一部分
     private Long userId;
 

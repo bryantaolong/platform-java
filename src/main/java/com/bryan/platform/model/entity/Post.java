@@ -31,7 +31,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Post implements Serializable {
-
     @Id // MongoDB 文档的唯一标识符，通常为 String 类型
     private String id;
 

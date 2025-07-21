@@ -4,16 +4,14 @@ import jakarta.validation.constraints.Email;
 import lombok.Data;
 
 /**
- * ClassName: UserUpdateDTO
- * Package: com.bryan.platform.model.dto
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/21 - 19:37
- * Version: v1.0
+ * 用户更新请求对象
+ *
+ * @author Bryan Long
+ * @since 2025/6/21 - 19:37
+ * @version 1.0
  */
 @Data
 public class UserUpdateRequest {
-
     /**
      * 用户名。
      * 在更新时是可选的，如果提供则更新，如果不提供则保持不变。

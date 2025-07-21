@@ -5,13 +5,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * ClassName: AppConfig
- * Package: com.bryan.platform.config
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/25 - 11:20
- * Version: v1.0
+ * * AppConfig Application configuration class
+ * *
+ * * @author Bryan Long
+ * * @version 1.0
+ * * @since 2025/6/25-11:20
  */
+
 @Configuration
 public class AppConfig {
 

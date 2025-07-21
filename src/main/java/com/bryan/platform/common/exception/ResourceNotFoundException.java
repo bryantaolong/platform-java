@@ -4,14 +4,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * ClassName: ResourceNotFoundException
- * Package: com.bryan.platform.common.exception
- * Description: 资源不存在异常类。
+ * ResourceNotFoundException 资源不存在异常类。
  * 用于封装和抛出当请求的资源（例如用户、博文、评论等）在系统中不存在时发生的异常。
  * 此异常通常会被全局异常处理器捕获，并映射为 HTTP 状态码 404 (Not Found)。
- * Author: Bryan Long
- * Create: 2025/6/19 - 20:26
- * Version: v1.0
+ *
+ * @author Bryan Long
+ * @version 1.0
+ * @since 2025/6/19 - 20:26
  */
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class ResourceNotFoundException extends RuntimeException {

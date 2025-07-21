@@ -7,12 +7,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * ClassName: LoginDTO
- * Package: com.bryan.platform.entity.dto
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/19 - 19:59
- * Version: v1.0
+ * 登录请求对象
+ *
+ * @author Bryan Long
+ * @since 2025/6/19 - 19:59
+ * @version 1.0
  */
 @Data
 @Builder

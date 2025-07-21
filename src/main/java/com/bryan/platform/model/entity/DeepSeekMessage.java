@@ -3,12 +3,11 @@ package com.bryan.platform.model.entity;
 import lombok.Data;
 
 /**
- * ClassName: DeepSeekMessage
- * Package: com.bryan.platform.model.entity
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/25 - 11:13
- * Version: v1.0
+ * DeepSeek 消息实体
+ *
+ * @author Bryan Long
+ * @since 2025/6/25 - 11:13
+ * @version 1.0
  */
 @Data
 public class DeepSeekMessage {

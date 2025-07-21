@@ -4,12 +4,11 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * ClassName: FavoriteUpdateDTO
- * Package: com.bryan.platform.model.dto
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/22 - 16:19
- * Version: v1.0
+ * PostFavoriteAddRequest
+ *
+ * @author Bryan Long
+ * @since 2025/6/22 - 16:19
+ * @version 1.0
  */
 @Data
 public class PostFavoriteAddRequest {

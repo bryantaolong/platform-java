@@ -5,12 +5,11 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * ClassName: UserExportRequest
- * Package: com.bryan.platform.model.request
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/28 - 21:10
- * Version: v1.0
+ * 用户导出请求对象
+ *
+ * @author Bryan Long
+ * @since 2025/6/28 - 21:10
+ * @version 1.0
  */
 @Data
 public class UserExportRequest {

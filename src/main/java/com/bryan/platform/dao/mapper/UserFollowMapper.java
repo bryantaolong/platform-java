@@ -6,12 +6,11 @@ import org.apache.ibatis.annotations.*;
 import java.util.List;
 
 /**
- * ClassName: UserFollowMapper
- * Package: com.bryan.platform.dao.mapper
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/23 - 18:52
- * Version: v1.0
+ * UserFollow 用户关注数据访问层
+ *
+ * @author Bryan Long
+ * @version 1.0
+ * @since 2025/6/23 - 18:52
  */
 @Mapper
 public interface UserFollowMapper {

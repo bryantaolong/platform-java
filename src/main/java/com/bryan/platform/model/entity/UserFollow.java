@@ -10,12 +10,11 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * ClassName: UserFollow
- * Package: com.bryan.platform.model.entity
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/23 - 18:47
- * Version: v1.0
+ * 用户关注关系实体
+ *
+ * @author Bryan Long
+ * @since 2025/6/23 - 18:47
+ * @version 1.0
  */
 @Data
 @TableName("user_follows")

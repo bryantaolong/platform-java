@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 /**
  * 全局异常处理器（替代 WebMvcConfig 中的异常处理逻辑）
+ *
  * @author Bryan Long
  * @version  v1.0
  * @since  2025/6/19 - 20:02

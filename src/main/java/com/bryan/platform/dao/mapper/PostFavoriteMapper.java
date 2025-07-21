@@ -6,12 +6,11 @@ import org.apache.ibatis.annotations.*;
 import java.util.List;
 
 /**
- * ClassName: FavoriteMapper
- * Package: com.bryan.platform.dao.mapper
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/22 - 16:21
- * Version: v1.0
+ * PostFavorite 博文收藏数据访问层
+ *
+ * @author Bryan Long
+ * @version 1.0
+ * @since 2025/6/22 - 16:21
  */
 @Mapper
 public interface PostFavoriteMapper {

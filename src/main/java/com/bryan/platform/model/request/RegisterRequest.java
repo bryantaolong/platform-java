@@ -9,12 +9,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * ClassName: UserDTO
- * Package: com.bryan.platform.entity.dto
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/19 - 19:54
- * Version: v1.0
+ * 用户注册请求对象
+ *
+ * @author Bryan Long
+ * @since 2025/6/19 - 19:54
+ * @version 1.0
  */
 @Data
 @Builder

@@ -28,7 +28,6 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final ExcelExportService excelExportService;
 
     /**
      * 获取所有用户列表（不分页）。

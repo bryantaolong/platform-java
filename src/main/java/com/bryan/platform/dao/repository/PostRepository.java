@@ -23,16 +23,8 @@ public interface PostRepository extends MongoRepository<Post, String> { // ID类
     // 查询已发布的博文，按创建时间降序排列（用于分页）
     Page<Post> findByStatusOrderByCreatedAtDesc(Post.PostStatus status, Pageable pageable);
 
-    // --- 修改开始 ---
-
-    // 原方法：Page<Post> findByAuthorOrderByCreatedAtDesc(User author, Pageable pageable);
-    // 修改原因：Post实体不再包含User author字段
-    // 改为：根据authorId查询博文，按创建时间降序排列
     Page<Post> findByAuthorIdOrderByCreatedAtDesc(Long authorId, Pageable pageable);
 
-    // 原方法：Page<Post> findByAuthorAndStatus(User author, Post.PostStatus status, Pageable pageable);
-    // 修改原因：Post实体不再包含User author字段
-    // 改为：根据authorId和状态查询博文
     Page<Post> findByAuthorIdAndStatus(Long authorId, Post.PostStatus status, Pageable pageable);
 
     // 根据多个作者ID和状态查询博文，按创建时间降序排列
@@ -41,8 +33,6 @@ public interface PostRepository extends MongoRepository<Post, String> { // ID类
             Post.PostStatus status,
             Pageable pageable
     );
-
-    // --- 修改结束 ---
 
     // 根据slug查询博文
     Optional<Post> findBySlug(String slug);

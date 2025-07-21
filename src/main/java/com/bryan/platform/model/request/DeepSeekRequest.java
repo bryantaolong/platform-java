@@ -6,16 +6,14 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * ClassName: DeepSeekRequest
- * Package: com.bryan.platform.model.request
- * Description:
- * Author: Bryan Long
- * Create: 2025/6/25 - 11:11
- * Version: v1.0
+ * DeepSeek API 请求对象
+ *
+ * @author Bryan Long
+ * @since 2025/6/25 - 11:11
+ * @version 1.0
  */
 @Data
 public class DeepSeekRequest {
-
     private String model;
 
     private List<DeepSeekMessage> messages;

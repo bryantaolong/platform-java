@@ -5,12 +5,11 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * ClassName: WebMvcConfig
- * Package: com.bryan.platform.config
- * Description: Spring MVC 基础配置
- * Author: Bryan Long
- * Create: 2025/6/19 - 20:01
- * Version: v1.0
+ * Spring MVC 基础配置
+ *
+ * @author Bryan Long
+ * @since 2025/6/19 - 20:01
+ * @version 1.0
  */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {

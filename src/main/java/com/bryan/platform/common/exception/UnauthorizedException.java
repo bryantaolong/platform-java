@@ -4,14 +4,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * ClassName: UnauthorizedException
- * Package: com.bryan.platform.common.exception
- * Description: 未授权/未认证异常类。
+ * UnauthorizedException 未授权/未认证异常类。
  * 用于封装和抛出当用户尝试访问需要认证的资源，但其未提供有效认证凭据（例如，Token缺失、无效或过期）时发生的异常。
  * 通过 {@code @ResponseStatus(HttpStatus.UNAUTHORIZED)} 直接绑定 HTTP 状态码 401 (Unauthorized)。
- * Author: Bryan Long
- * Create: 2025/6/19 - 20:29
- * Version: v1.0
+ *
+ * @author Bryan Long
+ * @version 1.0
+ * @since 2025/6/19 - 20:29
  */
 @ResponseStatus(HttpStatus.UNAUTHORIZED) // 将此异常直接映射到 HTTP 401 状态码
 public class UnauthorizedException extends RuntimeException {

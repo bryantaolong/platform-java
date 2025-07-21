@@ -14,12 +14,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 
 /**
- * ClassName: MongoConfig
- * Package: com.bryan.platform.config
- * Description: MongoDB 配置类，用于创建文本索引和启用审计功能。
- * Author: Bryan Long
- * Create: 2025/6/20
- * Version: v1.0
+ * MongoConfig MongoDB 配置类，用于创建文本索引和启用审计功能。
+ *
+ * @author Bryan Long
+ * @since 2025/6/20
+ * @version 1.0
  */
 @Slf4j
 @Configuration

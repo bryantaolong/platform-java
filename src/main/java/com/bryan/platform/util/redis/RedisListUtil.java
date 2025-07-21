@@ -8,13 +8,12 @@ import java.util.Collections; // Added import for Collections.emptyList()
 import java.util.List;
 
 /**
- * ClassName: RedisListUtil
- * Package: com.bryan.platform.common.util.redis
- * Description: Redis 列表 (List) 类型操作工具类。
+ * Redis 列表 (List) 类型操作工具类。
  * 优化了 RedisTemplate 的注入泛型，使其与 RedisConfig 中配置的序列化器类型匹配。
- * Author: Bryan Long
- * Create: 2025/6/20 - 17:28
- * Version: v1.0
+ *
+ * @author Bryan Long
+ * @since 2025/6/20
+ * @version 1.0
  */
 @Slf4j
 @Component

@@ -7,13 +7,12 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 
 /**
- * ClassName: RedisStringUtil
- * Package: com.bryan.platform.common.util.redis
- * Description: Redis 字符串 (String) 类型操作工具类。
+ * Redis 字符串 (String) 类型操作工具类。
  * 优化了 RedisTemplate 的注入泛型，使其与 RedisConfig 中配置的序列化器类型匹配。
- * Author: Bryan Long
- * Create: 2025/6/20 - 17:29
- * Version: v1.0
+ *
+ * @author Bryan Long
+ * @since 2025/6/20
+ * @version 1.0
  */
 @Slf4j
 @Component

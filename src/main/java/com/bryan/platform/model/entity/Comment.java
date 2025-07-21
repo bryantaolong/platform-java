@@ -13,19 +13,17 @@ import java.time.LocalDateTime;
 // import org.springframework.data.mongodb.core.mapping.DBRef; // 不再需要 DBRef
 
 /**
- * ClassName: Comment
- * Package: com.bryan.platform.model.entity
- * Description: 评论实体，作为 MongoDB 博文的内嵌文档。
- * Author: Bryan Long
- * Create: 2025/6/20
- * Version: v1.0
+ * 评论实体，作为 MongoDB 博文的内嵌文档。
+ *
+ * @author Bryan Long
+ * @since 2025/6/20
+ * @version 1.0
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Comment implements Serializable {
-
     @Id // MongoDB 文档的 ID，通常为 String 类型。对于内嵌文档，通常由应用生成 UUID。
     private String id;
 
