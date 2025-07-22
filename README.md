@@ -1,7 +1,5 @@
 # Platform Java
 
-My Platform system Java backend service code source
-
 ## Environment
 
 ### Programming Language
