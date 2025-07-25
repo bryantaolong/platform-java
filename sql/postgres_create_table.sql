@@ -69,38 +69,3 @@ ALTER TABLE user_follows ADD CONSTRAINT fk_user_follows_following
 CREATE INDEX idx_follower_id ON user_follows (follower_id);
 CREATE INDEX idx_following_id ON user_follows (following_id);
 
-CREATE TABLE friendship (
-                            user_id BIGINT NOT NULL,
-                            friend_id BIGINT NOT NULL,
-                            create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            deleted SMALLINT DEFAULT 0,
-                            PRIMARY KEY (user_id, friend_id)
-);
-
--- 添加外键约束（需先创建user表）
-ALTER TABLE friendship ADD CONSTRAINT fk_friendship_user
-    FOREIGN KEY (user_id) REFERENCES "user" (id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-ALTER TABLE friendship ADD CONSTRAINT fk_friendship_friend
-    FOREIGN KEY (friend_id) REFERENCES "user" (id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-CREATE TYPE request_status AS ENUM ('pending', 'accepted', 'rejected', 'cancelled');
-
-CREATE TABLE friend_request (
-                                id BIGSERIAL PRIMARY KEY,
-                                from_user_id BIGINT NOT NULL,
-                                to_user_id BIGINT NOT NULL,
-                                message VARCHAR(255),
-                                status request_status DEFAULT 'pending',
-                                create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                CONSTRAINT from_user_id UNIQUE (from_user_id, to_user_id)
-);
-
--- 添加外键约束
-ALTER TABLE friend_request ADD CONSTRAINT fk_friend_request_from
-    FOREIGN KEY (from_user_id) REFERENCES "user" (id);
-
-ALTER TABLE friend_request ADD CONSTRAINT fk_friend_request_to
-    FOREIGN KEY (to_user_id) REFERENCES "user" (id);
