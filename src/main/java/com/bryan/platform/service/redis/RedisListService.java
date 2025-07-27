@@ -1,8 +1,9 @@
-package com.bryan.platform.util.redis;
+package com.bryan.platform.service.redis;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections; // Added import for Collections.emptyList()
 import java.util.List;
@@ -12,17 +13,15 @@ import java.util.List;
  * 优化了 RedisTemplate 的注入泛型，使其与 RedisConfig 中配置的序列化器类型匹配。
  *
  * @author Bryan Long
- * @since 2025/6/20
  * @version 1.0
+ * @since 2025/6/20
  */
 @Slf4j
-@Component
-public class RedisListUtil extends BaseRedisUtil {
+@Service
+@RequiredArgsConstructor
+public class RedisListService {
 
-    // 构造器注入 RedisTemplate<String, Object>，与 BaseRedisUtil 的泛型保持一致
-    public RedisListUtil(RedisTemplate<String, Object> redisTemplate) {
-        super(redisTemplate);
-    }
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 向 Redis 列表左侧添加一个或多个元素。
