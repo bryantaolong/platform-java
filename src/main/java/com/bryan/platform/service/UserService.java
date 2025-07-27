@@ -13,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -89,30 +91,49 @@ public class UserService {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
 
         // 2. 添加用户名模糊查询
-        if (searchRequest.getUsername() != null && !searchRequest.getUsername().trim().isEmpty()) {
-            queryWrapper.like("username", searchRequest.getUsername());
+        if (StringUtils.hasText(searchRequest.getUsername())) {
+            queryWrapper.like("username", searchRequest.getUsername().trim());
         }
+
         // 3. 添加手机号模糊查询
-        if (searchRequest.getPhoneNumber() != null && !searchRequest.getPhoneNumber().trim().isEmpty()) {
-            queryWrapper.like("phone_number", searchRequest.getPhoneNumber());
+        if (StringUtils.hasText(searchRequest.getPhoneNumber())) {
+            queryWrapper.like("phone_number", searchRequest.getPhoneNumber().trim());
         }
+
         // 4. 添加邮箱模糊查询
-        if (searchRequest.getEmail() != null && !searchRequest.getEmail().trim().isEmpty()) {
-            queryWrapper.like("email", searchRequest.getEmail());
+        if (StringUtils.hasText(searchRequest.getEmail())) {
+            queryWrapper.like("email", searchRequest.getEmail().trim());
         }
+
         // 5. 添加性别精确查询
         if (searchRequest.getGender() != null) {
             queryWrapper.eq("gender", searchRequest.getGender());
         }
+
         // 6. 添加状态精确查询
         if (searchRequest.getStatus() != null) {
             queryWrapper.eq("status", searchRequest.getStatus());
         }
 
-        // 7. 构造分页对象
+        // 7. 处理创建时间查询
+        handleTimeQuery(queryWrapper, "create_time",
+                searchRequest.getCreateTime(),
+                searchRequest.getCreateTimeStart(),
+                searchRequest.getCreateTimeEnd());
+
+        // 8. 处理更新时间查询
+        handleTimeQuery(queryWrapper, "update_time",
+                searchRequest.getUpdateTime(),
+                searchRequest.getUpdateTimeStart(),
+                searchRequest.getUpdateTimeEnd());
+
+        // 9. 添加排序条件（可按需添加）
+        queryWrapper.orderByDesc("update_time");
+
+        // 10. 构造分页对象
         Page<User> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
 
-        // 8. 执行查询并返回结果
+        // 11. 执行查询并返回结果
         return userMapper.selectPage(page, queryWrapper);
     }
 
@@ -317,5 +338,33 @@ public class UserService {
                     return existingUser;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
+
+    /**
+     * 处理时间查询条件
+     *
+     * @param queryWrapper 查询条件包装器
+     * @param column 数据库列名
+     * @param exactTime 精确时间
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     */
+    private void handleTimeQuery(QueryWrapper<User> queryWrapper, String column,
+                                 LocalDateTime exactTime,
+                                 LocalDateTime startTime,
+                                 LocalDateTime endTime) {
+        if (exactTime != null) {
+            // 精确时间查询
+            queryWrapper.eq(column, exactTime);
+        } else {
+            // 范围时间查询
+            if (startTime != null && endTime != null) {
+                queryWrapper.between(column, startTime, endTime);
+            } else if (startTime != null) {
+                queryWrapper.ge(column, startTime);
+            } else if (endTime != null) {
+                queryWrapper.le(column, endTime);
+            }
+        }
     }
 }

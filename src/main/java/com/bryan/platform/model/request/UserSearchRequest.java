@@ -2,6 +2,8 @@ package com.bryan.platform.model.request;
 
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 /**
  * UserSearchRequest
  *
@@ -20,4 +22,16 @@ public class UserSearchRequest {
     private Integer gender;
 
     private Integer status;
+
+    private LocalDateTime createTime;
+
+    private LocalDateTime createTimeStart;
+
+    private LocalDateTime createTimeEnd;
+
+    private LocalDateTime updateTime;
+
+    private LocalDateTime updateTimeStart;
+
+    private LocalDateTime updateTimeEnd;
 }
