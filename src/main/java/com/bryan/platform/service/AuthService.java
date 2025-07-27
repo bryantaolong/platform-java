@@ -2,7 +2,7 @@ package com.bryan.platform.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bryan.platform.common.exception.BusinessException;
-import com.bryan.platform.util.jwt.JwtUtil;
+import com.bryan.platform.util.jwt.JwtUtils;
 import com.bryan.platform.dao.mapper.UserMapper;
 import com.bryan.platform.model.entity.User;
 import com.bryan.platform.model.request.LoginRequest;
@@ -98,7 +98,7 @@ public class AuthService implements UserDetailsService {
         claims.put("roles", user.getRoles());
 
         // 4. 生成并返回 Token
-        return JwtUtil.generateToken(user.getId().toString(), claims);
+        return JwtUtils.generateToken(user.getId().toString(), claims);
     }
 
     /**
@@ -108,7 +108,7 @@ public class AuthService implements UserDetailsService {
      */
     public Long getCurrentUserId() {
         // 1. 从 JWT Token 中提取用户 ID
-        return JwtUtil.getCurrentUserId();
+        return JwtUtils.getCurrentUserId();
     }
 
     /**
@@ -118,7 +118,7 @@ public class AuthService implements UserDetailsService {
      */
     public String getCurrentUsername() {
         // 1. 从 JWT Token 中提取用户名
-        return JwtUtil.getCurrentUsername();
+        return JwtUtils.getCurrentUsername();
     }
 
     /**
@@ -128,7 +128,7 @@ public class AuthService implements UserDetailsService {
      */
     public User getCurrentUser() {
         // 1. 获取当前用户 ID
-        Long userId = JwtUtil.getCurrentUserId();
+        Long userId = JwtUtils.getCurrentUserId();
 
         // 2. 查询数据库返回用户信息
         return userMapper.selectById(userId);
@@ -154,7 +154,7 @@ public class AuthService implements UserDetailsService {
      */
     public boolean validateToken(String token) {
         // 1. 调用工具类验证 Token 合法性
-        return JwtUtil.validateToken(token);
+        return JwtUtils.validateToken(token);
     }
 
     /**
@@ -172,7 +172,7 @@ public class AuthService implements UserDetailsService {
         claims.put("roles", user.getRoles());
 
         // 3. 生成并返回 Token
-        return JwtUtil.generateToken(user.getId().toString(), claims);
+        return JwtUtils.generateToken(user.getId().toString(), claims);
     }
 
     /**

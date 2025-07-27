@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * @version v1.0
  * @since 2025/7/25
  */
-public class JwtUtil {
+public class JwtUtils {
 
     // 生产环境建议使用外部配置注入密钥，避免硬编码
     private static final String SECRET_STRING = "BryanTaoLong2025!@#SuperSecretKeyJwtToken987";

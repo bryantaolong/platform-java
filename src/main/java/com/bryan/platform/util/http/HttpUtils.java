@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * @version 1.0
  * @since 2025/7/26
  */
-public class HttpUtil {
+public class HttpUtils {
 
     public static String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
