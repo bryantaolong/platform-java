@@ -80,6 +80,7 @@ public class UserController {
      * @return 用户分页结果
      */
     @PostMapping("/search")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result<Page<User>> searchUsers(
             @RequestBody UserSearchRequest searchRequest,
             @ModelAttribute PageRequest pageRequest) {
