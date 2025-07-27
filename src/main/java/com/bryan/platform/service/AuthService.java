@@ -1,5 +1,6 @@
 package com.bryan.platform.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.util.jwt.JwtUtil;
 import com.bryan.platform.dao.mapper.UserMapper;
@@ -14,6 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,22 +39,28 @@ public class AuthService implements UserDetailsService {
      *
      * @param registerRequest 注册请求对象
      * @return 注册成功的用户实体
-     * @throws RuntimeException 用户名已存在
+     * @throws BusinessException 用户名已存在
      * @throws BusinessException 插入数据库失败
      */
     public User register(RegisterRequest registerRequest) {
         // 1. 检查用户名是否已存在
-        if (userMapper.selectByUsername(registerRequest.getUsername()) != null) {
-            throw new RuntimeException("用户名已存在");
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", registerRequest.getUsername());
+
+        if (userMapper.selectOne(queryWrapper) != null) {
+            throw new BusinessException("用户名已存在");
         }
 
-        // 2. 构建用户实体，密码加密，设置默认角色和初始状态
+        // 2. 构建用户实体，密码加密
         User user = User.builder()
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .phoneNumber(registerRequest.getPhoneNumber())
                 .email(registerRequest.getEmail())
-                .status(0)
                 .roles("ROLE_USER")
+                .passwordResetTime(LocalDateTime.now())
+                .createBy(registerRequest.getUsername())
+                .updateBy(registerRequest.getUsername())
                 .build();
 
         // 3. 插入用户数据
@@ -70,19 +78,23 @@ public class AuthService implements UserDetailsService {
      *
      * @param loginRequest 登录请求对象
      * @return 登录成功后的 JWT Token
-     * @throws RuntimeException 用户名不存在或密码错误
+     * @throws BusinessException 用户名不存在或密码错误
      */
     public String login(LoginRequest loginRequest) {
         // 1. 根据用户名查询用户
-        User user = userMapper.selectByUsername(loginRequest.getUsername());
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", loginRequest.getUsername());
+
+        User user = userMapper.selectOne(queryWrapper);
 
         // 2. 验证密码是否正确
         if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            throw new RuntimeException("用户名或密码错误");
+            throw new BusinessException("用户名或密码错误");
         }
 
         // 3. 构建 JWT claims，包含用户角色
         Map<String, Object> claims = new HashMap<>();
+        claims.put("username", user.getUsername());
         claims.put("roles", user.getRoles());
 
         // 4. 生成并返回 Token
@@ -97,6 +109,16 @@ public class AuthService implements UserDetailsService {
     public Long getCurrentUserId() {
         // 1. 从 JWT Token 中提取用户 ID
         return JwtUtil.getCurrentUserId();
+    }
+
+    /**
+     * 获取当前登录用户的用户名。
+     *
+     * @return 当前用户名
+     */
+    public String getCurrentUsername() {
+        // 1. 从 JWT Token 中提取用户名
+        return JwtUtil.getCurrentUsername();
     }
 
     /**
@@ -136,6 +158,24 @@ public class AuthService implements UserDetailsService {
     }
 
     /**
+     * 刷新当前用户的 JWT Token。
+     *
+     * @return String 是否有效
+     */
+    public String refreshToken() {
+        // 1. 获取当前用户信息
+        User user = getCurrentUser();
+
+        // 2. 构建 JWT claims，包含用户角色
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", user.getUsername());
+        claims.put("roles", user.getRoles());
+
+        // 3. 生成并返回 Token
+        return JwtUtil.generateToken(user.getId().toString(), claims);
+    }
+
+    /**
      * 根据用户名加载用户信息，用于 Spring Security 登录认证。
      *
      * @param username 用户名
@@ -145,7 +185,10 @@ public class AuthService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // 1. 根据用户名查询用户
-        User user = userMapper.selectByUsername(username);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+
+        User user = userMapper.selectOne(queryWrapper);
 
         // 2. 用户不存在则抛出异常
         if (user == null) {

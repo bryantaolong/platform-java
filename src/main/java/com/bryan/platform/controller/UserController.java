@@ -1,6 +1,8 @@
 package com.bryan.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bryan.platform.model.request.PageRequest;
+import com.bryan.platform.model.request.UserSearchRequest;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.request.UserUpdateRequest;
 import com.bryan.platform.model.entity.User;
@@ -71,6 +73,21 @@ public class UserController {
     }
 
     /**
+     * 用户搜索接口，支持多条件模糊查询和分页。
+     *
+     * @param searchRequest 搜索条件
+     * @param pageRequest   分页参数
+     * @return 用户分页结果
+     */
+    @PostMapping("/search")
+    public Result<Page<User>> searchUsers(
+            @RequestBody UserSearchRequest searchRequest,
+            @ModelAttribute PageRequest pageRequest) {
+        Page<User> page = userService.searchUsers(searchRequest, pageRequest);
+        return Result.success(page);
+    }
+
+    /**
      * 更新用户基本信息。
      * <p>允许管理员更新任意用户信息，或用户本人更新自己的信息。</p>
      *
@@ -124,6 +141,36 @@ public class UserController {
                 changePasswordRequest.getOldPassword(),
                 changePasswordRequest.getNewPassword()
         ));
+    }
+
+    /**
+     * 封禁用户。
+     * <p>仅管理员可操作。</p>
+     *
+     * @param userId 目标用户ID
+     * @return 更新后的用户实体
+     */
+    @PutMapping("/{userId}/block")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<User> blockUser(
+            @PathVariable Long userId) {
+        // 1. 调用服务封禁用户
+        return Result.success(userService.blockUser(userId));
+    }
+
+    /**
+     * 解封用户。
+     * <p>仅管理员可操作。</p>
+     *
+     * @param userId 目标用户ID
+     * @return 更新后的用户实体
+     */
+    @PutMapping("/{userId}/unblock")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<User> unblockUser(
+            @PathVariable Long userId) {
+        // 1. 调用服务解封用户
+        return Result.success(userService.unblockUser(userId));
     }
 
     /**

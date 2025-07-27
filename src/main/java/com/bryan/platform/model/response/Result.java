@@ -1,6 +1,6 @@
 package com.bryan.platform.model.response;
 
-import com.bryan.platform.common.enums.ErrorCode;
+import com.bryan.platform.common.enums.HttpStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -22,17 +22,17 @@ public class Result<T> {
 
     // 成功响应
     public static <T> Result<T> success(T data) {
-        return new Result<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), data);
+        return new Result<>(HttpStatus.SUCCESS.getCode(), HttpStatus.SUCCESS.getMsg(), data);
     }
 
     // 错误响应（使用错误码枚举）
-    public static <T> Result<T> error(ErrorCode errorCode) {
-        return new Result<>(errorCode.getCode(), errorCode.getMsg(), null);
+    public static <T> Result<T> error(HttpStatus httpStatus) {
+        return new Result<>(httpStatus.getCode(), httpStatus.getMsg(), null);
     }
 
     // 错误响应（自定义消息）
-    public static <T> Result<T> error(ErrorCode errorCode, String message) {
-        return new Result<>(errorCode.getCode(), message, null);
+    public static <T> Result<T> error(HttpStatus httpStatus, String message) {
+        return new Result<>(httpStatus.getCode(), message, null);
     }
 
     // 全参构造（私有化，强制使用静态方法）

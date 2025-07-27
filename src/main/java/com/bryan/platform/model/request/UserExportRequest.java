@@ -1,6 +1,6 @@
 package com.bryan.platform.model.request;
 
-import lombok.Data;
+import lombok.Getter;
 
 import java.util.List;
 
@@ -11,11 +11,10 @@ import java.util.List;
  * @since 2025/6/28 - 21:10
  * @version 1.0
  */
-@Data
+@Getter
 public class UserExportRequest {
     /**
      * 要导出的字段列表
-     * 可选值：id, username, email, roles, status, createTime, updateTime
      */
     private List<String> fields;
 

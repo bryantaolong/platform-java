@@ -1,44 +1,95 @@
 package com.bryan.platform.model.vo;
 
-import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
-import lombok.AllArgsConstructor;
+import com.alibaba.excel.annotation.format.DateTimeFormat;
+import com.alibaba.excel.annotation.write.style.ColumnWidth;
+import com.alibaba.excel.annotation.write.style.ContentStyle;
+import com.alibaba.excel.annotation.write.style.HeadStyle;
+import com.alibaba.excel.enums.poi.FillPatternTypeEnum;
+import com.alibaba.excel.enums.poi.HorizontalAlignmentEnum;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 /**
- * 用户导出视图对象
+ * UserExportVO 用户导出 VO
  *
  * @author Bryan Long
- * @since 2025/6/28 - 21:12
  * @version 1.0
+ * @since 2025/7/26
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class UserExportVO {
+
     @ExcelProperty("用户ID")
+    @ColumnWidth(10)
     private Long id;
 
     @ExcelProperty("用户名")
+    @ColumnWidth(20)
     private String username;
 
+    @ExcelProperty("手机号")
+    @ColumnWidth(15)
+    private String phoneNumber;
+
     @ExcelProperty("邮箱")
+    @ColumnWidth(25)
     private String email;
 
-    @ExcelProperty("角色")
-    private String roles;
+    @ExcelProperty("性别")
+    @ColumnWidth(10)
+    private String gender;
 
     @ExcelProperty("状态")
-    private String statusText; // 显示文本而不是数字
+    @ColumnWidth(10)
+    private String status;
+
+    @ExcelProperty("角色")
+    @ColumnWidth(20)
+    private String roles;
+
+    @ExcelProperty("最后登陆时间")
+    @ColumnWidth(20)
+    @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime loginTime;
+
+    @ExcelProperty("最后登录IP")
+    @ColumnWidth(20)
+    private LocalDateTime loginIp;
+
+    @ExcelProperty("密码重置时间")
+    @ColumnWidth(20)
+    @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime passwordResetTime;
 
     @ExcelProperty("创建时间")
-    private String createTime;
+    @ColumnWidth(20)
+    @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createTime;
+
+    @ExcelProperty("创建人")
+    @ColumnWidth(15)
+    private String createBy;
 
     @ExcelProperty("更新时间")
-    private String updateTime;
+    @ColumnWidth(20)
+    @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updateTime;
 
-    // 原始状态值（用于过滤，不导出）
-    @ExcelIgnore
-    private Integer status;
+    @ExcelProperty("更新人")
+    @ColumnWidth(15)
+    private String updateBy;
+
+    // 表头样式设置
+    @HeadStyle(
+            fillPatternType = FillPatternTypeEnum.SOLID_FOREGROUND,
+            fillForegroundColor = 42,  // 浅绿色背景
+            horizontalAlignment = HorizontalAlignmentEnum.CENTER  // 居中对齐
+    )
+    // 内容样式设置
+    @ContentStyle(
+            horizontalAlignment = HorizontalAlignmentEnum.CENTER  // 居中对齐
+    )
+    private String styledField; // 这个字段仅用于样式设置，实际不使用
 }

@@ -1,7 +1,7 @@
 package com.bryan.platform.model.request;
 
-import jakarta.validation.constraints.NotBlank; // 导入 NotBlank 注解
-import lombok.Data; // 导入 Lombok 的 Data 注解
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
 
 /**
  * 密码修改请求对象
@@ -11,7 +11,7 @@ import lombok.Data; // 导入 Lombok 的 Data 注解
  * @since 2025/6/21-19:06
  * @version 1.0
  */
-@Data // Lombok 注解，自动生成 getter, setter, equals, hashCode, toString 方法
+@Getter
 public class ChangePasswordRequest {
     /**
      * 旧密码。

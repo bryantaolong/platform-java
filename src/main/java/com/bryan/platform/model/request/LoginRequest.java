@@ -1,10 +1,7 @@
 package com.bryan.platform.model.request;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
  * 登录请求对象
@@ -13,10 +10,7 @@ import lombok.NoArgsConstructor;
  * @since 2025/6/19 - 19:59
  * @version 1.0
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
 public class LoginRequest {
     @NotBlank(message = "用户名不能为空")
     private String username;

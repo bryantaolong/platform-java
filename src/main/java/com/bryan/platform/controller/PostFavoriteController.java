@@ -1,7 +1,7 @@
 package com.bryan.platform.controller;
 
 import com.bryan.platform.model.response.Result;
-import com.bryan.platform.common.enums.ErrorCode;
+import com.bryan.platform.common.enums.HttpStatus;
 import com.bryan.platform.service.AuthService;
 import com.bryan.platform.model.request.PostFavoriteAddRequest;
 import com.bryan.platform.model.entity.Post;
@@ -46,7 +46,7 @@ public class PostFavoriteController {
         Long currentUserId = authService.getCurrentUserId();
         if (currentUserId == null) {
             log.warn("未认证用户尝试添加收藏。");
-            return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
+            return Result.error(HttpStatus.UNAUTHORIZED, "用户未登录或认证失败。");
         }
 
         // 2. 记录操作日志
@@ -75,7 +75,7 @@ public class PostFavoriteController {
         Long currentUserId = authService.getCurrentUserId();
         if (currentUserId == null) {
             log.warn("未认证用户尝试访问用户ID {} 的收藏列表。", userId);
-            return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
+            return Result.error(HttpStatus.UNAUTHORIZED, "用户未登录或认证失败。");
         }
 
         // 2. 记录日志
@@ -102,12 +102,12 @@ public class PostFavoriteController {
         Long currentUserId = authService.getCurrentUserId();
         if (currentUserId == null) {
             log.warn("未认证用户尝试取消收藏博文ID: {}。", postId);
-            return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
+            return Result.error(HttpStatus.UNAUTHORIZED, "用户未登录或认证失败。");
         }
 
         // 2. 检查收藏状态及权限
         if (!postFavoriteService.checkFavorite(currentUserId, postId)) {
-            return Result.error(ErrorCode.UNAUTHORIZED, "无权操作该收藏。");
+            return Result.error(HttpStatus.UNAUTHORIZED, "无权操作该收藏。");
         }
 
         // 3. 记录日志
@@ -134,7 +134,7 @@ public class PostFavoriteController {
         // 2. 获取当前用户ID
         Long currentUserId = authService.getCurrentUserId();
         if (currentUserId == null) {
-            return Result.error(ErrorCode.UNAUTHORIZED, "用户未登录或认证失败。");
+            return Result.error(HttpStatus.UNAUTHORIZED, "用户未登录或认证失败。");
         }
 
         // 3. 调用服务检查收藏状态

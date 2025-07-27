@@ -4,7 +4,7 @@ import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
 import com.bryan.platform.common.exception.UnauthorizedException;
 import com.bryan.platform.model.response.Result;
-import com.bryan.platform.common.enums.ErrorCode;
+import com.bryan.platform.common.enums.HttpStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.FieldError;
@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public Result<String> handleRuntimeException(HttpServletRequest request, RuntimeException e) {
         log.error("请求URL: {}, 业务异常: {}", request.getRequestURL(), e.getMessage(), e);
-        return Result.error(ErrorCode.INTERNAL_ERROR, "服务繁忙，请稍后重试");
+        return Result.error(HttpStatus.INTERNAL_ERROR, "服务繁忙，请稍后重试");
     }
 
     /**
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
         log.warn("参数校验失败: {}", errorMsg);
-        return Result.error(ErrorCode.BAD_REQUEST, errorMsg);
+        return Result.error(HttpStatus.BAD_REQUEST, errorMsg);
     }
 
     /**
@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public Result<String> handleNotFoundException(ResourceNotFoundException e) {
         log.warn("资源不存在: {}", e.getMessage());
-        return Result.error(ErrorCode.NOT_FOUND);
+        return Result.error(HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<String> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage(), e);
-        return Result.error(ErrorCode.INTERNAL_ERROR, e.getMessage());
+        return Result.error(HttpStatus.INTERNAL_ERROR, e.getMessage());
     }
 
     /**
@@ -73,6 +73,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public Result<String> handleUnauthorizedException(UnauthorizedException e) {
         log.warn("未授权访问: {}", e.getMessage());
-        return Result.error(ErrorCode.UNAUTHORIZED, e.getMessage());
+        return Result.error(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 }

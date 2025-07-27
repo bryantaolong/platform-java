@@ -1,6 +1,6 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.common.enums.ErrorCode;
+import com.bryan.platform.common.enums.HttpStatus;
 import com.bryan.platform.model.entity.Moment;
 import com.bryan.platform.model.entity.User;
 import com.bryan.platform.model.response.Result;
@@ -95,7 +95,7 @@ public class MomentController {
         // 1. 查询动态
         return momentService.findById(id)
                 .map(Result::success)
-                .orElseGet(() -> Result.error(ErrorCode.NOT_FOUND));
+                .orElseGet(() -> Result.error(HttpStatus.NOT_FOUND));
     }
 
     /**
@@ -174,7 +174,7 @@ public class MomentController {
     public Result<List<Moment>> getMomentsByIds(@RequestBody List<String> ids) {
         // 1. 参数校验
         if (ids == null || ids.isEmpty()) {
-            return Result.error(ErrorCode.BAD_REQUEST, "动态ID列表不能为空");
+            return Result.error(HttpStatus.BAD_REQUEST, "动态ID列表不能为空");
         }
 
         // 2. 执行查询
@@ -218,7 +218,7 @@ public class MomentController {
     public Result<List<Moment>> searchMoments(@RequestParam String keyword) {
         // 1. 参数校验
         if (keyword == null || keyword.trim().isEmpty()) {
-            return Result.error(ErrorCode.BAD_REQUEST, "搜索关键词不能为空");
+            return Result.error(HttpStatus.BAD_REQUEST, "搜索关键词不能为空");
         }
 
         // 2. 执行搜索

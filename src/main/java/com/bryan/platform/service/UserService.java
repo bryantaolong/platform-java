@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
+import com.bryan.platform.model.request.PageRequest;
+import com.bryan.platform.model.request.UserSearchRequest;
 import com.bryan.platform.model.request.UserUpdateRequest;
 import com.bryan.platform.model.entity.User;
 import com.bryan.platform.dao.mapper.UserMapper;
@@ -28,6 +30,7 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
     /**
      * 获取所有用户列表（不分页）。
@@ -47,10 +50,17 @@ public class UserService {
      *
      * @param userId 用户ID
      * @return 用户实体对象
+     * @throws ResourceNotFoundException 用户不存在时抛出
      */
     public User getUserById(Long userId) {
         // 1. 根据ID查询用户
-        return userMapper.selectById(userId);
+        User user = userMapper.selectById(userId);
+
+        if (user == null) {
+            throw new ResourceNotFoundException("用户不存在");
+        }
+
+        return user;
     }
 
     /**
@@ -61,7 +71,49 @@ public class UserService {
      */
     public User getUserByUsername(String username) {
         // 1. 根据用户名查询用户
-        return userMapper.selectByUsername(username);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+
+        return userMapper.selectOne(queryWrapper);
+    }
+
+    /**
+     * 通用用户搜索，支持多条件模糊查询和分页。
+     *
+     * @param searchRequest 搜索请求
+     * @param pageRequest 分页请求
+     * @return 符合查询条件的分页对象（Page）
+     */
+    public Page<User> searchUsers(UserSearchRequest searchRequest, PageRequest pageRequest) {
+        // 1. 构造查询条件
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+
+        // 2. 添加用户名模糊查询
+        if (searchRequest.getUsername() != null && !searchRequest.getUsername().trim().isEmpty()) {
+            queryWrapper.like("username", searchRequest.getUsername());
+        }
+        // 3. 添加手机号模糊查询
+        if (searchRequest.getPhoneNumber() != null && !searchRequest.getPhoneNumber().trim().isEmpty()) {
+            queryWrapper.like("phone_number", searchRequest.getPhoneNumber());
+        }
+        // 4. 添加邮箱模糊查询
+        if (searchRequest.getEmail() != null && !searchRequest.getEmail().trim().isEmpty()) {
+            queryWrapper.like("email", searchRequest.getEmail());
+        }
+        // 5. 添加性别精确查询
+        if (searchRequest.getGender() != null) {
+            queryWrapper.eq("gender", searchRequest.getGender());
+        }
+        // 6. 添加状态精确查询
+        if (searchRequest.getStatus() != null) {
+            queryWrapper.eq("status", searchRequest.getStatus());
+        }
+
+        // 7. 构造分页对象
+        Page<User> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
+
+        // 8. 执行查询并返回结果
+        return userMapper.selectPage(page, queryWrapper);
     }
 
     /**
@@ -79,22 +131,44 @@ public class UserService {
                     // 1. 检查用户名是否重复
                     if (userUpdateRequest.getUsername() != null &&
                             !userUpdateRequest.getUsername().equals(existingUser.getUsername())) {
-                        User userWithSameUsername = userMapper.selectByUsername(userUpdateRequest.getUsername());
+                        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+                        queryWrapper.eq("username", existingUser.getUsername());
+
+                        User userWithSameUsername = userMapper.selectOne(queryWrapper);
                         if (userWithSameUsername != null && !userWithSameUsername.getId().equals(userId)) {
                             throw new BusinessException("用户名已存在");
                         }
                         existingUser.setUsername(userUpdateRequest.getUsername());
                     }
 
-                    // 2. 更新邮箱信息
+                    // 2. 更新电话号码
+                    if (userUpdateRequest.getPhoneNumber() != null) {
+                        existingUser.setPhoneNumber(userUpdateRequest.getPhoneNumber());
+                    }
+
+                    // 3. 更新邮箱信息
                     if (userUpdateRequest.getEmail() != null) {
                         existingUser.setEmail(userUpdateRequest.getEmail());
                     }
 
-                    // 3. 执行数据库更新
+                    // 4. 更新性别
+                    if (userUpdateRequest.getGender() != null) {
+                        existingUser.setGender(userUpdateRequest.getGender());
+                    }
+
+                    // 5. 更新头像
+                    if (userUpdateRequest.getAvatar() != null) {
+                        existingUser.setAvatar(userUpdateRequest.getAvatar());
+                    }
+
+                    // 6. 更新操作员信息
+                    String operator = authService.getCurrentUsername();
+                    existingUser.setUpdateBy(operator);
+
+                    // 7. 执行数据库更新
                     userMapper.updateById(existingUser);
 
-                    // 4. 记录日志并返回
+                    // 8. 记录日志并返回
                     log.info("用户ID: {} 的信息更新成功", userId);
                     return existingUser;
                 })
@@ -115,10 +189,14 @@ public class UserService {
                     // 1. 设置角色字段
                     existingUser.setRoles(roles);
 
-                    // 2. 更新数据库
+                    // 2. 更新操作员信息
+                    String operator = authService.getCurrentUsername();
+                    existingUser.setUpdateBy(operator);
+
+                    // 3. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 3. 记录日志
+                    // 4. 记录日志
                     log.info("用户ID: {} 的角色更新成功为: {}", userId, roles);
                     return existingUser;
                 })
@@ -146,10 +224,14 @@ public class UserService {
                     // 2. 设置新密码（加密）
                     existingUser.setPassword(passwordEncoder.encode(newPassword));
 
-                    // 3. 更新数据库
+                    // 3. 更新操作员信息
+                    String operator = authService.getCurrentUsername();
+                    existingUser.setUpdateBy(operator);
+
+                    // 4. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 4. 记录日志
+                    // 5. 记录日志
                     log.info("用户ID: {} 的密码更新成功", userId);
                     return existingUser;
                 })
@@ -169,10 +251,14 @@ public class UserService {
                     // 1. 设置状态为封禁
                     existingUser.setStatus(1);
 
-                    // 2. 更新数据库
+                    // 2. 更新操作员信息
+                    String operator = authService.getCurrentUsername();
+                    existingUser.setUpdateBy(operator);
+
+                    // 3. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 3. 记录日志
+                    // 4. 记录日志
                     log.info("用户ID: {} 封禁成功", userId);
                     return existingUser;
                 })
@@ -192,27 +278,18 @@ public class UserService {
                     // 1. 设置状态为正常
                     existingUser.setStatus(0);
 
-                    // 2. 更新数据库
+                    // 2. 更新操作员信息
+                    String operator = authService.getCurrentUsername();
+                    existingUser.setUpdateBy(operator);
+
+                    // 3. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 3. 记录日志
+                    // 4. 记录日志
                     log.info("用户ID: {} 解封成功", userId);
                     return existingUser;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
-    }
-
-    /**
-     * 校验用户是否存在。
-     *
-     * @param userId 用户ID
-     * @throws BusinessException 用户不存在时抛出
-     */
-    public void validateUserExists(Long userId) {
-        // 1. 查询用户是否存在
-        if (userMapper.selectById(userId) == null) {
-            throw new BusinessException("用户不存在");
-        }
     }
 
     /**
@@ -225,10 +302,17 @@ public class UserService {
     public User deleteUser(Long userId) {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
-                    // 1. 执行逻辑删除（依赖 @TableLogic）
+                    // 1. 更新操作员信息
+                    String operator = authService.getCurrentUsername();
+                    existingUser.setUpdateBy(operator);
+
+                    // 2. 更新数据库
+                    userMapper.updateById(existingUser);
+
+                    // 3. 执行逻辑删除（依赖 @TableLogic）
                     userMapper.deleteById(userId);
 
-                    // 2. 记录日志
+                    // 4. 记录日志
                     log.info("用户ID: {} 删除成功 (逻辑删除)", userId);
                     return existingUser;
                 })

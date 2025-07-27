@@ -30,18 +30,30 @@ import java.util.stream.Collectors;
 @TableName("\"user\"")
 @KeySequence(value = "user_id_seq") // 指定序列名称
 public class User implements Serializable, UserDetails {
-    @TableId(type = IdType.INPUT) // 改为 INPUT 类型
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private String username;
 
-    private String password;  // 实际存储加密后的密码
+    private String password;
+
+    private String phoneNumber;
 
     private String email;
+
+    private Integer gender;
+
+    private String avatar;
 
     private Integer status;   // 状态（0-正常，1-封禁）
 
     private String roles;
+
+    private LocalDateTime loginTime;
+
+    private LocalDateTime loginIp;
+
+    private LocalDateTime passwordResetTime;
 
     @TableLogic
     private Integer deleted;
@@ -49,8 +61,12 @@ public class User implements Serializable, UserDetails {
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
+    private String createBy;
+
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
+
+    private String updateBy;
 
     /**
      * 获取用户权限（Spring Security要求）。

@@ -1,7 +1,7 @@
 package com.bryan.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bryan.platform.common.enums.ErrorCode;
+import com.bryan.platform.common.enums.HttpStatus;
 import com.bryan.platform.service.AuthService;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.entity.User;
@@ -44,7 +44,7 @@ public class UserFollowController {
             return Result.success(userFollowService.followUser(currentUserId, followingId));
         } catch (RuntimeException e) {
             // 3. 异常捕获，返回错误响应
-            return Result.error(ErrorCode.BAD_REQUEST, e.getMessage());
+            return Result.error(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
@@ -65,7 +65,7 @@ public class UserFollowController {
             return Result.success(userFollowService.unfollowUser(currentUserId, followingId));
         } catch (RuntimeException e) {
             // 3. 异常捕获，返回错误响应
-            return Result.error(ErrorCode.BAD_REQUEST, e.getMessage());
+            return Result.error(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
@@ -87,7 +87,7 @@ public class UserFollowController {
             return Result.success(userFollowService.getFollowingUsers(userId, pageNum, pageSize));
         } catch (RuntimeException e) {
             // 2. 异常捕获，返回错误信息
-            return Result.error(ErrorCode.BAD_REQUEST, e.getMessage());
+            return Result.error(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
@@ -109,7 +109,7 @@ public class UserFollowController {
             return Result.success(userFollowService.getFollowerUsers(userId, pageNum, pageSize));
         } catch (RuntimeException e) {
             // 2. 异常捕获，返回错误信息
-            return Result.error(ErrorCode.BAD_REQUEST, e.getMessage());
+            return Result.error(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
@@ -129,7 +129,7 @@ public class UserFollowController {
             return Result.success(userFollowService.isFollowing(currentUserId, followingId));
         } catch (RuntimeException e) {
             // 3. 异常捕获，返回错误信息
-            return Result.error(ErrorCode.BAD_REQUEST, e.getMessage());
+            return Result.error(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 }
