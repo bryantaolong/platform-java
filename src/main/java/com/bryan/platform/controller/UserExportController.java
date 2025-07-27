@@ -1,6 +1,6 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.model.request.UserSearchRequest;
+import com.bryan.platform.model.request.UserExportRequest;
 import com.bryan.platform.service.UserExportService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
  *
  * @author Bryan Long
  * @version 1.0
- * @since 2025/7/18
+ * @since 2025/7/26
  */
 @RestController
 @RequestMapping("/api/user/export")
@@ -30,13 +30,13 @@ class UserExportController {
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public void exportAllUsers(HttpServletResponse response) {
-        userExportService.exportAllUsers(response);
+        userExportService.exportAllFields(new UserExportRequest(), response);
     }
 
-    @PostMapping("/condition")
+    @PostMapping("/field")
     @PreAuthorize("hasRole('ADMIN')")
-    public void exportUsersByCondition(@RequestBody UserSearchRequest searchRequest,
+    public void exportUsersByCondition(@RequestBody UserExportRequest exportRequest,
                                        HttpServletResponse response) {
-        userExportService.exportUsersByCondition(searchRequest, response);
+        userExportService.exportUsersByFields(exportRequest, response);
     }
 }

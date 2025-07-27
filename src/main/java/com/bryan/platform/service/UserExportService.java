@@ -3,23 +3,34 @@ package com.bryan.platform.service;
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.metadata.Head;
+import com.alibaba.excel.write.handler.CellWriteHandler;
 import com.alibaba.excel.write.metadata.WriteSheet;
+import com.alibaba.excel.write.metadata.holder.WriteSheetHolder;
+import com.alibaba.excel.write.metadata.holder.WriteTableHolder;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.dao.mapper.UserMapper;
-import com.bryan.platform.model.converter.UserConverter;
 import com.bryan.platform.model.entity.User;
-import com.bryan.platform.model.request.PageRequest;
-import com.bryan.platform.model.request.UserSearchRequest;
+import com.bryan.platform.model.request.UserExportRequest;
 import com.bryan.platform.model.vo.UserExportVO;
+import com.bryan.platform.model.converter.UserConverter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +38,7 @@ import java.util.stream.Collectors;
  *
  * @author Bryan Long
  * @version 1.0
- * @since 2025/7/18
+ * @since 2025/7/26
  */
 @Slf4j
 @Service
@@ -35,120 +46,184 @@ import java.util.stream.Collectors;
 public class UserExportService {
 
     private final UserMapper userMapper;
-    private final UserService userService;
 
     /**
-     * 导出所有用户数据
+     * 导出所有字段（全量导出）
+     *
+     * @param exportRequest 可包含fileName和status过滤条件
      */
-    public void exportAllUsers(HttpServletResponse response) {
+    public void exportAllFields(UserExportRequest exportRequest, HttpServletResponse response) {
         try {
-            // 设置响应头
-            setupResponse(response, "用户数据导出");
+            // 1. 设置响应头
+            String fileName = Optional.ofNullable(exportRequest.getFileName())
+                    .orElse("用户数据全量导出");
+            setupResponse(response, fileName);
 
-            // 使用EasyExcel导出
-            ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream(), UserExportVO.class).build();
+            // 2. 构建Excel写入器（不使用字段过滤）
+            ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream())
+                    .head(UserExportVO.class) // 自动包含所有@ExcelProperty字段
+                    .registerWriteHandler(new CustomCellWriteHandler()) // 保持样式
+                    .build();
+
+            // 3. 构建查询条件
+            QueryWrapper<User> queryWrapper = buildQueryWrapper(exportRequest);
+
+            // 4. 执行导出（复用相同分批逻辑）
             WriteSheet writeSheet = EasyExcel.writerSheet("用户列表").build();
+            executeBatchExport(excelWriter, writeSheet, queryWrapper);
 
-            // 分批查询写入
-            int pageNum = 1;
-            int pageSize = 10;
-            int totalPages = 0; // 总页数
-            int totalRecords = 0; // 总记录数
-            List<User> users;
-
-            // 先获取总页数
-            Page<User> firstPage = new Page<>(1, pageSize);
-            Page<User> firstResult = userMapper.selectPage(firstPage, new QueryWrapper<>());
-            totalPages = (int) firstResult.getPages();
-
-            do {
-                log.info("正在处理第 {} 页/共 {} 页数据...", pageNum, totalPages);
-                Page<User> page = new Page<>(pageNum, pageSize);
-                Page<User> resultPage = userMapper.selectPage(page, new QueryWrapper<>());
-
-                users = resultPage.getRecords();
-
-                if (CollUtil.isNotEmpty(users)) {
-                    List<UserExportVO> exportData = users.stream()
-                            .map(UserConverter::toExportVO)
-                            .collect(Collectors.toList());
-
-                    excelWriter.write(exportData, writeSheet);
-                    totalRecords += users.size();
-                    log.info("已处理 {} 条数据", totalRecords);
-                }
-
-                pageNum++;
-
-                // 明确终止条件：已处理完所有页
-                if (pageNum > totalPages) {
-                    break;
-                }
-            } while (true); // 改为无限循环，由内部break控制
-
-            excelWriter.finish();
-            log.info("导出完成，共导出 {} 条数据", totalRecords);
         } catch (IOException e) {
-            log.error("导出用户数据失败", e);
-            throw new RuntimeException("导出用户数据失败", e);
+            log.error("全量导出失败", e);
+            throw new BusinessException("导出失败，请检查系统资源");
         }
     }
 
     /**
-     * 按条件导出用户数据
+     * 按字段导出用户数据
      */
-    public void exportUsersByCondition(UserSearchRequest searchRequest, HttpServletResponse response) {
+    public void exportUsersByFields(UserExportRequest exportRequest, HttpServletResponse response) {
         try {
-            // 设置响应头
-            setupResponse(response, "用户数据条件导出");
+            // 1. 校验字段名
+            validateFieldNames(exportRequest.getFields());
 
-            // 使用EasyExcel导出
-            ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream(), UserExportVO.class).build();
+            // 2. 设置响应头
+            String fileName = Optional.ofNullable(exportRequest.getFileName())
+                    .orElse("用户数据导出");
+            setupResponse(response, fileName);
+
+            // 3. 构建Excel写入器（包含动态字段和样式处理）
+            ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream())
+                    .head(UserExportVO.class)
+                    .includeColumnFieldNames(exportRequest.getFields())
+                    .registerWriteHandler(new CustomCellWriteHandler())
+                    .build();
+
+            // 4. 构建查询条件
+            QueryWrapper<User> queryWrapper = buildQueryWrapper(exportRequest);
+
+            // 5. 分批查询写入
             WriteSheet writeSheet = EasyExcel.writerSheet("用户列表").build();
+            executeBatchExport(excelWriter, writeSheet, queryWrapper);
 
-            // 分批查询写入
-            int pageNum = 1;
-            int pageSize = 10;
-            int totalRecords = 0;
-            List<User> users;
-
-            // 先获取总页数
-            Page<User> firstPage = new Page<>(1, pageSize);
-            Page<User> firstResult = userService.searchUsers(searchRequest,
-                    new PageRequest(1, pageSize));
-            int totalPages = (int) firstResult.getPages();
-
-            do {
-                log.info("正在处理条件导出的第 {} 页/共 {} 页...", pageNum, totalPages);
-                users = userService.searchUsers(searchRequest,
-                        new PageRequest(pageNum, pageSize)).getRecords();
-
-                if (CollUtil.isNotEmpty(users)) {
-                    List<UserExportVO> exportData = users.stream()
-                            .map(UserConverter::toExportVO)
-                            .collect(Collectors.toList());
-
-                    excelWriter.write(exportData, writeSheet);
-                    totalRecords += users.size();
-                }
-
-                pageNum++;
-
-                if (pageNum > totalPages) {
-                    break;
-                }
-            } while (true);
-
-            excelWriter.finish();
-            log.info("条件导出完成，共导出 {} 条数据", totalRecords);
         } catch (IOException e) {
-            log.error("导出用户数据失败", e);
-            throw new RuntimeException("导出用户数据失败", e);
+            log.error("用户数据导出失败", e);
+            throw new BusinessException("导出失败，请稍后重试");
         }
     }
 
+    /**
+     * 配套方法1：字段名校验
+     */
+    private void validateFieldNames(List<String> fields) {
+        if (CollUtil.isEmpty(fields)) {
+            throw new IllegalArgumentException("导出字段列表不能为空");
+        }
+
+        // 获取VO中所有有效字段
+        Set<String> validFields = Arrays.stream(UserExportVO.class.getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(ExcelProperty.class))
+                .map(Field::getName)
+                .collect(Collectors.toSet());
+
+        // 校验请求字段
+        fields.forEach(field -> {
+            if (!validFields.contains(field)) {
+                throw new IllegalArgumentException(
+                        String.format("无效导出字段: %s (可用字段: %s)",
+                                field, validFields));
+            }
+        });
+    }
+
+    /**
+     * 配套方法2：自定义样式处理器
+     */
+    private static class CustomCellWriteHandler implements CellWriteHandler {
+        @Override
+        public void afterCellCreate(WriteSheetHolder writeSheetHolder,
+                                    WriteTableHolder writeTableHolder,
+                                    Cell cell,
+                                    Head head,
+                                    Integer relativeRowIndex,
+                                    Boolean isHead) {
+            if (isHead) {
+                // 表头样式（保持与VO中@HeadStyle一致）
+                CellStyle style = cell.getSheet().getWorkbook().createCellStyle();
+                style.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+                style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                style.setAlignment(HorizontalAlignment.CENTER);
+                cell.setCellStyle(style);
+            } else {
+                // 内容样式（保持与VO中@ContentStyle一致）
+                CellStyle style = cell.getSheet().getWorkbook().createCellStyle();
+                style.setAlignment(HorizontalAlignment.CENTER);
+                cell.setCellStyle(style);
+            }
+        }
+    }
+
+    // -------------------- 以下为内部辅助方法 --------------------
+
+    /**
+     * 构建查询条件
+     */
+    private QueryWrapper<User> buildQueryWrapper(UserExportRequest request) {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        if (request.getStatus() != null) {
+            wrapper.eq("status", request.getStatus());
+        }
+        // 可扩展其他查询条件
+        return wrapper;
+    }
+
+    /**
+     * 执行分批导出
+     */
+    private void executeBatchExport(ExcelWriter excelWriter,
+                                    WriteSheet writeSheet,
+                                    QueryWrapper<User> queryWrapper) {
+        int pageNum = 1;
+        int pageSize = 500; // 推荐更大的批次量（性能优化）
+        int totalExported = 0;
+
+        while (true) {
+            Page<User> page = new Page<>(pageNum, pageSize);
+            Page<User> result = userMapper.selectPage(page, queryWrapper);
+            List<UserExportVO> exportData = convertToVO(result.getRecords());
+
+            if (CollUtil.isEmpty(exportData)) {
+                break;
+            }
+
+            excelWriter.write(exportData, writeSheet);
+            totalExported += exportData.size();
+            log.info("已导出 {} 条数据", totalExported);
+
+            if (!result.hasNext()) {
+                break;
+            }
+            pageNum++;
+        }
+
+        excelWriter.finish();
+        log.info("导出完成，总计 {} 条数据", totalExported);
+    }
+
+    /**
+     * 实体转换
+     */
+    private List<UserExportVO> convertToVO(List<User> users) {
+        return users.stream()
+                .map(UserConverter::toExportVO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 响应头设置
+     */
     private void setupResponse(HttpServletResponse response, String fileName) throws IOException {
-        String encodedFileName = URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("utf-8");
         response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + encodedFileName + ".xlsx");
