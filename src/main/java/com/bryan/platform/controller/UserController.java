@@ -145,6 +145,23 @@ public class UserController {
     }
 
     /**
+     * 强制修改用户密码。
+     * <p>管理员可强制修改任意用户密码。</p>
+     *
+     * @param userId               目标用户ID
+     * @param newPassword          新密码
+     * @return 更新后的用户实体
+     */
+    @PutMapping("/{userId}/password/force/{newPassword}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<User> changePasswordForce(
+            @PathVariable Long userId,
+            @PathVariable  String newPassword) {
+        // 1. 调用服务层执行密码修改
+        return Result.success(userService.changePasswordForce(userId, newPassword));
+    }
+
+    /**
      * 封禁用户。
      * <p>仅管理员可操作。</p>
      *

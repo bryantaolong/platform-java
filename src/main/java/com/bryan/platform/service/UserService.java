@@ -263,6 +263,38 @@ public class UserService {
     }
 
     /**
+     * 强制修改用户密码（管理员）。
+     *
+     * @param userId      用户ID
+     * @param newPassword 新密码（明文）
+     * @return 更新后的用户对象
+     * @throws ResourceNotFoundException 用户不存在时抛出
+     * @throws BusinessException         旧密码验证失败时抛出
+     */
+    public User changePasswordForce(Long userId, String newPassword) {
+        return Optional.ofNullable(userMapper.selectById(userId))
+                .map(existingUser -> {
+                    // 1. 设置新密码（加密）
+                    existingUser.setPassword(passwordEncoder.encode(newPassword));
+
+                    // 2. 设置重置密码时间
+                    existingUser.setPasswordResetTime(LocalDateTime.now());
+
+                    // 3. 更新操作员信息
+                    String operator = authService.getCurrentUsername();
+                    existingUser.setUpdateBy(operator);
+
+                    // 4. 更新数据库
+                    userMapper.updateById(existingUser);
+
+                    // 5. 记录日志
+                    log.info("用户ID: {} 的密码强制修改成功", userId);
+                    return existingUser;
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
+
+    /**
      * 封禁指定用户。
      *
      * @param userId 用户ID
