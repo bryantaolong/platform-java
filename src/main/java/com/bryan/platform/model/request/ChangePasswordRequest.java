@@ -1,6 +1,7 @@
 package com.bryan.platform.model.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 /**
@@ -18,6 +19,7 @@ public class ChangePasswordRequest {
      * 不能为空，用于验证用户身份。
      */
     @NotBlank(message = "旧密码不能为空") // 验证注解：确保字段不为 null 且不为空白字符串
+    @Size(min = 6, message = "密码至少6位")
     private String oldPassword;
 
     /**
@@ -25,5 +27,6 @@ public class ChangePasswordRequest {
      * 不能为空，且通常需要符合一定的密码复杂度要求（此处仅为非空校验）。
      */
     @NotBlank(message = "新密码不能为空") // 验证注解：确保字段不为 null 且不为空白字符串
+    @Size(min = 6, message = "密码至少6位")
     private String newPassword;
 }
