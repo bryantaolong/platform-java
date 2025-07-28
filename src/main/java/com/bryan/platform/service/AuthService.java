@@ -95,14 +95,17 @@ public class AuthService implements UserDetailsService {
             throw new BusinessException("用户名或密码错误");
         }
 
-        // 3. 构建 JWT claims，包含用户角色
+        // 3. 更新用户登录信息
+        saveLoginRecord(user);
+
+        // 4. 构建 JWT claims，包含用户角色
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", user.getUsername());
         claims.put("roles", user.getRoles());
 
         log.info("用户登录: id: {}, username: {}", user.getId(), user.getUsername());
 
-        // 4. 生成并返回 Token
+        // 5. 生成并返回 Token
         return JwtUtils.generateToken(user.getId().toString(), claims);
     }
 
@@ -220,5 +223,16 @@ public class AuthService implements UserDetailsService {
 
         // 3. 返回用户详情（已实现 UserDetails）
         return user;
+    }
+
+    private void saveLoginRecord(User loggedInUser) {
+        loggedInUser.setLoginTime(LocalDateTime.now());
+        // TODO: 补充登录用户 IP 记录
+//        loggedInUser.setLoginIp(HttpUtils.getClientIp());
+
+        int updated = userMapper.updateById(loggedInUser);
+        if (updated == 0) {
+            throw new BusinessException("用户登录信息更新失败");
+        }
     }
 }
