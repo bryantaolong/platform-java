@@ -17,13 +17,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * 用户认证服务类，处理注册、登录、鉴权、当前用户信息等逻辑。
  *
  * @author Bryan Long
- * @version 2.0
+ * @version 1.0
  * @since 2025/6/28
  */
 @Slf4j
@@ -69,6 +70,8 @@ public class AuthService implements UserDetailsService {
             throw new BusinessException("插入数据库失败");
         }
 
+        log.info("用户注册成功: id: {}, username: {} ", user.getId(), user.getUsername());
+
         // 4. 返回新注册用户
         return user;
     }
@@ -96,6 +99,8 @@ public class AuthService implements UserDetailsService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", user.getUsername());
         claims.put("roles", user.getRoles());
+
+        log.info("用户登录: id: {}, username: {}", user.getId(), user.getUsername());
 
         // 4. 生成并返回 Token
         return JwtUtils.generateToken(user.getId().toString(), claims);
@@ -132,6 +137,24 @@ public class AuthService implements UserDetailsService {
 
         // 2. 查询数据库返回用户信息
         return userMapper.selectById(userId);
+    }
+
+    /**
+     * 判断用户是否具有管理员权限。
+     *
+     * @return 是否为管理员
+     */
+    public boolean isAdmin() {
+        // 1. 调用 JwtUtils 获取用户权限列表
+        List<String> roles = JwtUtils.getCurrentUserRoles();
+
+        // 2. 遍历用户权限，判断是否包含 ROLE_ADMIN
+        for (String role : roles) {
+            if ("ROLE_ADMIN".equals(role)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

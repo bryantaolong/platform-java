@@ -73,8 +73,7 @@ public class UserExportService {
             executeBatchExport(excelWriter, writeSheet, queryWrapper);
 
         } catch (IOException e) {
-            log.error("全量导出失败", e);
-            throw new BusinessException("导出失败，请检查系统资源");
+            throw new BusinessException("全量导出失败，请检查系统资源");
         }
     }
 
@@ -106,8 +105,7 @@ public class UserExportService {
             executeBatchExport(excelWriter, writeSheet, queryWrapper);
 
         } catch (IOException e) {
-            log.error("用户数据导出失败", e);
-            throw new BusinessException("导出失败，请稍后重试");
+            throw new BusinessException("用户数据导出失败，请稍后重试");
         }
     }
 

@@ -104,9 +104,9 @@ public class JwtUtils {
     }
 
     /**
-     * 从当前 HTTP 请求的 Authorization 头中解析并获取当前用户 ID。
+     * 从当前 HTTP 请求的 Authorization 头中解析并获取当前用户名。
      *
-     * @return 当前用户ID（Long）
+     * @return 当前用户名
      * @throws RuntimeException 当请求缺少有效 Token 或 Token 解析失败时抛出
      */
     public static String getCurrentUsername() {
@@ -128,8 +128,42 @@ public class JwtUtils {
                         .parseClaimsJws(token)
                         .getBody();
 
-                // 5. 返回解析得到的用户ID（转换为 Long）
+                // 5. 返回解析得到的用户名
                 return claims.get("username").toString();
+            } catch (Exception e) {
+                throw new RuntimeException("Token 解析失败或无效: " + e.getMessage(), e);
+            }
+        }
+        throw new RuntimeException("请求头中缺少 Authorization Token 或格式不正确。");
+    }
+
+    /**
+     * 从当前 HTTP 请求的 Authorization 头中解析并获取当前用户角色列表。
+     *
+     * @return 当前用户角色列表
+     * @throws RuntimeException 当请求缺少有效 Token 或 Token 解析失败时抛出
+     */
+    public static List<String> getCurrentUserRoles() {
+        // 1. 获取当前请求的 ServletRequestAttributes
+        ServletRequestAttributes attributes = (ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes());
+        HttpServletRequest request = attributes.getRequest();
+
+        // 2. 从请求头获取 Authorization 字段
+        String token = request.getHeader("Authorization");
+
+        // 3. 验证 Token 格式是否正确
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            try {
+                // 4. 解析 Token，验证签名和有效期
+                Claims claims = Jwts.parser()
+                        .verifyWith(SECRET_KEY)
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
+
+                // 5. 返回解析得到的用户角色
+                return getRolesFromClaims(claims);
             } catch (Exception e) {
                 throw new RuntimeException("Token 解析失败或无效: " + e.getMessage(), e);
             }
@@ -158,53 +192,26 @@ public class JwtUtils {
     }
 
     /**
-     * 从 Token 中获取所有 Claims。
-     *
-     * @param token JWT 字符串
-     * @return Claims 对象
-     * @throws RuntimeException 解析失败时抛出
-     */
-    public static Claims getClaimsFromToken(String token) {
-        try {
-            return Jwts.parser()
-                    .verifyWith(SECRET_KEY)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (Exception e) {
-            throw new RuntimeException("无法从 Token 获取 Claims: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 从 Token 的 Claims 中提取角色列表。
-     * 假设角色以逗号分隔字符串存储在 "roles" 声明中。
+     * 从 Token 的 Claims 中提取名。
      *
      * @param token JWT 字符串
      * @return 角色字符串列表（确保带 "ROLE_" 前缀）
      */
-    public static String getUsernameFromTokenClaims(String token) {
+    public static String getUsernameFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return (String) claims.get("username");
     }
 
     /**
      * 从 Token 的 Claims 中提取角色列表。
-     * 假设角色以逗号分隔字符串存储在 "roles" 声明中。
+     * 角色以逗号分隔字符串存储在 "roles" 声明中。
      *
      * @param token JWT 字符串
      * @return 角色字符串列表（确保带 "ROLE_" 前缀）
      */
-    public static List<String> getRolesFromTokenClaims(String token) {
+    public static List<String> getRolesFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
-        String rolesString = (String) claims.get("roles");
-        if (rolesString != null && !rolesString.isEmpty()) {
-            return Arrays.stream(rolesString.split(","))
-                    .map(String::trim)
-                    .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
-                    .collect(Collectors.toList());
-        }
-        return Collections.emptyList();
+        return getRolesFromClaims(claims);
     }
 
     /**
@@ -224,5 +231,40 @@ public class JwtUtils {
             return false;
         }
     }
-}
 
+    /**
+     * 从 Token 中获取所有 Claims。
+     *
+     * @param token JWT 字符串
+     * @return Claims 对象
+     * @throws RuntimeException 解析失败时抛出
+     */
+    private static Claims getClaimsFromToken(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            throw new RuntimeException("无法从 Token 获取 Claims: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 从 Claims 中获取用户角色列表。
+     *
+     * @param claims JWT Claims
+     * @return List<String> 用户角色列表
+     */
+    private static List<String> getRolesFromClaims(Claims claims) {
+        String rolesString = claims.get("roles").toString();
+        if (rolesString != null && !rolesString.isEmpty()) {
+            return Arrays.stream(rolesString.split(","))
+                    .map(String::trim)
+                    .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+}

@@ -59,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             // 从 Token 的 Claims 中获取角色列表
-            List<String> roles = JwtUtils.getRolesFromTokenClaims(token);
+            List<String> roles = JwtUtils.getRolesFromToken(token);
             // 将角色字符串列表转换为 Spring Security 的 GrantedAuthority 列表
             Collection<? extends GrantedAuthority> authorities = roles.stream()
                     .map(SimpleGrantedAuthority::new)
