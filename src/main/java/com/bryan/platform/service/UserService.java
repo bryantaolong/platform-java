@@ -245,14 +245,17 @@ public class UserService {
                     // 2. 设置新密码（加密）
                     existingUser.setPassword(passwordEncoder.encode(newPassword));
 
-                    // 3. 更新操作员信息
+                    // 3. 设置重置密码时间
+                    existingUser.setPasswordResetTime(LocalDateTime.now());
+
+                    // 4. 更新操作员信息
                     String operator = authService.getCurrentUsername();
                     existingUser.setUpdateBy(operator);
 
-                    // 4. 更新数据库
+                    // 5. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 5. 记录日志
+                    // 6. 记录日志
                     log.info("用户ID: {} 的密码更新成功", userId);
                     return existingUser;
                 })
