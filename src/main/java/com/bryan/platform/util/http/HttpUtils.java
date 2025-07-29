@@ -1,6 +1,10 @@
 package com.bryan.platform.util.http;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.Objects;
 
 /**
  * HttpUtil
@@ -11,7 +15,10 @@ import jakarta.servlet.http.HttpServletRequest;
  */
 public class HttpUtils {
 
-    public static String getClientIp(HttpServletRequest request) {
+    public static String getClientIp() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes());
+        HttpServletRequest request = attributes.getRequest();
+
         String ip = request.getHeader("X-Forwarded-For");
 
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
@@ -38,7 +45,10 @@ public class HttpUtils {
         return ip;
     }
 
-    public static String getClientOS(HttpServletRequest request) {
+    public static String getClientOS() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes());
+        HttpServletRequest request = attributes.getRequest();
+
         String userAgent = request.getHeader("User-Agent");
         if (userAgent == null) {
             return "Unknown";
@@ -63,24 +73,29 @@ public class HttpUtils {
         }
     }
 
-    public static String getClientBrowser(HttpServletRequest request) {
+    public static String getClientBrowser() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes());
+        HttpServletRequest request = attributes.getRequest();
+
         String userAgent = request.getHeader("User-Agent");
         if (userAgent == null) {
             return "Unknown";
         }
 
-        if (userAgent.contains("msie") || userAgent.contains("trident")) {
-            return "Internet Explorer";
-        } else if (userAgent.contains("firefox")) {
-            return "Firefox";
-        } else if (userAgent.contains("chrome")) {
-            return "Chrome";
-        } else if (userAgent.contains("safari")) {
-            return "Safari";
-        } else if (userAgent.contains("opera")) {
-            return "Opera";
-        } else if (userAgent.contains("edge")) {
+        String ua = userAgent.toLowerCase();
+
+        if (ua.contains("edg/") || ua.contains("edge/")) {
             return "Edge";
+        } else if (ua.contains("opr/") || ua.contains("opera")) {
+            return "Opera";
+        } else if (ua.contains("chrome") && !ua.contains("chromium")) {
+            return "Chrome";
+        } else if (ua.contains("firefox") || ua.contains("fxios")) {
+            return "Firefox";
+        } else if (ua.contains("safari") && !ua.contains("chrome")) {
+            return "Safari";
+        } else if (ua.contains("msie") || ua.contains("trident/7")) {
+            return "Internet Explorer";
         } else {
             return "Unknown";
         }
