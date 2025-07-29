@@ -271,7 +271,7 @@ public class UserService {
      * @throws ResourceNotFoundException 用户不存在时抛出
      * @throws BusinessException         旧密码验证失败时抛出
      */
-    public User changePasswordForce(Long userId, String newPassword) {
+    public User changePasswordForcefully(Long userId, String newPassword) {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
                     // 1. 设置新密码（加密）

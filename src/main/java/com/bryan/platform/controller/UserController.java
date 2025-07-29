@@ -154,11 +154,11 @@ public class UserController {
      */
     @PutMapping("/{userId}/password/force/{newPassword}")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result<User> changePasswordForce(
+    public Result<User> changePasswordForcefully(
             @PathVariable Long userId,
             @PathVariable  String newPassword) {
         // 1. 调用服务层执行密码修改
-        return Result.success(userService.changePasswordForce(userId, newPassword));
+        return Result.success(userService.changePasswordForcefully(userId, newPassword));
     }
 
     /**
