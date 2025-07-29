@@ -115,25 +115,52 @@ public class UserService {
             queryWrapper.eq("status", searchRequest.getStatus());
         }
 
-        // 7. 处理创建时间查询
+        // 7. 添加角色模糊查询（新增）
+        if (StringUtils.hasText(searchRequest.getRoles())) {
+            queryWrapper.like("roles", searchRequest.getRoles().trim());
+        }
+
+        // 8. 添加登录时间精确查询（新增）
+        if (searchRequest.getLoginTime() != null) {
+            queryWrapper.eq("login_time", searchRequest.getLoginTime());
+        }
+
+        // 9. 添加登录IP模糊查询（新增）
+        if (StringUtils.hasText(searchRequest.getLoginIp())) {
+            queryWrapper.like("login_ip", searchRequest.getLoginIp().trim());
+        }
+
+        // 10. 添加密码重置时间精确查询（新增）
+        if (searchRequest.getPasswordResetTime() != null) {
+            queryWrapper.eq("password_reset_time", searchRequest.getPasswordResetTime());
+        }
+
+        // 11. 处理创建时间查询
         handleTimeQuery(queryWrapper, "create_time",
                 searchRequest.getCreateTime(),
                 searchRequest.getCreateTimeStart(),
                 searchRequest.getCreateTimeEnd());
 
-        // 8. 处理更新时间查询
+        // 12. 处理更新时间查询
         handleTimeQuery(queryWrapper, "update_time",
                 searchRequest.getUpdateTime(),
                 searchRequest.getUpdateTimeStart(),
                 searchRequest.getUpdateTimeEnd());
 
-        // 9. 添加排序条件（可按需添加）
-        queryWrapper.orderByDesc("update_time");
+        // 13. 添加创建人模糊查询（新增）
+        if (StringUtils.hasText(searchRequest.getCreateBy())) {
+            queryWrapper.like("create_by", searchRequest.getCreateBy().trim());
+        }
 
-        // 10. 构造分页对象
+        // 14. 添加更新人模糊查询（新增）
+        if (StringUtils.hasText(searchRequest.getUpdateBy())) {
+            queryWrapper.like("update_by", searchRequest.getUpdateBy().trim());
+        }
+
+        // 15. 构造分页对象
         Page<User> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
 
-        // 11. 执行查询并返回结果
+        // 16. 执行查询并返回结果
         return userMapper.selectPage(page, queryWrapper);
     }
 
