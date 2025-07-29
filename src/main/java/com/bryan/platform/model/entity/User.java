@@ -51,7 +51,7 @@ public class User implements Serializable, UserDetails {
 
     private LocalDateTime loginTime;
 
-    private LocalDateTime loginIp;
+    private String loginIp;
 
     private LocalDateTime passwordResetTime;
 

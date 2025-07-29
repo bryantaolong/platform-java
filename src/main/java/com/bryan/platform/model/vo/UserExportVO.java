@@ -56,7 +56,7 @@ public class UserExportVO {
 
     @ExcelProperty("最后登录IP")
     @ColumnWidth(20)
-    private LocalDateTime loginIp;
+    private String loginIp;
 
     @ExcelProperty("密码重置时间")
     @ColumnWidth(20)
