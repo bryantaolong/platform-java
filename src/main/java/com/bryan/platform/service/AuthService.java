@@ -2,6 +2,7 @@ package com.bryan.platform.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bryan.platform.common.exception.BusinessException;
+import com.bryan.platform.util.http.HttpUtils;
 import com.bryan.platform.util.jwt.JwtUtils;
 import com.bryan.platform.dao.mapper.UserMapper;
 import com.bryan.platform.model.entity.User;
@@ -96,7 +97,12 @@ public class AuthService implements UserDetailsService {
         }
 
         // 3. 更新用户登录信息
-        saveLoginRecord(user);
+        user.setLoginTime(LocalDateTime.now());
+        user.setLoginIp(HttpUtils.getClientIp());
+        int updated = userMapper.updateById(user);
+        if (updated == 0) {
+            throw new BusinessException("用户登录信息更新失败");
+        }
 
         // 4. 构建 JWT claims，包含用户角色
         Map<String, Object> claims = new HashMap<>();
@@ -223,16 +229,5 @@ public class AuthService implements UserDetailsService {
 
         // 3. 返回用户详情（已实现 UserDetails）
         return user;
-    }
-
-    private void saveLoginRecord(User loggedInUser) {
-        loggedInUser.setLoginTime(LocalDateTime.now());
-        // TODO: 补充登录用户 IP 记录
-//        loggedInUser.setLoginIp(HttpUtils.getClientIp());
-
-        int updated = userMapper.updateById(loggedInUser);
-        if (updated == 0) {
-            throw new BusinessException("用户登录信息更新失败");
-        }
     }
 }
