@@ -1,6 +1,5 @@
 package com.bryan.platform.service;
 
-import cn.hutool.core.collection.CollUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.annotation.ExcelProperty;
@@ -22,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -113,7 +113,7 @@ public class UserExportService {
      * 配套方法1：字段名校验
      */
     private void validateFieldNames(List<String> fields) {
-        if (CollUtil.isEmpty(fields)) {
+        if (CollectionUtils.isEmpty(fields)) {
             throw new IllegalArgumentException("导出字段列表不能为空");
         }
 
@@ -189,7 +189,7 @@ public class UserExportService {
             Page<User> result = userMapper.selectPage(page, queryWrapper);
             List<UserExportVO> exportData = convertToVO(result.getRecords());
 
-            if (CollUtil.isEmpty(exportData)) {
+            if (CollectionUtils.isEmpty(exportData)) {
                 break;
             }
 
