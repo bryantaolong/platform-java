@@ -2,7 +2,7 @@ package com.bryan.platform.service.redis;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -20,19 +20,19 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class RedisStringService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     /**
      * 在 Redis 中存储一个键值对（无过期时间）。
      * 键将使用 String 序列化器，值将使用 JSON 序列化器。
      *
      * @param key   键 (String)，不能为 null
-     * @param value 值 (Object)，可以为任意对象
+     * @param value 值 (String)，可以为任意对象
      * @return 操作成功返回 true，失败返回 false
      */
-    public boolean set(String key, Object value) {
+    public boolean set(String key, String value) {
         try {
-            redisTemplate.opsForValue().set(key, value);
+            stringRedisTemplate.opsForValue().set(key, value);
             return true;
         } catch (Exception e) {
             log.error("Redis set 操作失败，key: {}, value: {}", key, value, e);
@@ -45,14 +45,14 @@ public class RedisStringService {
      * 键将使用 String 序列化器，值将使用 JSON 序列化器。
      *
      * @param key     键 (String)，不能为 null
-     * @param value   值 (Object)，可以为任意对象
+     * @param value   值 (String)，可以为任意对象
      * @param seconds 过期时间（秒），必须大于 0
      * @return 操作成功返回 true，失败返回 false
      */
-    public boolean set(String key, Object value, long seconds) {
+    public boolean set(String key, String value, long seconds) {
         try {
             if (seconds > 0) { // Ensure expiration time is valid
-                redisTemplate.opsForValue().set(key, value, Duration.ofSeconds(seconds));
+                stringRedisTemplate.opsForValue().set(key, value, Duration.ofSeconds(seconds));
                 return true;
             } else {
                 log.warn("Redis setWithExpire 操作：过期时间必须大于0，key: {}", key);
@@ -77,7 +77,7 @@ public class RedisStringService {
                 log.warn("Redis setExpire 操作：过期时间必须大于0，key: {}", key);
                 return false; // Return false if expiration is not valid
             }
-            return Boolean.TRUE.equals(redisTemplate.expire(key, Duration.ofSeconds(seconds)));
+            return Boolean.TRUE.equals(stringRedisTemplate.expire(key, Duration.ofSeconds(seconds)));
         } catch (Exception e) {
             log.error("Redis setExpire 操作失败，key: {}, seconds: {}", key, seconds, e);
             return false;
@@ -89,11 +89,11 @@ public class RedisStringService {
      * 值将从 JSON 反序列化为 Object。
      *
      * @param key 键 (String)，不能为 null
-     * @return 键对应的值 (Object)，若键不存在返回 null
+     * @return 键对应的值 (String)，若键不存在返回 null
      */
-    public Object get(String key) {
+    public String get(String key) {
         try {
-            return redisTemplate.opsForValue().get(key);
+            return stringRedisTemplate.opsForValue().get(key);
         } catch (Exception e) {
             log.error("Redis get 操作失败，key: {}", key, e);
             return null;
@@ -108,7 +108,7 @@ public class RedisStringService {
      */
     public boolean delete(String key) {
         try {
-            return Boolean.TRUE.equals(redisTemplate.delete(key));
+            return Boolean.TRUE.equals(stringRedisTemplate.delete(key));
         } catch (Exception e) {
             log.error("Redis delete 操作失败，key: {}", key, e);
             return false;
@@ -123,7 +123,7 @@ public class RedisStringService {
      */
     public boolean hasKey(String key) {
         try {
-            return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+            return Boolean.TRUE.equals(stringRedisTemplate.hasKey(key));
         } catch (Exception e) {
             log.error("Redis hasKey 操作失败，key: {}", key, e);
             return false;
@@ -140,7 +140,7 @@ public class RedisStringService {
      */
     public Long increment(String key, long delta) {
         try {
-            return redisTemplate.opsForValue().increment(key, delta);
+            return stringRedisTemplate.opsForValue().increment(key, delta);
         } catch (Exception e) {
             log.error("Redis increment 操作失败，key: {}, delta: {}", key, delta, e);
             return null;
@@ -157,7 +157,7 @@ public class RedisStringService {
      */
     public Long decrement(String key, long delta) {
         try {
-            return redisTemplate.opsForValue().decrement(key, delta);
+            return stringRedisTemplate.opsForValue().decrement(key, delta);
         } catch (Exception e) {
             log.error("Redis decrement 操作失败，key: {}, delta: {}", key, delta, e);
             return null;
