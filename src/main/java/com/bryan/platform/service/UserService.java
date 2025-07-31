@@ -39,9 +39,9 @@ public class UserService {
      *
      * @return 包含所有用户的分页对象（Page）。
      */
-    public Page<User> getAllUsers() {
+    public Page<User> getAllUsers(PageRequest pageRequest) {
         // 1. 构造查询条件，默认获取全部数据
-        Page<User> page = new Page<>(1, Integer.MAX_VALUE);
+        Page<User> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize(), true);
 
         // 2. 执行查询并返回结果
         return userMapper.selectPage(page, new QueryWrapper<>());

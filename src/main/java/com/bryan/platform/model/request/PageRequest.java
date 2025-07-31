@@ -13,7 +13,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class PageRequest {
-    private Integer pageNum = 1;
+    private Long pageNum;
 
-    private Integer pageSize = 10;
+    private Long pageSize;
 }

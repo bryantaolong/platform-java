@@ -37,11 +37,11 @@ public class UserController {
      *
      * @return 包含所有用户数据的分页对象（目前不支持分页参数，建议后续优化）。
      */
-    @GetMapping("/all")
+    @PostMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result<Page<User>> getAllUsers() {
+    public Result<Page<User>> getAllUsers(@RequestBody PageRequest pageRequest) {
         // 1. 调用服务层获取所有用户列表
-        return Result.success(userService.getAllUsers());
+        return Result.success(userService.getAllUsers(pageRequest));
     }
 
     /**
