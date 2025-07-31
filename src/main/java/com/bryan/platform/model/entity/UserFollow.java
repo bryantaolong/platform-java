@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 用户关注关系实体
@@ -23,7 +23,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 public class UserFollow implements Serializable {
-    @TableId(type = IdType.INPUT) // 改为 INPUT 类型
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long followerId; // 关注者ID
@@ -31,5 +31,5 @@ public class UserFollow implements Serializable {
     private Long followingId; // 被关注者ID
 
     @TableField(fill = FieldFill.INSERT)
-    private Date createTime;  // 关注时间
+    private LocalDateTime createTime;  // 关注时间
 }

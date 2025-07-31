@@ -1,16 +1,20 @@
 package com.bryan.platform.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.dao.mapper.UserFollowMapper;
 import com.bryan.platform.dao.mapper.UserMapper;
 import com.bryan.platform.model.entity.User;
+import com.bryan.platform.model.entity.UserFollow;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 用户关注服务类。
@@ -47,12 +51,16 @@ public class UserFollowService {
         }
 
         // 2. 检查是否已关注
-        if (userFollowMapper.existsFollow(followerId, followingId) > 0) {
+        if (isFollowing(followerId, followingId)) {
             throw new BusinessException("您已经关注过该用户");
         }
 
         // 3. 插入关注关系
-        return userFollowMapper.insertFollow(followerId, followingId) > 0;
+        UserFollow userFollow = UserFollow.builder()
+                .followerId(followerId)
+                .followingId(followingId)
+                .build();
+        return userFollowMapper.insert(userFollow) > 0;
     }
 
     /**
@@ -71,7 +79,10 @@ public class UserFollowService {
         }
 
         // 2. 删除关注关系
-        return userFollowMapper.deleteFollow(followerId, followingId) > 0;
+        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
+                .eq(UserFollow::getFollowerId, followerId)
+                .eq(UserFollow::getFollowingId, followingId);
+        return userFollowMapper.delete(wrapper) > 0;
     }
 
     /**
@@ -89,16 +100,25 @@ public class UserFollowService {
             throw new BusinessException("用户不存在");
         }
 
-        // 2. 计算偏移量
-        long offset = (long) (pageNum - 1) * pageSize;
+        // 2. 查询关注关系
+        Page<UserFollow> followPage = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
+                .eq(UserFollow::getFollowerId, userId);
+        userFollowMapper.selectPage(followPage, wrapper);
 
-        // 3. 查询数据
-        List<User> records = userFollowMapper.selectFollowingList(userId, offset, (long) pageSize);
-        long total = userFollowMapper.countFollowing(userId);
+        // 3. 获取被关注的用户ID列表
+        List<Long> followingIds = followPage.getRecords().stream()
+                .map(UserFollow::getFollowingId)
+                .collect(Collectors.toList());
 
-        // 4. 返回分页结果
-        Page<User> page = new Page<>(pageNum, pageSize);
-        return page.setRecords(records).setTotal(total);
+        // 4. 查询用户信息
+        List<User> users = followingIds.isEmpty() ?
+                List.of() :
+                userMapper.selectBatchIds(followingIds);
+
+        // 5. 返回分页结果
+        Page<User> resultPage = new Page<>(pageNum, pageSize, followPage.getTotal());
+        return resultPage.setRecords(users);
     }
 
     /**
@@ -116,16 +136,25 @@ public class UserFollowService {
             throw new BusinessException("用户不存在");
         }
 
-        // 2. 计算偏移量
-        long offset = (long) (pageNum - 1) * pageSize;
+        // 2. 查询粉丝关系
+        Page<UserFollow> followPage = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
+                .eq(UserFollow::getFollowingId, userId);
+        userFollowMapper.selectPage(followPage, wrapper);
 
-        // 3. 查询数据
-        List<User> records = userFollowMapper.selectFollowerList(userId, offset, (long) pageSize);
-        long total = userFollowMapper.countFollowers(userId);
+        // 3. 获取粉丝用户ID列表
+        List<Long> followerIds = followPage.getRecords().stream()
+                .map(UserFollow::getFollowerId)
+                .collect(Collectors.toList());
 
-        // 4. 返回分页结果
-        Page<User> page = new Page<>(pageNum, pageSize);
-        return page.setRecords(records).setTotal(total);
+        // 4. 查询用户信息
+        List<User> users = followerIds.isEmpty() ?
+                List.of() :
+                userMapper.selectBatchIds(followerIds);
+
+        // 5. 返回分页结果
+        Page<User> resultPage = new Page<>(pageNum, pageSize, followPage.getTotal());
+        return resultPage.setRecords(users);
     }
 
     /**
@@ -137,12 +166,26 @@ public class UserFollowService {
      * @throws BusinessException 若当前用户不存在
      */
     public Boolean isFollowing(Long followerId, Long followingId) {
-        // 1. 校验当前用户是否存在
+        // 校验当前用户是否存在
         if (userMapper.selectById(followerId) == null) {
             throw new BusinessException("未登录无法查看关注状态");
         }
 
-        // 2. 检查是否存在关注关系
-        return userFollowMapper.existsFollow(followerId, followingId) > 0;
+        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
+                .eq(UserFollow::getFollowerId, followerId)
+                .eq(UserFollow::getFollowingId, followingId);
+        return userFollowMapper.selectCount(wrapper) > 0;
+    }
+
+    public Long countFollowing(Long userId) {
+        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
+                .eq(UserFollow::getFollowerId, userId);
+        return userFollowMapper.selectCount(wrapper);
+    }
+
+    public Long countFollowers(Long userId) {
+        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
+                .eq(UserFollow::getFollowingId, userId);
+        return userFollowMapper.selectCount(wrapper);
     }
 }
