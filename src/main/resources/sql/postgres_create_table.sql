@@ -47,25 +47,28 @@ create index idx_user_username
 comment on index idx_user_username is '用户名索引，用于加速用户名查询';
 
 
-CREATE TABLE post_favorite (
-                               user_id BIGINT NOT NULL,
-                               post_id VARCHAR(64) NOT NULL,
-                               deleted SMALLINT DEFAULT 0,
-                               create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                               update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                               PRIMARY KEY (user_id, post_id)
+CREATE TABLE post_favorite
+(
+    id          BIGSERIAL PRIMARY KEY,
+    user_id     BIGINT       NOT NULL,
+    post_id     VARCHAR(64)  NOT NULL,
+    create_time TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    -- 添加唯一约束，确保一个用户只能收藏同一篇文章一次
+    UNIQUE (user_id, post_id)
 );
 
 COMMENT ON TABLE post_favorite IS '博文收藏记录表';
+
+COMMENT ON COLUMN post_favorite.id IS '自增主键ID';
 COMMENT ON COLUMN post_favorite.user_id IS '用户ID';
 COMMENT ON COLUMN post_favorite.post_id IS '博文ID (MongoDB ObjectId)';
-COMMENT ON COLUMN post_favorite.deleted IS '逻辑删除: 0-未删除, 1-已删除';
 COMMENT ON COLUMN post_favorite.create_time IS '创建时间';
-COMMENT ON COLUMN post_favorite.update_time IS '更新时间';
 
-CREATE INDEX idx_deleted ON post_favorite (deleted);
-CREATE INDEX idx_post_id ON post_favorite (post_id);
-CREATE INDEX idx_user_id ON post_favorite (user_id);
+ALTER TABLE post_favorite
+    OWNER TO platform_user;
+
+CREATE INDEX idx_post_favorite_user_id ON post_favorite (user_id);
+CREATE INDEX idx_post_favorite_post_id ON post_favorite (post_id);
 
 CREATE TABLE user_follows (
                               id BIGSERIAL PRIMARY KEY,

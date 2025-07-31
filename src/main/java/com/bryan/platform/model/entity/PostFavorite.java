@@ -23,19 +23,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class PostFavorite implements Serializable {
-    // 用户ID，复合主键的一部分
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
     private Long userId;
 
-    // 博文ID，复合主键的一部分
     private String postId;
-
-    @TableLogic
-    @TableField("deleted")
-    private Integer deleted;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
 }

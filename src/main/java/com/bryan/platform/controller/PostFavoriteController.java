@@ -106,7 +106,7 @@ public class PostFavoriteController {
         }
 
         // 2. 检查收藏状态及权限
-        if (!postFavoriteService.checkFavorite(currentUserId, postId)) {
+        if (!postFavoriteService.isFavorite(currentUserId, postId)) {
             return Result.error(HttpStatus.UNAUTHORIZED, "无权操作该收藏。");
         }
 
@@ -138,7 +138,7 @@ public class PostFavoriteController {
         }
 
         // 3. 调用服务检查收藏状态
-        Boolean isFavorite = postFavoriteService.checkFavorite(currentUserId, postId);
+        Boolean isFavorite = postFavoriteService.isFavorite(currentUserId, postId);
 
         // 4. 返回结果
         return Result.success(isFavorite);
