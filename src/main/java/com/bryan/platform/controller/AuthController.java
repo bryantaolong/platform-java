@@ -75,6 +75,16 @@ public class AuthController {
     }
 
     /**
+     * 退出登录
+     *
+     * @return boolean 是否退出登录
+     */
+    @GetMapping("/logout")
+    public boolean logout() {
+        return authService.logout();
+    }
+
+    /**
      * 验证 Token 合法性及用户状态
      *
      * @param token JWT Token 字符串

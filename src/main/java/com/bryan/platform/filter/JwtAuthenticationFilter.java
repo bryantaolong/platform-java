@@ -2,6 +2,7 @@ package com.bryan.platform.filter;
 
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.service.AuthService;
+import com.bryan.platform.service.redis.RedisStringService;
 import com.bryan.platform.util.jwt.JwtUtils;
 import com.bryan.platform.model.entity.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import com.bryan.platform.common.enums.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,16 +33,12 @@ import java.util.stream.Collectors;
  * @version 1.0
  */
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final AuthService authService;
     private final ObjectMapper objectMapper;
-
-    // 构造器注入
-    public JwtAuthenticationFilter(AuthService authService, ObjectMapper objectMapper) {
-        this.authService = authService;
-        this.objectMapper = objectMapper;
-    }
+    private final RedisStringService redisStringService;
 
     @Override
     protected void doFilterInternal(
@@ -58,6 +56,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         token = token.substring(7); // 截取掉 "Bearer " 前缀
 
         try {
+            // Redis Token 验证
+            String username = JwtUtils.getUsernameFromToken(token);
+            String redisToken = redisStringService.get(username);
+
+            if (redisToken == null || !redisToken.equals(token)) {
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write(
+                        objectMapper.writeValueAsString(
+                                Result.error(HttpStatus.UNAUTHORIZED, "Token已失效，请重新登录")
+                        )
+                );
+                return;
+            }
+
             // 从 Token 的 Claims 中获取角色列表
             List<String> roles = JwtUtils.getRolesFromToken(token);
             // 将角色字符串列表转换为 Spring Security 的 GrantedAuthority 列表

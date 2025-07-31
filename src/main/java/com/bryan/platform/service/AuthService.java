@@ -2,6 +2,7 @@ package com.bryan.platform.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bryan.platform.common.exception.BusinessException;
+import com.bryan.platform.service.redis.RedisStringService;
 import com.bryan.platform.util.http.HttpUtils;
 import com.bryan.platform.util.jwt.JwtUtils;
 import com.bryan.platform.dao.mapper.UserMapper;
@@ -35,6 +36,7 @@ public class AuthService implements UserDetailsService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RedisStringService redisStringService;
 
     /**
      * 用户注册。
@@ -85,34 +87,47 @@ public class AuthService implements UserDetailsService {
      * @throws BusinessException 用户名不存在或密码错误
      */
     public String login(LoginRequest loginRequest) {
-        // 1. 根据用户名查询用户
+        // 1. 验证用户凭证
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", loginRequest.getUsername());
-
         User user = userMapper.selectOne(queryWrapper);
 
-        // 2. 验证密码是否正确
         if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new BusinessException("用户名或密码错误");
+        }
+
+        // 2. 检查现有Token（使用JwtUtils验证有效性）
+        String existingToken = (String) redisStringService.get(user.getUsername());
+        if (existingToken != null && JwtUtils.validateToken(existingToken)) {
+            // 刷新Redis中的Token过期时间
+            redisStringService.setExpire(user.getUsername(), 86400000 / 1000);
+            return existingToken;
         }
 
         // 3. 更新用户登录信息
         user.setLoginTime(LocalDateTime.now());
         user.setLoginIp(HttpUtils.getClientIp());
-        int updated = userMapper.updateById(user);
-        if (updated == 0) {
-            throw new BusinessException("用户登录信息更新失败");
-        }
+        userMapper.updateById(user);
 
-        // 4. 构建 JWT claims，包含用户角色
+        // 4. 生成新的JWT Token
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", user.getUsername());
         claims.put("roles", user.getRoles());
 
-        log.info("用户登录: id: {}, username: {}", user.getId(), user.getUsername());
+        String token = JwtUtils.generateToken(user.getId().toString(), claims);
 
-        // 5. 生成并返回 Token
-        return JwtUtils.generateToken(user.getId().toString(), claims);
+        // 5. 存储到Redis（设置与JWT相同的过期时间）
+        boolean saved = redisStringService.set(
+                user.getUsername(),
+                token,
+                86400000 / 1000
+        );
+
+        if (!saved) {
+            throw new BusinessException("Token存储失败");
+        }
+
+        return token;
     }
 
     /**
@@ -205,6 +220,22 @@ public class AuthService implements UserDetailsService {
 
         // 3. 生成并返回 Token
         return JwtUtils.generateToken(user.getId().toString(), claims);
+    }
+
+    /**
+     * 清除当前用户的 JWT Token 在 Redis 中的缓存。
+     *
+     * @return boolean 是否成功
+     * @throws BusinessException Token清理失败
+     */
+    public boolean logout() {
+        String username = JwtUtils.getCurrentUsername();
+        boolean deleted = redisStringService.delete(username);
+        if (!deleted) {
+            throw new BusinessException("Token清除失败");
+        }
+
+        return true;
     }
 
     /**
