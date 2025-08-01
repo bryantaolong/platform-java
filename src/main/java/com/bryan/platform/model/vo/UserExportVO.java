@@ -7,6 +7,7 @@ import com.alibaba.excel.annotation.write.style.ContentStyle;
 import com.alibaba.excel.annotation.write.style.HeadStyle;
 import com.alibaba.excel.enums.poi.FillPatternTypeEnum;
 import com.alibaba.excel.enums.poi.HorizontalAlignmentEnum;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
  * @since 2025/7/26
  */
 @Data
+@Builder
 public class UserExportVO {
 
     @ExcelProperty("用户ID")
@@ -36,10 +38,6 @@ public class UserExportVO {
     @ExcelProperty("邮箱")
     @ColumnWidth(25)
     private String email;
-
-    @ExcelProperty("性别")
-    @ColumnWidth(10)
-    private String gender;
 
     @ExcelProperty("状态")
     @ColumnWidth(10)
@@ -62,6 +60,23 @@ public class UserExportVO {
     @ColumnWidth(20)
     @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
     private LocalDateTime passwordResetTime;
+
+    @ExcelProperty("登录失败次数")
+    @ColumnWidth(15)
+    private Integer loginFailCount; // 登录失败次数
+
+    @ExcelProperty("账户锁定时间")
+    @ColumnWidth(20)
+    @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime accountLockTime;
+
+    @ExcelProperty("删除状态")
+    @ColumnWidth(12)
+    private String deleted;
+
+    @ExcelProperty("版本号")
+    @ColumnWidth(10)
+    private Integer version;
 
     @ExcelProperty("创建时间")
     @ColumnWidth(20)

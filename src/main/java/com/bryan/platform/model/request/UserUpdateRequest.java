@@ -32,18 +32,4 @@ public class UserUpdateRequest {
      */
     @Email(message = "邮箱格式不正确")
     private String email;
-
-    /**
-     * 性别。
-     * 在更新时是可选的，如果提供则更新，如果不提供则保持不变。
-     */
-    @Min(value = 0, message = "性别不合法")
-    @Max(value = 2, message = "性别不合法")
-    private Integer gender;
-
-    /**
-     * 头像。
-     * 在更新时是可选的，如果提供则更新，如果不提供则保持不变。
-     */
-    private String avatar;
 }

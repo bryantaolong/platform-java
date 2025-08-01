@@ -87,81 +87,38 @@ public class UserService {
      * @return 符合查询条件的分页对象（Page）
      */
     public Page<User> searchUsers(UserSearchRequest searchRequest, PageRequest pageRequest) {
-        // 1. 构造查询条件
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
 
-        // 2. 添加用户名模糊查询
-        if (StringUtils.hasText(searchRequest.getUsername())) {
-            queryWrapper.like("username", searchRequest.getUsername().trim());
-        }
+        // 1. 字符串类型字段的模糊查询
+        addLikeCondition(queryWrapper, "username", searchRequest.getUsername());
+        addLikeCondition(queryWrapper, "phone_number", searchRequest.getPhoneNumber());
+        addLikeCondition(queryWrapper, "email", searchRequest.getEmail());
+        addLikeCondition(queryWrapper, "roles", searchRequest.getRoles());
+        addLikeCondition(queryWrapper, "login_ip", searchRequest.getLoginIp());
+        addLikeCondition(queryWrapper, "create_by", searchRequest.getCreateBy());
+        addLikeCondition(queryWrapper, "update_by", searchRequest.getUpdateBy());
 
-        // 3. 添加手机号模糊查询
-        if (StringUtils.hasText(searchRequest.getPhoneNumber())) {
-            queryWrapper.like("phone_number", searchRequest.getPhoneNumber().trim());
-        }
+        // 2. 精确匹配字段
+        addEqCondition(queryWrapper, "status", searchRequest.getStatus());
+        addEqCondition(queryWrapper, "login_time", searchRequest.getLoginTime());
+        addEqCondition(queryWrapper, "password_reset_time", searchRequest.getPasswordResetTime());
+        addEqCondition(queryWrapper, "login_fail_count", searchRequest.getLoginFailCount());
+        addEqCondition(queryWrapper, "account_lock_time", searchRequest.getAccountLockTime());
+        addEqCondition(queryWrapper, "deleted", searchRequest.getDeleted());
+        addEqCondition(queryWrapper, "version", searchRequest.getVersion());
 
-        // 4. 添加邮箱模糊查询
-        if (StringUtils.hasText(searchRequest.getEmail())) {
-            queryWrapper.like("email", searchRequest.getEmail().trim());
-        }
-
-        // 5. 添加性别精确查询
-        if (searchRequest.getGender() != null) {
-            queryWrapper.eq("gender", searchRequest.getGender());
-        }
-
-        // 6. 添加状态精确查询
-        if (searchRequest.getStatus() != null) {
-            queryWrapper.eq("status", searchRequest.getStatus());
-        }
-
-        // 7. 添加角色模糊查询（新增）
-        if (StringUtils.hasText(searchRequest.getRoles())) {
-            queryWrapper.like("roles", searchRequest.getRoles().trim());
-        }
-
-        // 8. 添加登录时间精确查询（新增）
-        if (searchRequest.getLoginTime() != null) {
-            queryWrapper.eq("login_time", searchRequest.getLoginTime());
-        }
-
-        // 9. 添加登录IP模糊查询（新增）
-        if (StringUtils.hasText(searchRequest.getLoginIp())) {
-            queryWrapper.like("login_ip", searchRequest.getLoginIp().trim());
-        }
-
-        // 10. 添加密码重置时间精确查询（新增）
-        if (searchRequest.getPasswordResetTime() != null) {
-            queryWrapper.eq("password_reset_time", searchRequest.getPasswordResetTime());
-        }
-
-        // 11. 处理创建时间查询
+        // 3. 时间范围查询
         handleTimeQuery(queryWrapper, "create_time",
                 searchRequest.getCreateTime(),
                 searchRequest.getCreateTimeStart(),
                 searchRequest.getCreateTimeEnd());
 
-        // 12. 处理更新时间查询
         handleTimeQuery(queryWrapper, "update_time",
                 searchRequest.getUpdateTime(),
                 searchRequest.getUpdateTimeStart(),
                 searchRequest.getUpdateTimeEnd());
 
-        // 13. 添加创建人模糊查询（新增）
-        if (StringUtils.hasText(searchRequest.getCreateBy())) {
-            queryWrapper.like("create_by", searchRequest.getCreateBy().trim());
-        }
-
-        // 14. 添加更新人模糊查询（新增）
-        if (StringUtils.hasText(searchRequest.getUpdateBy())) {
-            queryWrapper.like("update_by", searchRequest.getUpdateBy().trim());
-        }
-
-        // 15. 构造分页对象
-        Page<User> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
-
-        // 16. 执行查询并返回结果
-        return userMapper.selectPage(page, queryWrapper);
+        return userMapper.selectPage(new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize()), queryWrapper);
     }
 
     /**
@@ -199,24 +156,14 @@ public class UserService {
                         existingUser.setEmail(userUpdateRequest.getEmail());
                     }
 
-                    // 4. 更新性别
-                    if (userUpdateRequest.getGender() != null) {
-                        existingUser.setGender(userUpdateRequest.getGender());
-                    }
-
-                    // 5. 更新头像
-                    if (userUpdateRequest.getAvatar() != null) {
-                        existingUser.setAvatar(userUpdateRequest.getAvatar());
-                    }
-
-                    // 6. 更新操作员信息
+                    // 4. 更新操作员信息
                     String operator = authService.getCurrentUsername();
                     existingUser.setUpdateBy(operator);
 
-                    // 7. 执行数据库更新
+                    // 5. 执行数据库更新
                     userMapper.updateById(existingUser);
 
-                    // 8. 记录日志并返回
+                    // 6. 记录日志并返回
                     log.info("用户ID: {} 的信息更新成功", userId);
                     return existingUser;
                 })
@@ -400,6 +347,20 @@ public class UserService {
                     return existingUser;
                 })
                 .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    }
+
+    // 辅助方法：添加模糊查询条件
+    private void addLikeCondition(QueryWrapper<User> queryWrapper, String column, String value) {
+        if (StringUtils.hasText(value)) {
+            queryWrapper.like(column, value.trim());
+        }
+    }
+
+    // 辅助方法：添加精确查询条件
+    private <T> void addEqCondition(QueryWrapper<User> queryWrapper, String column, T value) {
+        if (value != null) {
+            queryWrapper.eq(column, value);
+        }
     }
 
     /**

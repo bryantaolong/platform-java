@@ -17,23 +17,24 @@ public class UserConverter {
             return null;
         }
 
-        UserExportVO vo = new UserExportVO();
-        vo.setId(user.getId());
-        vo.setUsername(user.getUsername());
-        vo.setPhoneNumber(user.getPhoneNumber());
-        vo.setEmail(user.getEmail());
-        vo.setGender(convertGender(user.getGender()));
-        vo.setStatus(convertStatus(user.getStatus()));
-        vo.setRoles(user.getRoles());
-        vo.setLoginTime(user.getLoginTime());
-        vo.setLoginIp(user.getLoginIp());
-        vo.setPasswordResetTime(user.getPasswordResetTime());
-        vo.setCreateTime(user.getCreateTime());
-        vo.setCreateBy(user.getCreateBy());
-        vo.setUpdateTime(user.getUpdateTime());
-        vo.setUpdateBy(user.getUpdateBy());
-
-        return vo;
+        return UserExportVO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .phoneNumber(user.getPhoneNumber())
+                .email(user.getEmail())
+                .status(convertStatus(user.getStatus()))
+                .roles(user.getRoles())
+                .loginTime(user.getLoginTime())
+                .loginIp(user.getLoginIp())
+                .passwordResetTime(user.getPasswordResetTime())
+                .loginFailCount(user.getLoginFailCount())
+                .accountLockTime(user.getAccountLockTime())
+                .deleted(convertDeletedStatus(user.getDeleted()))
+                .createTime(user.getCreateTime())
+                .createBy(user.getCreateBy())
+                .updateTime(user.getUpdateTime())
+                .updateBy(user.getUpdateBy())
+                .build();
     }
 
     private static String convertGender(Integer gender) {
@@ -43,6 +44,16 @@ public class UserConverter {
 
     private static String convertStatus(Integer status) {
         if (status == null) return "";
-        return status == 0 ? "正常" : "禁用";
+        return switch (status) {
+            case 0 -> "正常";
+            case 1 -> "封禁";
+            case 2 -> "锁定";
+            default -> "未知";
+        };
+    }
+
+    private static String convertDeletedStatus(Integer deleted) {
+        if (deleted == null) return "";
+        return deleted == 0 ? "未删除" : "已删除";
     }
 }

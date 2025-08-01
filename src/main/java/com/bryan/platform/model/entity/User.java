@@ -41,13 +41,9 @@ public class User implements Serializable, UserDetails {
 
     private String email;
 
-    private Integer gender;
+    private Integer status; // 状态（0-正常，1-封禁，2-锁定）
 
-    private String avatar;
-
-    private Integer status;   // 状态（0-正常，1-封禁）
-
-    private String roles;
+    private String roles; // 角色标识，多个用英文逗号分隔
 
     private LocalDateTime loginTime;
 
@@ -55,8 +51,15 @@ public class User implements Serializable, UserDetails {
 
     private LocalDateTime passwordResetTime;
 
+    private Integer loginFailCount; // 登录失败次数
+
+    private LocalDateTime accountLockTime; // 账户锁定时间
+
     @TableLogic
     private Integer deleted;
+
+    @Version
+    private Integer version; // 乐观锁版本号
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
@@ -84,17 +87,6 @@ public class User implements Serializable, UserDetails {
                 .collect(Collectors.toList());
     }
 
-    // 以下是 UserDetails 的其他必要方法
-    @Override
-    public String getUsername() {
-        return this.username;
-    }
-
-    @Override
-    public String getPassword() {
-        return this.password;
-    }
-
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -102,7 +94,12 @@ public class User implements Serializable, UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return this.status == null || this.status == 0; // 检查status是否为0（正常），或为null（默认正常）
+        // status为0且未达到锁定时间或锁定时间已过
+        if (this.status == 0) return true;
+        if (this.status == 2 && this.accountLockTime != null) {
+            return LocalDateTime.now().isAfter(this.accountLockTime.plusHours(1));
+        }
+        return false;
     }
 
     @Override
@@ -112,7 +109,6 @@ public class User implements Serializable, UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.status != 1 && this.deleted == 0;
     }
-
 }
