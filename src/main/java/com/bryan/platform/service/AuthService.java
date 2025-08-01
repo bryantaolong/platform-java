@@ -92,12 +92,24 @@ public class AuthService implements UserDetailsService {
         queryWrapper.eq("username", loginRequest.getUsername());
         User user = userMapper.selectOne(queryWrapper);
 
-        if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        if (user == null) {
+            throw new BusinessException("用户名或密码错误");
+        }
+
+        if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
+            user.setLoginFailCount(user.getLoginFailCount() + 1);
+
+            // 如果输入密码错误次数达到限额-硬编码为 5，则锁定账号
+            if(user.getLoginFailCount() >= 5) {
+                user.setStatus(2);
+                user.setAccountLockTime(LocalDateTime.now());
+                throw new BusinessException("输入密码错误次数过多，账号锁定");
+            }
             throw new BusinessException("用户名或密码错误");
         }
 
         // 2. 检查现有Token（使用JwtUtils验证有效性）
-        String existingToken = (String) redisStringService.get(user.getUsername());
+        String existingToken = redisStringService.get(user.getUsername());
         if (existingToken != null && JwtUtils.validateToken(existingToken)) {
             // 刷新Redis中的Token过期时间
             redisStringService.setExpire(user.getUsername(), 86400000 / 1000);
@@ -107,6 +119,7 @@ public class AuthService implements UserDetailsService {
         // 3. 更新用户登录信息
         user.setLoginTime(LocalDateTime.now());
         user.setLoginIp(HttpUtils.getClientIp());
+        user.setLoginFailCount(0); // 重置密码输入错误次数
         userMapper.updateById(user);
 
         // 4. 生成新的JWT Token
