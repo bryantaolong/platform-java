@@ -45,12 +45,34 @@ comment on column "user".update_time is '记录更新时间';
 comment on column "user".update_by is '记录更新人';
 
 alter table "user"
-    owner to postgres;
+    owner to platform_user;
 
 create index idx_user_username
     on "user" (username);
 
 comment on index idx_user_username is '用户名索引，用于加速用户名查询';
+
+-- user_profile
+CREATE TABLE "user_profile" (
+                                user_id      BIGINT PRIMARY KEY,
+                                real_name    VARCHAR(255),
+                                gender       INTEGER,
+                                birthday     TIMESTAMP,
+                                avatar       VARCHAR(255),
+                                update_time  TIMESTAMP NOT NULL,
+                                update_by    VARCHAR(255)
+);
+
+COMMENT ON TABLE "user_profile" IS '用户资料表，存储用户的详细信息';
+COMMENT ON COLUMN "user_profile".user_id IS '用户ID，关联user表的主键';
+COMMENT ON COLUMN "user_profile".real_name IS '用户真实姓名';
+COMMENT ON COLUMN "user_profile".gender IS '性别(0-未知 1-男 2-女)';
+COMMENT ON COLUMN "user_profile".birthday IS '用户生日';
+COMMENT ON COLUMN "user_profile".avatar IS '用户头像URL';
+COMMENT ON COLUMN "user_profile".update_time IS '记录更新时间';
+COMMENT ON COLUMN "user_profile".update_by IS '记录更新人';
+
+ALTER TABLE "user_profile" OWNER TO platform_user;
 
 
 CREATE TABLE post_favorite
