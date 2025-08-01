@@ -74,7 +74,6 @@ COMMENT ON COLUMN "user_profile".update_by IS '记录更新人';
 
 ALTER TABLE "user_profile" OWNER TO platform_user;
 
-
 CREATE TABLE post_favorite
 (
     id          BIGSERIAL PRIMARY KEY,
