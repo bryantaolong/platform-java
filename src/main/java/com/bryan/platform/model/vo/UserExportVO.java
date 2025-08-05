@@ -10,7 +10,10 @@ import com.alibaba.excel.enums.poi.HorizontalAlignmentEnum;
 import lombok.Builder;
 import lombok.Data;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * UserExportVO 用户导出 VO
@@ -63,7 +66,7 @@ public class UserExportVO {
 
     @ExcelProperty("登录失败次数")
     @ColumnWidth(15)
-    private Integer loginFailCount; // 登录失败次数
+    private Integer loginFailCount;
 
     @ExcelProperty("账户锁定时间")
     @ColumnWidth(20)
@@ -96,15 +99,32 @@ public class UserExportVO {
     @ColumnWidth(15)
     private String updateBy;
 
-    // 表头样式设置
+    /* =====================
+       样式占位字段，不会被导出
+       ===================== */
     @HeadStyle(
             fillPatternType = FillPatternTypeEnum.SOLID_FOREGROUND,
-            fillForegroundColor = 42,  // 浅绿色背景
-            horizontalAlignment = HorizontalAlignmentEnum.CENTER  // 居中对齐
+            fillForegroundColor = 42,
+            horizontalAlignment = HorizontalAlignmentEnum.CENTER
     )
-    // 内容样式设置
     @ContentStyle(
-            horizontalAlignment = HorizontalAlignmentEnum.CENTER  // 居中对齐
+            horizontalAlignment = HorizontalAlignmentEnum.CENTER
     )
-    private String styledField; // 这个字段仅用于样式设置，实际不使用
+    private String styledField;
+
+    /* ============================================================
+       静态工具：根据 @ExcelProperty 自动生成 “字段名 -> 中文标题”
+       ============================================================ */
+    public static Map<String, String> getExportableFieldsByAnnotation() {
+        Map<String, String> map = new LinkedHashMap<>();
+        Field[] fields = UserExportVO.class.getDeclaredFields();
+        for (Field field : fields) {
+            if (field.isAnnotationPresent(ExcelProperty.class)) {
+                ExcelProperty anno = field.getAnnotation(ExcelProperty.class);
+                // 只取第一个标题
+                map.put(field.getName(), anno.value()[0]);
+            }
+        }
+        return map;
+    }
 }

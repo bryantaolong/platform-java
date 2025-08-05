@@ -94,8 +94,7 @@ public class AuthController {
     @GetMapping("/validate")
     public Result<String> validate(
             @RequestParam String token,
-            @AuthenticationPrincipal UserDetails userDetails
-    ) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         // 1. 验证 Token 格式与签名是否合法
         if (!authService.validateToken(token)) {
             return Result.success("Invalid token");

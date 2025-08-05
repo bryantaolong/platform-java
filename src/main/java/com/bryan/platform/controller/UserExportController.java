@@ -1,6 +1,7 @@
 package com.bryan.platform.controller;
 
 import com.bryan.platform.model.request.UserExportRequest;
+import com.bryan.platform.model.vo.UserExportVO;
 import com.bryan.platform.service.UserExportService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -59,21 +60,6 @@ public class UserExportController {
     @GetMapping("/fields")
     @PreAuthorize("hasRole('ADMIN')")
     public Map<String, String> getExportableFields() {
-        Map<String, String> fields = new LinkedHashMap<>();
-        fields.put("id", "用户ID");
-        fields.put("username", "用户名");
-        fields.put("phoneNumber", "手机号");
-        fields.put("email", "邮箱");
-        fields.put("gender", "性别");
-        fields.put("status", "状态");
-        fields.put("roles", "角色");
-        fields.put("loginTime", "最后登陆时间");
-        fields.put("loginIp", "最后登录IP");
-        fields.put("passwordResetTime", "密码重置时间");
-        fields.put("createTime", "创建时间");
-        fields.put("createBy", "创建人");
-        fields.put("updateTime", "更新时间");
-        fields.put("updateBy", "更新人");
-        return fields;
+        return UserExportVO.getExportableFieldsByAnnotation();
     }
 }

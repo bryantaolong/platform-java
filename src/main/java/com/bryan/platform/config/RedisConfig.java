@@ -38,9 +38,6 @@ public class RedisConfig {
         return template;
     }
 
-    /**
-     * 暂时没有用到
-     */
     @Bean
     public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
         return new StringRedisTemplate(factory);
