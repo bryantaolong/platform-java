@@ -1,5 +1,6 @@
 package com.bryan.platform.model.converter;
 
+import com.bryan.platform.common.enums.UserStatusEnum;
 import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.vo.UserExportVO;
 
@@ -42,12 +43,13 @@ public class UserConverter {
         return gender == 1 ? "男" : "女";
     }
 
-    private static String convertStatus(Integer status) {
+    private static String convertStatus(UserStatusEnum status) {
         if (status == null) return "";
         return switch (status) {
-            case 0 -> "正常";
-            case 1 -> "封禁";
-            case 2 -> "锁定";
+            case NORMAL -> "正常";
+            case BANNED -> "封禁";
+            case LOCKED -> "锁定";
+            // 如果以后再加枚举，保留 default 分支
             default -> "未知";
         };
     }
