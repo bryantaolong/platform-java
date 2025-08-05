@@ -1,4 +1,4 @@
-package com.bryan.platform.model.entity;
+package com.bryan.platform.model.entity.post;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;

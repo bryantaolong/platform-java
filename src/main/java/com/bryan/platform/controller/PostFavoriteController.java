@@ -2,10 +2,10 @@ package com.bryan.platform.controller;
 
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.common.enums.HttpStatus;
-import com.bryan.platform.service.AuthService;
+import com.bryan.platform.service.user.AuthService;
 import com.bryan.platform.model.request.PostFavoriteAddRequest;
-import com.bryan.platform.model.entity.Post;
-import com.bryan.platform.service.PostFavoriteService;
+import com.bryan.platform.model.entity.post.Post;
+import com.bryan.platform.service.post.PostFavoriteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

@@ -1,13 +1,14 @@
-package com.bryan.platform.service;
+package com.bryan.platform.service.post;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
 import com.bryan.platform.dao.mapper.PostFavoriteMapper;
 import com.bryan.platform.dao.repository.PostRepository;
-import com.bryan.platform.model.entity.Post;
-import com.bryan.platform.model.entity.PostFavorite;
-import com.bryan.platform.model.entity.User;
+import com.bryan.platform.model.entity.post.Post;
+import com.bryan.platform.model.entity.post.PostFavorite;
+import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

@@ -1,7 +1,8 @@
 package com.bryan.platform.service;
 
 import com.bryan.platform.dao.repository.PostRepository;
-import com.bryan.platform.model.entity.Post;
+import com.bryan.platform.model.entity.post.Post;
+import com.bryan.platform.service.post.PostService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

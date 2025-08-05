@@ -1,8 +1,9 @@
-package com.bryan.platform.service;
+package com.bryan.platform.service.moment;
 
 import com.bryan.platform.dao.repository.MomentRepository;
-import com.bryan.platform.model.entity.Moment;
-import com.bryan.platform.model.entity.User;
+import com.bryan.platform.model.entity.moment.Moment;
+import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.service.user.UserFollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

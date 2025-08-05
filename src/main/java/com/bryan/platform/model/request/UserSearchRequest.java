@@ -1,5 +1,6 @@
 package com.bryan.platform.model.request;
 
+import com.bryan.platform.common.enums.UserStatusEnum;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 
@@ -28,10 +29,8 @@ public class UserSearchRequest {
     @Size(max = 100, message = "邮箱长度不能超过100个字符")
     private String email;
 
-    // 状态校验（0禁用 1启用）
-    @Min(value = 0, message = "状态不合法")
-    @Max(value = 1, message = "状态不合法")
-    private Integer status;
+    @NotNull(message = "状态不能为空")
+    private UserStatusEnum status;
 
     // 角色校验
     @Pattern(regexp = "^[a-zA-Z0-9_,-]*$", message = "角色格式不正确") // 允许字母、数字、逗号和横线

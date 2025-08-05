@@ -1,7 +1,7 @@
 package com.bryan.platform.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.bryan.platform.model.entity.UserProfile;
+import com.bryan.platform.model.entity.user.UserProfile;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

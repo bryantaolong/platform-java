@@ -1,13 +1,14 @@
-package com.bryan.platform.service;
+package com.bryan.platform.service.user;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bryan.platform.common.enums.UserStatusEnum;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
 import com.bryan.platform.model.request.PageRequest;
 import com.bryan.platform.model.request.UserSearchRequest;
 import com.bryan.platform.model.request.UserUpdateRequest;
-import com.bryan.platform.model.entity.User;
+import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.dao.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,6 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final AuthService authService;
 
     /**
      * 获取所有用户列表（不分页）。
@@ -156,14 +156,10 @@ public class UserService {
                         existingUser.setEmail(userUpdateRequest.getEmail());
                     }
 
-                    // 4. 更新操作员信息
-                    String operator = authService.getCurrentUsername();
-                    existingUser.setUpdateBy(operator);
-
-                    // 5. 执行数据库更新
+                    // 4. 执行数据库更新
                     userMapper.updateById(existingUser);
 
-                    // 6. 记录日志并返回
+                    // 5. 记录日志并返回
                     log.info("用户ID: {} 的信息更新成功", userId);
                     return existingUser;
                 })
@@ -184,14 +180,10 @@ public class UserService {
                     // 1. 设置角色字段
                     existingUser.setRoles(roles);
 
-                    // 2. 更新操作员信息
-                    String operator = authService.getCurrentUsername();
-                    existingUser.setUpdateBy(operator);
-
-                    // 3. 更新数据库
+                    // 2. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 4. 记录日志
+                    // 3. 记录日志
                     log.info("用户ID: {} 的角色更新成功为: {}", userId, roles);
                     return existingUser;
                 })
@@ -222,14 +214,10 @@ public class UserService {
                     // 3. 设置重置密码时间
                     existingUser.setPasswordResetTime(LocalDateTime.now());
 
-                    // 4. 更新操作员信息
-                    String operator = authService.getCurrentUsername();
-                    existingUser.setUpdateBy(operator);
-
-                    // 5. 更新数据库
+                    // 4. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 6. 记录日志
+                    // 5. 记录日志
                     log.info("用户ID: {} 的密码更新成功", userId);
                     return existingUser;
                 })
@@ -254,14 +242,10 @@ public class UserService {
                     // 2. 设置重置密码时间
                     existingUser.setPasswordResetTime(LocalDateTime.now());
 
-                    // 3. 更新操作员信息
-                    String operator = authService.getCurrentUsername();
-                    existingUser.setUpdateBy(operator);
-
-                    // 4. 更新数据库
+                    // 3. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 5. 记录日志
+                    // 4. 记录日志
                     log.info("用户ID: {} 的密码强制修改成功", userId);
                     return existingUser;
                 })
@@ -279,16 +263,12 @@ public class UserService {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
                     // 1. 设置状态为封禁
-                    existingUser.setStatus(1);
+                    existingUser.setStatus(UserStatusEnum.BANNED);
 
-                    // 2. 更新操作员信息
-                    String operator = authService.getCurrentUsername();
-                    existingUser.setUpdateBy(operator);
-
-                    // 3. 更新数据库
+                    // 2. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 4. 记录日志
+                    // 3. 记录日志
                     log.info("用户ID: {} 封禁成功", userId);
                     return existingUser;
                 })
@@ -306,16 +286,12 @@ public class UserService {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
                     // 1. 设置状态为正常
-                    existingUser.setStatus(0);
+                    existingUser.setStatus(UserStatusEnum.NORMAL);
 
-                    // 2. 更新操作员信息
-                    String operator = authService.getCurrentUsername();
-                    existingUser.setUpdateBy(operator);
-
-                    // 3. 更新数据库
+                    // 2. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 4. 记录日志
+                    // 3. 记录日志
                     log.info("用户ID: {} 解封成功", userId);
                     return existingUser;
                 })
@@ -332,17 +308,13 @@ public class UserService {
     public User deleteUser(Long userId) {
         return Optional.ofNullable(userMapper.selectById(userId))
                 .map(existingUser -> {
-                    // 1. 更新操作员信息
-                    String operator = authService.getCurrentUsername();
-                    existingUser.setUpdateBy(operator);
-
-                    // 2. 更新数据库
+                    // 1. 更新数据库
                     userMapper.updateById(existingUser);
 
-                    // 3. 执行逻辑删除（依赖 @TableLogic）
+                    // 2. 执行逻辑删除（依赖 @TableLogic）
                     userMapper.deleteById(userId);
 
-                    // 4. 记录日志
+                    // 3. 记录日志
                     log.info("用户ID: {} 删除成功 (逻辑删除)", userId);
                     return existingUser;
                 })

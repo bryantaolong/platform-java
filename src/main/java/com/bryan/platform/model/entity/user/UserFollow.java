@@ -1,4 +1,4 @@
-package com.bryan.platform.model.entity;
+package com.bryan.platform.model.entity.user;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;

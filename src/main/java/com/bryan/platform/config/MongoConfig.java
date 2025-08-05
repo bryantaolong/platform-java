@@ -1,6 +1,6 @@
 package com.bryan.platform.config;
 
-import com.bryan.platform.model.entity.Post;
+import com.bryan.platform.model.entity.post.Post;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Configuration;

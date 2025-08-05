@@ -1,6 +1,6 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.service.AuthService;
+import com.bryan.platform.service.user.AuthService;
 import com.bryan.platform.service.DeepSeekService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

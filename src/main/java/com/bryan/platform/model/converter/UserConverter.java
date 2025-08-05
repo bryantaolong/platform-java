@@ -1,6 +1,6 @@
 package com.bryan.platform.model.converter;
 
-import com.bryan.platform.model.entity.User;
+import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.vo.UserExportVO;
 
 /**

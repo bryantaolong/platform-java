@@ -2,10 +2,10 @@ package com.bryan.platform.controller;
 
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.entity.Comment;
-import com.bryan.platform.model.entity.Post;
-import com.bryan.platform.model.entity.User;
-import com.bryan.platform.service.AuthService;
-import com.bryan.platform.service.PostService;
+import com.bryan.platform.model.entity.post.Post;
+import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.service.user.AuthService;
+import com.bryan.platform.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

@@ -1,6 +1,7 @@
-package com.bryan.platform.model.entity;
+package com.bryan.platform.model.entity.user;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.bryan.platform.common.enums.UserStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -41,9 +42,12 @@ public class User implements Serializable, UserDetails {
 
     private String email;
 
-    private Integer status; // 状态（0-正常，1-封禁，2-锁定）
+    /** 使用枚举 */
+    @EnumValue
+    private UserStatusEnum status;
 
-    private String roles; // 角色标识，多个用英文逗号分隔
+    /** 逗号分隔的角色标识 */
+    private String roles;
 
     private LocalDateTime loginTime;
 
@@ -55,20 +59,28 @@ public class User implements Serializable, UserDetails {
 
     private LocalDateTime accountLockTime; // 账户锁定时间
 
+    /** 逻辑删除 */
     @TableLogic
     private Integer deleted;
 
+    /** 乐观锁 */
     @Version
-    private Integer version; // 乐观锁版本号
+    private Integer version;
 
+    /** 创建时间 */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    private String createBy;
-
+    /** 更新时间 */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
+    /** 创建人 */
+    @TableField(fill = FieldFill.INSERT)
+    private String createBy;
+
+    /** 更新人 */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private String updateBy;
 
     /**
@@ -94,10 +106,14 @@ public class User implements Serializable, UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        // status为0且未达到锁定时间或锁定时间已过
-        if (this.status == 0) return true;
-        if (this.status == 2 && this.accountLockTime != null) {
-            return LocalDateTime.now().isAfter(this.accountLockTime.plusHours(1));
+        // 正常状态直接返回 true
+        if (this.status == UserStatusEnum.NORMAL) {
+            return true;
+        }
+        // 锁定状态：判断锁定时间是否已过 1 小时
+        if (this.status == UserStatusEnum.LOCKED && this.accountLockTime != null) {
+            return LocalDateTime.now()
+                    .isAfter(this.accountLockTime.plusHours(1));
         }
         return false;
     }
@@ -109,6 +125,6 @@ public class User implements Serializable, UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.status != 1 && this.deleted == 0;
+        return this.status != UserStatusEnum.BANNED && this.deleted == 0;
     }
 }

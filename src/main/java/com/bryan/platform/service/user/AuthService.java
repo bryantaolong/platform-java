@@ -1,12 +1,13 @@
-package com.bryan.platform.service;
+package com.bryan.platform.service.user;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.bryan.platform.common.enums.UserStatusEnum;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.service.redis.RedisStringService;
 import com.bryan.platform.util.http.HttpUtils;
 import com.bryan.platform.util.jwt.JwtUtils;
 import com.bryan.platform.dao.mapper.UserMapper;
-import com.bryan.platform.model.entity.User;
+import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.request.LoginRequest;
 import com.bryan.platform.model.request.RegisterRequest;
 import lombok.RequiredArgsConstructor;
@@ -101,7 +102,7 @@ public class AuthService implements UserDetailsService {
 
             // 如果输入密码错误次数达到限额-硬编码为 5，则锁定账号
             if(user.getLoginFailCount() >= 5) {
-                user.setStatus(2);
+                user.setStatus(UserStatusEnum.NORMAL);
                 user.setAccountLockTime(LocalDateTime.now());
                 throw new BusinessException("输入密码错误次数过多，账号锁定");
             }

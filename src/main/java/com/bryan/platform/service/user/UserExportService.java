@@ -1,4 +1,4 @@
-package com.bryan.platform.service;
+package com.bryan.platform.service.user;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
@@ -12,7 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.dao.mapper.UserMapper;
-import com.bryan.platform.model.entity.User;
+import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.request.UserExportRequest;
 import com.bryan.platform.model.vo.UserExportVO;
 import com.bryan.platform.model.converter.UserConverter;

@@ -1,5 +1,6 @@
-package com.bryan.platform.model.entity;
+package com.bryan.platform.model.entity.post;
 
+import com.bryan.platform.model.entity.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

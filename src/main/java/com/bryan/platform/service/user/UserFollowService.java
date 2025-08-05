@@ -1,13 +1,12 @@
-package com.bryan.platform.service;
+package com.bryan.platform.service.user;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.dao.mapper.UserFollowMapper;
 import com.bryan.platform.dao.mapper.UserMapper;
-import com.bryan.platform.model.entity.User;
-import com.bryan.platform.model.entity.UserFollow;
+import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.model.entity.user.UserFollow;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

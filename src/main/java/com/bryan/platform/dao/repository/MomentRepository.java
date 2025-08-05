@@ -1,6 +1,6 @@
 package com.bryan.platform.dao.repository;
 
-import com.bryan.platform.model.entity.Moment;
+import com.bryan.platform.model.entity.moment.Moment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Moment 动态数据访问层

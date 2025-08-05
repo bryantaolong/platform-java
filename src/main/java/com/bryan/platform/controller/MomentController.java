@@ -1,11 +1,11 @@
 package com.bryan.platform.controller;
 
 import com.bryan.platform.common.enums.HttpStatus;
-import com.bryan.platform.model.entity.Moment;
-import com.bryan.platform.model.entity.User;
+import com.bryan.platform.model.entity.moment.Moment;
+import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.response.Result;
-import com.bryan.platform.service.MomentService;
-import com.bryan.platform.service.AuthService;
+import com.bryan.platform.service.moment.MomentService;
+import com.bryan.platform.service.user.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

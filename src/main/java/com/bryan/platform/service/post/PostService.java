@@ -1,9 +1,10 @@
-package com.bryan.platform.service;
+package com.bryan.platform.service.post;
 
 import com.bryan.platform.model.entity.Comment;
-import com.bryan.platform.model.entity.Post;
+import com.bryan.platform.model.entity.post.Post;
 import com.bryan.platform.dao.repository.PostRepository;
-import com.bryan.platform.model.entity.User;
+import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.service.user.UserFollowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;

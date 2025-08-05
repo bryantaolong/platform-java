@@ -2,10 +2,10 @@ package com.bryan.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.enums.HttpStatus;
-import com.bryan.platform.service.AuthService;
+import com.bryan.platform.service.user.AuthService;
 import com.bryan.platform.model.response.Result;
-import com.bryan.platform.model.entity.User;
-import com.bryan.platform.service.UserFollowService;
+import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.service.user.UserFollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
