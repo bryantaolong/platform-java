@@ -38,11 +38,6 @@ public class UserConverter {
                 .build();
     }
 
-    private static String convertGender(Integer gender) {
-        if (gender == null) return "";
-        return gender == 1 ? "男" : "女";
-    }
-
     private static String convertStatus(UserStatusEnum status) {
         if (status == null) return "";
         return switch (status) {
