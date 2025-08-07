@@ -1,25 +1,21 @@
 package com.bryan.platform.service.post;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
-import com.bryan.platform.mapper.PostFavoriteMapper;
+import com.bryan.platform.repository.PostFavoriteRepository;
 import com.bryan.platform.repository.PostRepository;
 import com.bryan.platform.model.entity.post.Post;
 import com.bryan.platform.model.entity.post.PostFavorite;
-import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -36,124 +32,67 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostFavoriteService {
 
-    private final PostFavoriteMapper postFavoriteMapper;
+    private final PostFavoriteRepository postFavoriteRepository;
     private final PostRepository postRepository;
     private final UserService userService;
 
     /**
-     * 获取指定用户收藏的博文分页列表
-     *
-     * @param userId 用户 ID
-     * @param pageable 分页参数
-     * @return 用户收藏的博文分页结果
-     * @throws ResourceNotFoundException 如果用户不存在
+     * 1. 先查 PostgreSQL 得到分页 ID 列表
+     * 2. 再查 MongoDB 得到真正的 Post
+     * 3. 手动组装 Page<Post>
      */
     public Page<Post> getFavoritePostsByUserId(Long userId, Pageable pageable) {
-        // 校验用户是否存在
-        User user = userService.getUserById(userId);
-        if (user == null) {
-            throw new ResourceNotFoundException("用户未找到，ID: " + userId);
-        }
+        userService.getUserById(userId);          // 不存在抛异常
+        Page<PostFavorite> favoritePage = postFavoriteRepository.findByUserIdAndDeletedOrderByCreateTimeDesc(userId, 0, pageable);
 
-        // 查询用户收藏的博文ID列表
-        LambdaQueryWrapper<PostFavorite> wrapper = new LambdaQueryWrapper<PostFavorite>()
-                .eq(PostFavorite::getUserId, userId)
-                .select(PostFavorite::getPostId);
-
-        List<String> postIds = postFavoriteMapper.selectList(wrapper)
+        List<String> postIds = favoritePage.getContent()
                 .stream()
                 .map(PostFavorite::getPostId)
                 .collect(Collectors.toList());
 
         if (postIds.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+            return Page.empty(pageable);
         }
 
-        // 根据博文ID查询博文内容并分页返回
-        return postRepository.findByIdIn(postIds, pageable);
+        Page<Post> postPage = postRepository.findByIdIn(postIds, pageable);
+        // 保持总记录数、分页信息一致
+        return new PageImpl<>(postPage.getContent(), pageable, favoritePage.getTotalElements());
     }
 
-    /**
-     * 添加博文收藏记录
-     *
-     * @param userId 用户 ID
-     * @param postId 被收藏的博文 ID
-     * @return 影响的数据库行数
-     * @throws ResourceNotFoundException 如果用户或博文不存在
-     * @throws BusinessException 如果已收藏且未删除
-     */
+    /* 其余方法保持不变 */
     public boolean addFavorite(Long userId, String postId) {
-        // 校验用户是否存在
-        User user = userService.getUserById(userId);
-        if (user == null) {
-            throw new ResourceNotFoundException("收藏用户未找到，ID: " + userId);
+        userService.getUserById(userId);
+        if (!postRepository.existsById(postId)) {
+            throw new ResourceNotFoundException("博文不存在");
         }
-
-        // 校验博文是否存在
-        Optional<Post> postOptional = postRepository.findById(postId);
-        if (postOptional.isEmpty()) {
-            throw new ResourceNotFoundException("被收藏博文未找到，ID: " + postId);
+        if (postFavoriteRepository.findByUserIdAndPostIdAndDeleted(userId, postId, 0).isPresent()) {
+            throw new BusinessException("已收藏");
         }
-
-        // 检查是否已收藏
-        if (isFavorite(userId, postId)) {
-            throw new BusinessException("该博文已被收藏，无需重复收藏");
-        }
-
-        // 插入新的收藏记录
-        PostFavorite favorite = PostFavorite.builder()
+        PostFavorite fav = PostFavorite.builder()
                 .userId(userId)
                 .postId(postId)
+                .deleted(0)
                 .build();
-
-        int rowsAffected = postFavoriteMapper.insert(favorite);
-        if (rowsAffected > 0) {
-            log.info("用户ID: {} 收藏博文ID: {}", userId, postId);
-            return true;
-        }
-        return false;
+        postFavoriteRepository.save(fav);
+        return true;
     }
 
-    /**
-     * 取消用户对博文的收藏
-     *
-     * @param userId 用户 ID
-     * @param postId 被取消收藏的博文 ID
-     * @return 影响的数据库行数
-     * @throws ResourceNotFoundException 如果未收藏该博文
-     */
-    public boolean deleteFavorite(Long userId, String postId) {
-        // 直接删除收藏记录（物理删除）
-        LambdaQueryWrapper<PostFavorite> wrapper = new LambdaQueryWrapper<PostFavorite>()
-                .eq(PostFavorite::getUserId, userId)
-                .eq(PostFavorite::getPostId, postId);
+    public Boolean deleteFavorite(Long userId, String postId) {
+        // 先查出未被逻辑删除的记录
+        PostFavorite favorite = postFavoriteRepository
+                .findByUserIdAndPostIdAndDeleted(userId, postId, 0)
+                .orElseThrow(() -> new BusinessException("您尚未关注该用户"));
 
-        int rowsAffected = postFavoriteMapper.delete(wrapper);
-
-        if (rowsAffected > 0) {
-            log.info("用户ID: {} 取消收藏博文ID: {}", userId, postId);
-            return true;
-        }
-        throw new ResourceNotFoundException("用户ID: " + userId + " 未收藏博文ID: " + postId);
+        // 触发 @SQLDelete 的 UPDATE
+        postFavoriteRepository.delete(favorite);
+        return true;
     }
 
-    /**
-     * 检查用户是否已收藏指定博文
-     *
-     * @param userId 用户 ID
-     * @param postId 博文 ID
-     * @return true 表示已收藏；false 表示未收藏
-     */
     public boolean isFavorite(Long userId, String postId) {
-        LambdaQueryWrapper<PostFavorite> wrapper = new LambdaQueryWrapper<PostFavorite>()
-                .eq(PostFavorite::getUserId, userId)
-                .eq(PostFavorite::getPostId, postId);
-        return postFavoriteMapper.selectCount(wrapper) > 0;
+        return postFavoriteRepository.findByUserIdAndPostIdAndDeleted(userId, postId, 0).isPresent();
     }
 
     public long countUserFavorites(Long userId) {
-        LambdaQueryWrapper<PostFavorite> wrapper = new LambdaQueryWrapper<PostFavorite>()
-                .eq(PostFavorite::getUserId, userId);
-        return postFavoriteMapper.selectCount(wrapper);
+        return postFavoriteRepository.countByUserIdAndDeleted(userId, 0);
     }
 }

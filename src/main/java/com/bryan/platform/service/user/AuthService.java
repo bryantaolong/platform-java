@@ -1,12 +1,11 @@
 package com.bryan.platform.service.user;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bryan.platform.common.enums.UserStatusEnum;
 import com.bryan.platform.common.exception.BusinessException;
+import com.bryan.platform.repository.UserRepository;
 import com.bryan.platform.service.redis.RedisStringService;
 import com.bryan.platform.util.http.HttpUtils;
 import com.bryan.platform.util.jwt.JwtUtils;
-import com.bryan.platform.mapper.UserMapper;
 import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.request.auth.LoginRequest;
 import com.bryan.platform.model.request.auth.RegisterRequest;
@@ -17,10 +16,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,114 +34,94 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthService implements UserDetailsService {
 
-    private final UserMapper userMapper;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisStringService redisStringService;
+
+    /* ---------- 注册 ---------- */
 
     /**
      * 用户注册。
      *
-     * @param registerRequest 注册请求对象
+     * @param req 注册请求对象
      * @return 注册成功的用户实体
      * @throws BusinessException 用户名已存在
      * @throws BusinessException 插入数据库失败
      */
-    public User register(RegisterRequest registerRequest) {
-        // 1. 检查用户名是否已存在
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", registerRequest.getUsername());
-
-        if (userMapper.selectOne(queryWrapper) != null) {
+    @Transactional
+    public User register(RegisterRequest req) {
+        // 检查用户名是否已存在
+        if (userRepository.existsByUsername(req.getUsername())) {
             throw new BusinessException("用户名已存在");
         }
 
-        // 2. 构建用户实体，密码加密
+        // 构建用户实体，密码加密
         User user = User.builder()
-                .username(registerRequest.getUsername())
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .phoneNumber(registerRequest.getPhoneNumber())
-                .email(registerRequest.getEmail())
+                .username(req.getUsername())
+                .password(passwordEncoder.encode(req.getPassword()))
+                .phoneNumber(req.getPhoneNumber())
+                .email(req.getEmail())
                 .roles("ROLE_USER")
                 .passwordResetTime(LocalDateTime.now())
-                .createBy(registerRequest.getUsername())
-                .updateBy(registerRequest.getUsername())
                 .build();
 
-        // 3. 插入用户数据
-        int inserted = userMapper.insert(user);
-        if (inserted == 0) {
-            throw new BusinessException("插入数据库失败");
-        }
-
-        log.info("用户注册成功: id: {}, username: {} ", user.getId(), user.getUsername());
-
-        // 4. 返回新注册用户
+        // 插入用户数据
+        user = userRepository.save(user);
+        log.info("用户注册成功: id={}, username={}", user.getId(), user.getUsername());
         return user;
     }
+
+    /* ---------- 登录 ---------- */
 
     /**
      * 用户登录，验证用户名和密码，生成 JWT Token。
      *
-     * @param loginRequest 登录请求对象
+     * @param req 登录请求对象
      * @return 登录成功后的 JWT Token
      * @throws BusinessException 用户名不存在或密码错误
      */
-    public String login(LoginRequest loginRequest) {
-        // 1. 验证用户凭证
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", loginRequest.getUsername());
-        User user = userMapper.selectOne(queryWrapper);
+    @Transactional
+    public String login(LoginRequest req) {
+        // 验证用户凭证
+        User user = userRepository.findByUsername(req.getUsername())
+                .orElseThrow(() -> new BusinessException("用户名或密码错误"));
 
-        if (user == null) {
-            throw new BusinessException("用户名或密码错误");
-        }
-
-        if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
+        if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
             user.setLoginFailCount(user.getLoginFailCount() + 1);
 
             // 如果输入密码错误次数达到限额-硬编码为 5，则锁定账号
-            if(user.getLoginFailCount() >= 5) {
-                user.setStatus(UserStatusEnum.NORMAL);
+            if (user.getLoginFailCount() >= 5) {
+                user.setStatus(UserStatusEnum.LOCKED);
                 user.setAccountLockTime(LocalDateTime.now());
-                throw new BusinessException("输入密码错误次数过多，账号锁定");
             }
+            userRepository.save(user);
             throw new BusinessException("用户名或密码错误");
         }
 
-        // 2. 检查现有Token（使用JwtUtils验证有效性）
-        String existingToken = redisStringService.get(user.getUsername());
-        if (existingToken != null && JwtUtils.validateToken(existingToken)) {
-            // 刷新Redis中的Token过期时间
-            redisStringService.setExpire(user.getUsername(), 86400000 / 1000);
-            return existingToken;
+        // 已有有效 token 直接续期
+        String oldToken = redisStringService.get(user.getUsername());
+        if (oldToken != null && JwtUtils.validateToken(oldToken)) {
+            redisStringService.setExpire(user.getUsername(), 86400);
+            return oldToken;
         }
 
-        // 3. 更新用户登录信息
+        // 更新登录信息
         user.setLoginTime(LocalDateTime.now());
         user.setLoginIp(HttpUtils.getClientIp());
-        user.setLoginFailCount(0); // 重置密码输入错误次数
-        userMapper.updateById(user);
+        user.setLoginFailCount(0);
+        userRepository.save(user);
 
-        // 4. 生成新的JWT Token
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", user.getUsername());
         claims.put("roles", user.getRoles());
-
         String token = JwtUtils.generateToken(user.getId().toString(), claims);
 
-        // 5. 存储到Redis（设置与JWT相同的过期时间）
-        boolean saved = redisStringService.set(
-                user.getUsername(),
-                token,
-                86400000 / 1000
-        );
-
-        if (!saved) {
-            throw new BusinessException("Token存储失败");
-        }
-
+        // 如果输入密码错误次数达到限额-硬编码为 5，则锁定账号
+        redisStringService.set(user.getUsername(), token, 86400);
         return token;
     }
+
+    /* ---------- 当前用户相关 ---------- */
 
     /**
      * 获取当前登录用户的 ID。
@@ -150,7 +129,6 @@ public class AuthService implements UserDetailsService {
      * @return 当前用户 ID
      */
     public Long getCurrentUserId() {
-        // 1. 从 JWT Token 中提取用户 ID
         return JwtUtils.getCurrentUserId();
     }
 
@@ -160,7 +138,6 @@ public class AuthService implements UserDetailsService {
      * @return 当前用户名
      */
     public String getCurrentUsername() {
-        // 1. 从 JWT Token 中提取用户名
         return JwtUtils.getCurrentUsername();
     }
 
@@ -170,11 +147,8 @@ public class AuthService implements UserDetailsService {
      * @return 当前用户实体
      */
     public User getCurrentUser() {
-        // 1. 获取当前用户 ID
-        Long userId = JwtUtils.getCurrentUserId();
-
-        // 2. 查询数据库返回用户信息
-        return userMapper.selectById(userId);
+        return userRepository.findById(getCurrentUserId())
+                .orElseThrow(() -> new BusinessException("当前用户不存在"));
     }
 
     /**
@@ -183,16 +157,7 @@ public class AuthService implements UserDetailsService {
      * @return 是否为管理员
      */
     public boolean isAdmin() {
-        // 1. 调用 JwtUtils 获取用户权限列表
-        List<String> roles = JwtUtils.getCurrentUserRoles();
-
-        // 2. 遍历用户权限，判断是否包含 ROLE_ADMIN
-        for (String role : roles) {
-            if ("ROLE_ADMIN".equals(role)) {
-                return true;
-            }
-        }
-        return false;
+        return JwtUtils.getCurrentUserRoles().contains("ROLE_ADMIN");
     }
 
     /**
@@ -202,9 +167,8 @@ public class AuthService implements UserDetailsService {
      * @return 是否为管理员
      */
     public boolean isAdmin(UserDetails userDetails) {
-        // 1. 遍历用户权限，判断是否包含 ROLE_ADMIN
         return userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     /**
@@ -214,7 +178,6 @@ public class AuthService implements UserDetailsService {
      * @return 是否有效
      */
     public boolean validateToken(String token) {
-        // 1. 调用工具类验证 Token 合法性
         return JwtUtils.validateToken(token);
     }
 
@@ -243,14 +206,10 @@ public class AuthService implements UserDetailsService {
      * @throws BusinessException Token清理失败
      */
     public boolean logout() {
-        String username = JwtUtils.getCurrentUsername();
-        boolean deleted = redisStringService.delete(username);
-        if (!deleted) {
-            throw new BusinessException("Token清除失败");
-        }
-
-        return true;
+        return redisStringService.delete(getCurrentUsername());
     }
+
+    /* ---------- Spring Security ---------- */
 
     /**
      * 根据用户名加载用户信息，用于 Spring Security 登录认证。
@@ -261,18 +220,7 @@ public class AuthService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // 1. 根据用户名查询用户
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
-
-        User user = userMapper.selectOne(queryWrapper);
-
-        // 2. 用户不存在则抛出异常
-        if (user == null) {
-            throw new UsernameNotFoundException("用户不存在: " + username);
-        }
-
-        // 3. 返回用户详情（已实现 UserDetails）
-        return user;
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("用户不存在: " + username));
     }
 }

@@ -1,6 +1,5 @@
 package com.bryan.platform.common.enums;
 
-import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,7 +12,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum GenderEnum implements IEnum<Integer> {
+public enum GenderEnum {
     FEMALE(0, "女"),
     MALE(1, "男");
 
@@ -27,10 +26,5 @@ public enum GenderEnum implements IEnum<Integer> {
             }
         }
         return null;
-    }
-
-    @Override
-    public Integer getValue() {
-        return code;
     }
 }

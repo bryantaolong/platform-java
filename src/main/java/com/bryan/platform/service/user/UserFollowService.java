@@ -1,14 +1,15 @@
 package com.bryan.platform.service.user;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.exception.BusinessException;
-import com.bryan.platform.mapper.UserFollowMapper;
-import com.bryan.platform.mapper.UserMapper;
 import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.entity.user.UserFollow;
+import com.bryan.platform.repository.UserFollowRepository;
+import com.bryan.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,168 +24,91 @@ import java.util.stream.Collectors;
  * @version v1.1（支持事务 + 业务异常）
  * @since 2025/6/23
  */
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(rollbackFor = Exception.class)
 public class UserFollowService {
 
-    private final UserFollowMapper userFollowMapper;
-    private final UserMapper userMapper;
+    private final UserFollowRepository userFollowRepository;
+    private final UserRepository userRepository;
 
-    /**
-     * 当前用户关注另一个用户
-     *
-     * @param followerId 关注者 ID
-     * @param followingId 被关注者 ID
-     * @return 是否成功
-     * @throws BusinessException 若用户不存在或已关注
-     */
-    @Transactional(rollbackFor = Exception.class)
     public Boolean followUser(Long followerId, Long followingId) {
-        // 1. 校验用户是否存在
-        if (userMapper.selectById(followerId) == null) {
+        // 1. 用户存在性校验
+        if (!userRepository.existsById(followerId)) {
             throw new BusinessException("当前用户不存在");
         }
-        if (userMapper.selectById(followingId) == null) {
+        if (!userRepository.existsById(followingId)) {
             throw new BusinessException("被关注用户不存在");
         }
 
-        // 2. 检查是否已关注
-        if (isFollowing(followerId, followingId)) {
+        // 2. 幂等：已关注则抛错
+        if (userFollowRepository.findByFollowerIdAndFollowingIdAndDeleted(followerId, followingId, 0).isPresent()) {
             throw new BusinessException("您已经关注过该用户");
         }
 
-        // 3. 插入关注关系
-        UserFollow userFollow = UserFollow.builder()
+        UserFollow uf = UserFollow.builder()
                 .followerId(followerId)
                 .followingId(followingId)
+                .deleted(0)
                 .build();
-        return userFollowMapper.insert(userFollow) > 0;
+        userFollowRepository.save(uf);
+        return true;
     }
 
-    /**
-     * 当前用户取消关注另一个用户
-     *
-     * @param followerId 关注者 ID
-     * @param followingId 被关注者 ID
-     * @return 是否成功
-     * @throws BusinessException 若未关注该用户
-     */
-    @Transactional(rollbackFor = Exception.class)
     public Boolean unfollowUser(Long followerId, Long followingId) {
-        // 1. 检查是否已关注
-        if (!isFollowing(followerId, followingId)) {
-            throw new BusinessException("您尚未关注该用户");
-        }
+        // 先查出未被逻辑删除的记录
+        UserFollow follow = userFollowRepository
+                .findByFollowerIdAndFollowingIdAndDeleted(followerId, followingId, 0)
+                .orElseThrow(() -> new BusinessException("您尚未关注该用户"));
 
-        // 2. 删除关注关系
-        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
-                .eq(UserFollow::getFollowerId, followerId)
-                .eq(UserFollow::getFollowingId, followingId);
-        return userFollowMapper.delete(wrapper) > 0;
+        // 触发 @SQLDelete 的 UPDATE
+        userFollowRepository.delete(follow);
+        return true;
     }
 
     /**
-     * 获取当前用户关注的用户列表（分页）
-     *
-     * @param userId 用户 ID
-     * @param pageNum 当前页码（从 1 开始）
-     * @param pageSize 每页大小
-     * @return 分页的用户列表
-     * @throws BusinessException 若用户不存在
+     * 关注列表：先查关系表，再批量查用户
      */
-    public Page<User> getFollowingUsers(Long userId, Integer pageNum, Integer pageSize) {
-        // 1. 校验用户是否存在
-        if (userMapper.selectById(userId) == null) {
+    public Page<User> getFollowingUsers(Long userId, Pageable pageable) {
+        if (!userRepository.existsById(userId)) {
             throw new BusinessException("用户不存在");
         }
-
-        // 2. 查询关注关系
-        Page<UserFollow> followPage = new Page<>(pageNum, pageSize);
-        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
-                .eq(UserFollow::getFollowerId, userId);
-        userFollowMapper.selectPage(followPage, wrapper);
-
-        // 3. 获取被关注的用户ID列表
-        List<Long> followingIds = followPage.getRecords().stream()
+        Page<UserFollow> page = userFollowRepository.findByFollowerIdAndDeletedOrderByCreateTimeDesc(userId, 0, pageable);
+        List<Long> userIds = page.getContent()
+                .stream()
                 .map(UserFollow::getFollowingId)
                 .collect(Collectors.toList());
-
-        // 4. 查询用户信息
-        List<User> users = followingIds.isEmpty() ?
-                List.of() :
-                userMapper.selectBatchIds(followingIds);
-
-        // 5. 返回分页结果
-        Page<User> resultPage = new Page<>(pageNum, pageSize, followPage.getTotal());
-        return resultPage.setRecords(users);
+        List<User> users = userIds.isEmpty() ? List.of() : userRepository.findAllById(userIds);
+        return new PageImpl<>(users, pageable, page.getTotalElements());
     }
 
     /**
-     * 获取关注当前用户的用户列表（分页）
-     *
-     * @param userId 用户 ID
-     * @param pageNum 当前页码（从 1 开始）
-     * @param pageSize 每页大小
-     * @return 分页的粉丝用户列表
-     * @throws BusinessException 若用户不存在
+     * 粉丝列表：同理
      */
-    public Page<User> getFollowerUsers(Long userId, Integer pageNum, Integer pageSize) {
-        // 1. 校验用户是否存在
-        if (userMapper.selectById(userId) == null) {
+    public Page<User> getFollowerUsers(Long userId, Pageable pageable) {
+        if (!userRepository.existsById(userId)) {
             throw new BusinessException("用户不存在");
         }
-
-        // 2. 查询粉丝关系
-        Page<UserFollow> followPage = new Page<>(pageNum, pageSize);
-        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
-                .eq(UserFollow::getFollowingId, userId);
-        userFollowMapper.selectPage(followPage, wrapper);
-
-        // 3. 获取粉丝用户ID列表
-        List<Long> followerIds = followPage.getRecords().stream()
+        Page<UserFollow> page = userFollowRepository.findByFollowingIdAndDeletedOrderByCreateTimeDesc(userId, 0, pageable);
+        List<Long> userIds = page.getContent()
+                .stream()
                 .map(UserFollow::getFollowerId)
                 .collect(Collectors.toList());
-
-        // 4. 查询用户信息
-        List<User> users = followerIds.isEmpty() ?
-                List.of() :
-                userMapper.selectBatchIds(followerIds);
-
-        // 5. 返回分页结果
-        Page<User> resultPage = new Page<>(pageNum, pageSize, followPage.getTotal());
-        return resultPage.setRecords(users);
+        List<User> users = userIds.isEmpty() ? List.of() : userRepository.findAllById(userIds);
+        return new PageImpl<>(users, pageable, page.getTotalElements());
     }
 
-    /**
-     * 判断当前用户是否已关注指定用户
-     *
-     * @param followerId 当前用户 ID
-     * @param followingId 目标用户 ID
-     * @return true 表示已关注，false 表示未关注
-     * @throws BusinessException 若当前用户不存在
-     */
     public Boolean isFollowing(Long followerId, Long followingId) {
-        // 校验当前用户是否存在
-        if (userMapper.selectById(followerId) == null) {
-            throw new BusinessException("未登录无法查看关注状态");
-        }
-
-        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
-                .eq(UserFollow::getFollowerId, followerId)
-                .eq(UserFollow::getFollowingId, followingId);
-        return userFollowMapper.selectCount(wrapper) > 0;
+        return userFollowRepository.findByFollowerIdAndFollowingIdAndDeleted(followerId, followingId, 0).isPresent();
     }
 
-    public Long countFollowing(Long userId) {
-        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
-                .eq(UserFollow::getFollowerId, userId);
-        return userFollowMapper.selectCount(wrapper);
+    public long countFollowing(Long userId) {
+        return userFollowRepository.countByFollowerIdAndDeleted(userId, 0);
     }
 
-    public Long countFollowers(Long userId) {
-        LambdaQueryWrapper<UserFollow> wrapper = new LambdaQueryWrapper<UserFollow>()
-                .eq(UserFollow::getFollowingId, userId);
-        return userFollowMapper.selectCount(wrapper);
+    public long countFollowers(Long userId) {
+        return userFollowRepository.countByFollowingIdAndDeleted(userId, 0);
     }
 }

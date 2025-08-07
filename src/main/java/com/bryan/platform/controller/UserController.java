@@ -1,7 +1,5 @@
 package com.bryan.platform.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bryan.platform.model.request.PageRequest;
 import com.bryan.platform.model.request.user.UserSearchRequest;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.request.user.UserUpdateRequest;
@@ -10,6 +8,8 @@ import com.bryan.platform.model.request.user.ChangePasswordRequest;
 import com.bryan.platform.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -39,9 +39,9 @@ public class UserController {
      */
     @PostMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result<Page<User>> getAllUsers(@RequestBody PageRequest pageRequest) {
+    public Result<Page<User>> getAllUsers(@RequestBody Pageable pageable) {
         // 1. 调用服务层获取所有用户列表
-        return Result.success(userService.getAllUsers(pageRequest));
+        return Result.success(userService.getAllUsers(pageable));
     }
 
     /**
@@ -76,15 +76,15 @@ public class UserController {
      * 用户搜索接口，支持多条件模糊查询和分页。
      *
      * @param searchRequest 搜索条件
-     * @param pageRequest   分页参数
+     * @param pageable   分页参数
      * @return 用户分页结果
      */
     @PostMapping("/search")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<Page<User>> searchUsers(
             @RequestBody UserSearchRequest searchRequest,
-            @ModelAttribute PageRequest pageRequest) {
-        Page<User> page = userService.searchUsers(searchRequest, pageRequest);
+            @ModelAttribute Pageable pageable) {
+        Page<User> page = userService.searchUsers(searchRequest, pageable);
         return Result.success(page);
     }
 

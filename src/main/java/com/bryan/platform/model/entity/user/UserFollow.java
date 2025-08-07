@@ -1,10 +1,14 @@
 package com.bryan.platform.model.entity.user;
 
-import com.baomidou.mybatisplus.annotation.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -16,20 +20,40 @@ import java.time.LocalDateTime;
  * @since 2025/6/23 - 18:47
  * @version 1.0
  */
-@Data
-@TableName("user_follows")
-@KeySequence(value = "user_follows_id_seq")
-@AllArgsConstructor
-@NoArgsConstructor
+@Entity
+@Table(name = "user_follows")
+@Getter
+@Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@SQLRestriction("deleted = 0")                       // 逻辑删除过滤
+@SQLDelete(sql = "UPDATE user_follows SET deleted = 1, update_time = NOW() WHERE id = ? AND version = ?")
+@EntityListeners(AuditingEntityListener.class)        // 自动填充审计字段
 public class UserFollow implements Serializable {
-    @TableId(type = IdType.AUTO)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long followerId; // 关注者ID
 
     private Long followingId; // 被关注者ID
 
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;  // 关注时间
+    /* ---------- 通用字段 ---------- */
+    private Integer deleted = 0;
+
+    @Version
+    private Integer version = 0;
+
+    @CreatedDate
+    private LocalDateTime createTime;
+
+    @LastModifiedDate
+    private LocalDateTime updateTime;
+
+    @CreatedBy
+    private String createBy;
+
+    @LastModifiedBy
+    private String updateBy;
 }

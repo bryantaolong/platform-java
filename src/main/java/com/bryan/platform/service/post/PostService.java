@@ -1,5 +1,6 @@
 package com.bryan.platform.service.post;
 
+import com.bryan.platform.common.enums.PostStatusEnum;
 import com.bryan.platform.model.entity.Comment;
 import com.bryan.platform.model.entity.post.Post;
 import com.bryan.platform.repository.PostRepository;
@@ -48,7 +49,7 @@ public class PostService {
      * @return 博文分页结果
      */
     public Page<Post> getPublishedPosts(Pageable pageable) {
-        return postRepository.findByStatusOrderByCreatedAtDesc(Post.PostStatus.PUBLISHED, pageable);
+        return postRepository.findByStatusOrderByCreatedAtDesc(PostStatusEnum.PUBLISHED, pageable);
     }
 
     /**
@@ -101,19 +102,15 @@ public class PostService {
      */
     public Page<Post> getFollowingPosts(Long userId, Pageable pageable) {
         // 1. 获取关注的用户列表
-        var followingUsers = userFollowService.getFollowingUsers(
-                userId,
-                pageable.getPageNumber() + 1,
-                pageable.getPageSize()
-        );
+        var followingUsers = userFollowService.getFollowingUsers(userId, pageable);
 
         // 2. 若无关注用户，返回空分页
-        if (followingUsers.getRecords().isEmpty()) {
+        if (followingUsers.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
         // 3. 获取被关注用户的 ID 列表
-        List<Long> followingIds = followingUsers.getRecords()
+        List<Long> followingIds = followingUsers
                 .stream()
                 .map(User::getId)
                 .collect(Collectors.toList());
@@ -121,7 +118,7 @@ public class PostService {
         // 4. 查询对应用户的已发布博文
         return postRepository.findByAuthorIdInAndStatusOrderByCreatedAtDesc(
                 followingIds,
-                Post.PostStatus.PUBLISHED,
+                PostStatusEnum.PUBLISHED,
                 pageable
         );
     }
@@ -143,7 +140,7 @@ public class PostService {
         post.setSlug(generateUniqueSlug(post.getTitle(), null));
 
         // 3. 设置默认状态及时间
-        post.setStatus(Post.PostStatus.DRAFT);
+        post.setStatus(PostStatusEnum.DRAFT);
         if (post.getCreatedAt() == null) {
             post.setCreatedAt(LocalDateTime.now());
         }
@@ -289,7 +286,7 @@ public class PostService {
         }
 
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postRepository.findByTagsInAndStatusOrderByCreatedAtDesc(tags, Post.PostStatus.PUBLISHED, pageable)
+        return postRepository.findByTagsInAndStatusOrderByCreatedAtDesc(tags, PostStatusEnum.PUBLISHED, pageable)
                 .getContent();
     }
 

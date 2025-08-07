@@ -1,12 +1,15 @@
 package com.bryan.platform.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.enums.HttpStatus;
 import com.bryan.platform.service.user.AuthService;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.service.user.UserFollowService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -82,13 +85,9 @@ public class UserFollowController {
             @PathVariable Long userId,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        try {
-            // 1. 调用服务获取关注用户分页列表
-            return Result.success(userFollowService.getFollowingUsers(userId, pageNum, pageSize));
-        } catch (RuntimeException e) {
-            // 2. 异常捕获，返回错误信息
-            return Result.error(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+
+        Pageable pageable = PageRequest.of(pageNum - 1, pageSize, Sort.by("createTime").descending());
+        return Result.success(userFollowService.getFollowingUsers(userId, pageable));
     }
 
     /**
@@ -104,13 +103,9 @@ public class UserFollowController {
             @PathVariable Long userId,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        try {
-            // 1. 调用服务获取粉丝用户分页列表
-            return Result.success(userFollowService.getFollowerUsers(userId, pageNum, pageSize));
-        } catch (RuntimeException e) {
-            // 2. 异常捕获，返回错误信息
-            return Result.error(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+
+        Pageable pageable = PageRequest.of(pageNum - 1, pageSize, Sort.by("createTime").descending());
+        return Result.success(userFollowService.getFollowerUsers(userId, pageable));
     }
 
     /**

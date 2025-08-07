@@ -1,11 +1,16 @@
 package com.bryan.platform.model.entity.user;
 
-import com.baomidou.mybatisplus.annotation.*;
 import com.bryan.platform.common.enums.UserStatusEnum;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import jakarta.persistence.Version;
+import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,29 +29,43 @@ import java.util.stream.Collectors;
  * @version 1.0
  * @since 2025/6/19 - 19:45
  */
-@Data
+@Entity
+@Table(name = "\"user\"")
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("\"user\"")
-@KeySequence(value = "user_id_seq") // 指定序列名称
+@SQLRestriction("deleted = 0")                       // 逻辑删除过滤
+@SQLDelete(sql = "UPDATE \"user\" SET deleted = 1, update_time = NOW() WHERE id = ? AND version = ?")
+@EntityListeners(AuditingEntityListener.class)        // 自动填充审计字段
 public class User implements Serializable, UserDetails {
-    @TableId(type = IdType.AUTO)
+
+    /* ---------- 主键 ---------- */
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_user_id_seq")
+    @SequenceGenerator(name = "user_user_id_seq", sequenceName = "user_id_seq", allocationSize = 1)
     private Long id;
 
+    /* ---------- 业务字段 ---------- */
+    @Column(unique = true, nullable = false, length = 64)
     private String username;
 
+    @Column(nullable = false, length = 256)
     private String password;
 
+    @Column(length = 20)
     private String phoneNumber;
 
+    @Column(unique = true, nullable = false, length = 128)
     private String email;
 
-    /** 使用枚举 */
-    @EnumValue
-    private UserStatusEnum status;
+    @Enumerated(EnumType.ORDINAL)   // 与数据库 integer 列对应
+    @Column(name = "status", nullable = false)
+    private UserStatusEnum status = UserStatusEnum.NORMAL;
 
     /** 逗号分隔的角色标识 */
+    @Column(length = 512)
     private String roles;
 
     private LocalDateTime loginTime;
@@ -55,46 +74,38 @@ public class User implements Serializable, UserDetails {
 
     private LocalDateTime passwordResetTime;
 
-    private Integer loginFailCount; // 登录失败次数
 
-    private LocalDateTime accountLockTime; // 账户锁定时间
+    private Integer loginFailCount = 0;
 
-    /** 逻辑删除 */
-    @TableLogic
-    private Integer deleted;
+    private LocalDateTime accountLockTime;
 
-    /** 乐观锁 */
+    /* ---------- 通用字段 ---------- */
+    private Integer deleted = 0;
+
     @Version
-    private Integer version;
+    private Integer version = 0;
 
-    /** 创建时间 */
-    @TableField(fill = FieldFill.INSERT)
+    @CreatedDate
     private LocalDateTime createTime;
 
-    /** 更新时间 */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @LastModifiedDate
     private LocalDateTime updateTime;
 
-    /** 创建人 */
-    @TableField(fill = FieldFill.INSERT)
+    @CreatedBy
     private String createBy;
 
-    /** 更新人 */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @LastModifiedBy
     private String updateBy;
 
-    /**
-     * 获取用户权限（Spring Security要求）。
-     * 根据 roles 字段解析权限。
-     */
+    /* ---------- UserDetails 实现 ---------- */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (this.roles == null || this.roles.isEmpty()) {
-            // 如果没有设置角色，可以返回一个默认角色，或者空列表
+        if (roles == null || roles.isEmpty()) {
             return Collections.emptyList();
         }
-        // 将逗号分隔的角色字符串转换为 SimpleGrantedAuthority 列表
-        return Arrays.stream(this.roles.split(","))
+        return Arrays.stream(roles.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
     }
@@ -106,14 +117,9 @@ public class User implements Serializable, UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        // 正常状态直接返回 true
-        if (this.status == UserStatusEnum.NORMAL) {
-            return true;
-        }
-        // 锁定状态：判断锁定时间是否已过 1 小时
-        if (this.status == UserStatusEnum.LOCKED && this.accountLockTime != null) {
-            return LocalDateTime.now()
-                    .isAfter(this.accountLockTime.plusHours(1));
+        if (status == UserStatusEnum.NORMAL) return true;
+        if (status == UserStatusEnum.LOCKED && accountLockTime != null) {
+            return LocalDateTime.now().isAfter(accountLockTime.plusHours(1));
         }
         return false;
     }
@@ -125,6 +131,6 @@ public class User implements Serializable, UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.status != UserStatusEnum.BANNED && this.deleted == 0;
+        return status != UserStatusEnum.BANNED && deleted == 0;
     }
 }

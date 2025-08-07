@@ -1,19 +1,18 @@
 package com.bryan.platform.service.user;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.enums.UserStatusEnum;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
-import com.bryan.platform.model.request.PageRequest;
 import com.bryan.platform.model.request.user.UserSearchRequest;
 import com.bryan.platform.model.request.user.UserUpdateRequest;
 import com.bryan.platform.model.entity.user.User;
-import com.bryan.platform.mapper.UserMapper;
+import com.bryan.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -31,38 +30,30 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserMapper userMapper;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    /* ---------- 查询 ---------- */
 
     /**
      * 获取所有用户列表（不分页）。
      *
      * @return 包含所有用户的分页对象（Page）。
      */
-    public Page<User> getAllUsers(PageRequest pageRequest) {
-        // 1. 构造查询条件，默认获取全部数据
-        Page<User> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize(), true);
-
-        // 2. 执行查询并返回结果
-        return userMapper.selectPage(page, new QueryWrapper<>());
+    public org.springframework.data.domain.Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     /**
      * 根据用户ID获取用户信息。
      *
-     * @param userId 用户ID
+     * @param id 用户ID
      * @return 用户实体对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      */
-    public User getUserById(Long userId) {
-        // 1. 根据ID查询用户
-        User user = userMapper.selectById(userId);
-
-        if (user == null) {
-            throw new ResourceNotFoundException("用户不存在");
-        }
-
-        return user;
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("用户不存在"));
     }
 
     /**
@@ -72,294 +63,150 @@ public class UserService {
      * @return 用户实体对象
      */
     public User getUserByUsername(String username) {
-        // 1. 根据用户名查询用户
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
-
-        return userMapper.selectOne(queryWrapper);
+        return userRepository.findByUsername(username).orElse(null);
     }
 
     /**
      * 通用用户搜索，支持多条件模糊查询和分页。
      *
-     * @param searchRequest 搜索请求
-     * @param pageRequest 分页请求
+     * @param req 搜索请求
+     * @param pageable 分页请求
      * @return 符合查询条件的分页对象（Page）
      */
-    public Page<User> searchUsers(UserSearchRequest searchRequest, PageRequest pageRequest) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-
-        // 1. 字符串类型字段的模糊查询
-        addLikeCondition(queryWrapper, "username", searchRequest.getUsername());
-        addLikeCondition(queryWrapper, "phone_number", searchRequest.getPhoneNumber());
-        addLikeCondition(queryWrapper, "email", searchRequest.getEmail());
-        addLikeCondition(queryWrapper, "roles", searchRequest.getRoles());
-        addLikeCondition(queryWrapper, "login_ip", searchRequest.getLoginIp());
-        addLikeCondition(queryWrapper, "create_by", searchRequest.getCreateBy());
-        addLikeCondition(queryWrapper, "update_by", searchRequest.getUpdateBy());
-
-        // 2. 精确匹配字段
-        addEqCondition(queryWrapper, "status", searchRequest.getStatus());
-        addEqCondition(queryWrapper, "login_time", searchRequest.getLoginTime());
-        addEqCondition(queryWrapper, "password_reset_time", searchRequest.getPasswordResetTime());
-        addEqCondition(queryWrapper, "login_fail_count", searchRequest.getLoginFailCount());
-        addEqCondition(queryWrapper, "account_lock_time", searchRequest.getAccountLockTime());
-        addEqCondition(queryWrapper, "deleted", searchRequest.getDeleted());
-        addEqCondition(queryWrapper, "version", searchRequest.getVersion());
-
-        // 3. 时间范围查询
-        handleTimeQuery(queryWrapper, "create_time",
-                searchRequest.getCreateTime(),
-                searchRequest.getCreateTimeStart(),
-                searchRequest.getCreateTimeEnd());
-
-        handleTimeQuery(queryWrapper, "update_time",
-                searchRequest.getUpdateTime(),
-                searchRequest.getUpdateTimeStart(),
-                searchRequest.getUpdateTimeEnd());
-
-        return userMapper.selectPage(new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize()), queryWrapper);
+    public org.springframework.data.domain.Page<User> searchUsers(UserSearchRequest req, Pageable pageable) {
+        return userRepository.searchUsers(req, pageable);
     }
 
+    /* ---------- 更新 ---------- */
     /**
      * 更新用户基础信息（用户名和邮箱）。
      *
-     * @param userId            用户ID
-     * @param userUpdateRequest 用户更新请求体
+     * @param id            用户ID
+     * @param req 用户更新请求体
      * @return 更新后的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      * @throws BusinessException         用户名重复时抛出
      */
-    public User updateUser(Long userId, UserUpdateRequest userUpdateRequest) {
-        return Optional.ofNullable(userMapper.selectById(userId))
-                .map(existingUser -> {
-                    // 1. 检查用户名是否重复
-                    if (userUpdateRequest.getUsername() != null &&
-                            !userUpdateRequest.getUsername().equals(existingUser.getUsername())) {
-                        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-                        queryWrapper.eq("username", existingUser.getUsername());
+    @Transactional
+    public User updateUser(Long id, UserUpdateRequest req) {
+        return userRepository.findById(id).map(u -> {
+            // 检查用户名是否重复
+            if (StringUtils.hasText(req.getUsername()) &&
+                    !req.getUsername().equals(u.getUsername()) &&
+                    userRepository.existsByUsername(req.getUsername())) {
+                throw new BusinessException("用户名已存在");
+            }
+            // 更新用户名
+            Optional.ofNullable(req.getUsername()).ifPresent(u::setUsername);
 
-                        User userWithSameUsername = userMapper.selectOne(queryWrapper);
-                        if (userWithSameUsername != null && !userWithSameUsername.getId().equals(userId)) {
-                            throw new BusinessException("用户名已存在");
-                        }
-                        existingUser.setUsername(userUpdateRequest.getUsername());
-                    }
+            // 更新电话号码
+            Optional.ofNullable(req.getPhoneNumber()).ifPresent(u::setPhoneNumber);
 
-                    // 2. 更新电话号码
-                    if (userUpdateRequest.getPhoneNumber() != null) {
-                        existingUser.setPhoneNumber(userUpdateRequest.getPhoneNumber());
-                    }
+            // 更新邮箱信息
+            Optional.ofNullable(req.getEmail()).ifPresent(u::setEmail);
 
-                    // 3. 更新邮箱信息
-                    if (userUpdateRequest.getEmail() != null) {
-                        existingUser.setEmail(userUpdateRequest.getEmail());
-                    }
-
-                    // 4. 执行数据库更新
-                    userMapper.updateById(existingUser);
-
-                    // 5. 记录日志并返回
-                    log.info("用户ID: {} 的信息更新成功", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+            return userRepository.save(u);
+        }).orElseThrow(() -> new ResourceNotFoundException("用户不存在"));
     }
 
     /**
      * 修改用户角色。
      *
-     * @param userId 用户ID
+     * @param id 用户ID
      * @param roles  新角色字符串（多个角色用逗号分隔）
      * @return 更新后的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      */
-    public User changeRole(Long userId, String roles) {
-        return Optional.ofNullable(userMapper.selectById(userId))
-                .map(existingUser -> {
-                    // 1. 设置角色字段
-                    existingUser.setRoles(roles);
-
-                    // 2. 更新数据库
-                    userMapper.updateById(existingUser);
-
-                    // 3. 记录日志
-                    log.info("用户ID: {} 的角色更新成功为: {}", userId, roles);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    @Transactional
+    public User changeRole(Long id, String roles) {
+        int rows = userRepository.updateRoles(id, roles);
+        if (rows == 0) throw new ResourceNotFoundException("用户不存在");
+        return getUserById(id);
     }
 
     /**
      * 修改用户密码。
      *
-     * @param userId      用户ID
-     * @param oldPassword 旧密码（明文）
-     * @param newPassword 新密码（明文）
+     * @param id      用户ID
+     * @param oldPwd 旧密码（明文）
+     * @param newPwd 新密码（明文）
      * @return 更新后的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      * @throws BusinessException         旧密码验证失败时抛出
      */
-    public User changePassword(Long userId, String oldPassword, String newPassword) {
-        return Optional.ofNullable(userMapper.selectById(userId))
-                .map(existingUser -> {
-                    // 1. 验证旧密码是否正确
-                    if (!passwordEncoder.matches(oldPassword, existingUser.getPassword())) {
-                        throw new BusinessException("旧密码不正确");
-                    }
-
-                    // 2. 设置新密码（加密）
-                    existingUser.setPassword(passwordEncoder.encode(newPassword));
-
-                    // 3. 设置重置密码时间
-                    existingUser.setPasswordResetTime(LocalDateTime.now());
-
-                    // 4. 更新数据库
-                    userMapper.updateById(existingUser);
-
-                    // 5. 记录日志
-                    log.info("用户ID: {} 的密码更新成功", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    @Transactional
+    public User changePassword(Long id, String oldPwd, String newPwd) {
+        return userRepository.findById(id).map(u -> {
+            // 验证旧密码是否正确
+            if (!passwordEncoder.matches(oldPwd, u.getPassword())) {
+                throw new BusinessException("旧密码不正确");
+            }
+            // 更新数据库
+            int rows = userRepository.updatePassword(
+                    id, passwordEncoder.encode(newPwd), LocalDateTime.now());
+            if (rows == 0) throw new ResourceNotFoundException("用户不存在");
+            return u;
+        }).orElseThrow(() -> new ResourceNotFoundException("用户不存在"));
     }
 
     /**
      * 强制修改用户密码（管理员）。
      *
-     * @param userId      用户ID
-     * @param newPassword 新密码（明文）
+     * @param id      用户ID
+     * @param newPwd 新密码（明文）
      * @return 更新后的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
-     * @throws BusinessException         旧密码验证失败时抛出
      */
-    public User changePasswordForcefully(Long userId, String newPassword) {
-        return Optional.ofNullable(userMapper.selectById(userId))
-                .map(existingUser -> {
-                    // 1. 设置新密码（加密）
-                    existingUser.setPassword(passwordEncoder.encode(newPassword));
-
-                    // 2. 设置重置密码时间
-                    existingUser.setPasswordResetTime(LocalDateTime.now());
-
-                    // 3. 更新数据库
-                    userMapper.updateById(existingUser);
-
-                    // 4. 记录日志
-                    log.info("用户ID: {} 的密码强制修改成功", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    @Transactional
+    public User changePasswordForcefully(Long id, String newPwd) {
+        int rows = userRepository.updatePassword(
+                id, passwordEncoder.encode(newPwd), LocalDateTime.now());
+        if (rows == 0) throw new ResourceNotFoundException("用户不存在");
+        return getUserById(id);
     }
+
+    /* ---------- 状态 ---------- */
 
     /**
      * 封禁指定用户。
      *
-     * @param userId 用户ID
+     * @param id 用户ID
      * @return 更新后的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      */
-    public User blockUser(Long userId) {
-        return Optional.ofNullable(userMapper.selectById(userId))
-                .map(existingUser -> {
-                    // 1. 设置状态为封禁
-                    existingUser.setStatus(UserStatusEnum.BANNED);
-
-                    // 2. 更新数据库
-                    userMapper.updateById(existingUser);
-
-                    // 3. 记录日志
-                    log.info("用户ID: {} 封禁成功", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    @Transactional
+    public User blockUser(Long id) {
+        int rows = userRepository.updateStatus(id, UserStatusEnum.BANNED);
+        if (rows == 0) throw new ResourceNotFoundException("用户不存在");
+        return getUserById(id);
     }
 
     /**
      * 解封指定用户。
      *
-     * @param userId 用户ID
+     * @param id 用户ID
      * @return 更新后的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      */
-    public User unblockUser(Long userId) {
-        return Optional.ofNullable(userMapper.selectById(userId))
-                .map(existingUser -> {
-                    // 1. 设置状态为正常
-                    existingUser.setStatus(UserStatusEnum.NORMAL);
-
-                    // 2. 更新数据库
-                    userMapper.updateById(existingUser);
-
-                    // 3. 记录日志
-                    log.info("用户ID: {} 解封成功", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    @Transactional
+    public User unblockUser(Long id) {
+        int rows = userRepository.updateStatus(id, UserStatusEnum.NORMAL);
+        if (rows == 0) throw new ResourceNotFoundException("用户不存在");
+        return getUserById(id);
     }
+
+    /* ---------- 逻辑删除 ---------- */
 
     /**
      * 删除用户（逻辑删除）。
      *
-     * @param userId 用户ID
+     * @param id 用户ID
      * @return 被删除的用户对象
-     * @throws ResourceNotFoundException 用户不存在时抛出
      */
-    public User deleteUser(Long userId) {
-        return Optional.ofNullable(userMapper.selectById(userId))
-                .map(existingUser -> {
-                    // 1. 更新数据库
-                    userMapper.updateById(existingUser);
-
-                    // 2. 执行逻辑删除（依赖 @TableLogic）
-                    userMapper.deleteById(userId);
-
-                    // 3. 记录日志
-                    log.info("用户ID: {} 删除成功 (逻辑删除)", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
-    }
-
-    // 辅助方法：添加模糊查询条件
-    private void addLikeCondition(QueryWrapper<User> queryWrapper, String column, String value) {
-        if (StringUtils.hasText(value)) {
-            queryWrapper.like(column, value.trim());
-        }
-    }
-
-    // 辅助方法：添加精确查询条件
-    private <T> void addEqCondition(QueryWrapper<User> queryWrapper, String column, T value) {
-        if (value != null) {
-            queryWrapper.eq(column, value);
-        }
-    }
-
-    /**
-     * 处理时间查询条件
-     *
-     * @param queryWrapper 查询条件包装器
-     * @param column 数据库列名
-     * @param exactTime 精确时间
-     * @param startTime 开始时间
-     * @param endTime 结束时间
-     */
-    private void handleTimeQuery(QueryWrapper<User> queryWrapper, String column,
-                                 LocalDateTime exactTime,
-                                 LocalDateTime startTime,
-                                 LocalDateTime endTime) {
-        if (exactTime != null) {
-            // 精确时间查询
-            queryWrapper.eq(column, exactTime);
-        } else {
-            // 范围时间查询
-            if (startTime != null && endTime != null) {
-                queryWrapper.between(column, startTime, endTime);
-            } else if (startTime != null) {
-                queryWrapper.ge(column, startTime);
-            } else if (endTime != null) {
-                queryWrapper.le(column, endTime);
-            }
-        }
+    @Transactional
+    public User deleteUser(Long id) {
+        User user = getUserById(id);
+        userRepository.delete(user);   // 触发 @SQLDelete
+        return user;
     }
 }

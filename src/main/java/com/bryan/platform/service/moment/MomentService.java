@@ -117,19 +117,15 @@ public class MomentService {
 
     public Page<Moment> findFollowingMoments(Long userId, Pageable pageable) {
         // 1. 获取关注的用户列表
-        var followingUsers = userFollowService.getFollowingUsers(
-                userId,
-                pageable.getPageNumber() + 1,
-                pageable.getPageSize()
-        );
+        var followingUsers = userFollowService.getFollowingUsers(userId, pageable);
 
         // 2. 若无关注用户，返回空分页
-        if (followingUsers.getRecords().isEmpty()) {
+        if (followingUsers.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
         // 3. 获取被关注用户的 ID 列表
-        List<Long> followingIds = followingUsers.getRecords()
+        List<Long> followingIds = followingUsers
                 .stream()
                 .map(User::getId)
                 .collect(Collectors.toList());

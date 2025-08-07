@@ -1,5 +1,6 @@
 package com.bryan.platform.model.entity.post;
 
+import com.bryan.platform.common.enums.PostStatusEnum;
 import com.bryan.platform.model.entity.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -77,18 +78,11 @@ public class Post implements Serializable {
 
     // 博文状态
     @Field("status")
-    private PostStatus status = PostStatus.DRAFT;
+    private PostStatusEnum status = PostStatusEnum.DRAFT;
 
     // 博文统计数据，作为内嵌对象
     @Field("stats") // 可以指定字段名，如果Java属性名和MongoDB字段名不同
     private PostStats stats = new PostStats(); // 初始化统计数据
-
-    /**
-     * 博文状态枚举
-     */
-    public enum PostStatus {
-        DRAFT, PUBLISHED, ARCHIVED
-    }
 
     /**
      * 博文统计数据内嵌类。
