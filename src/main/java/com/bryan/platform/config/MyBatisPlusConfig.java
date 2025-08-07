@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @version 1.0
  */
 @Configuration
-@MapperScan("com.bryan.platform.dao.mapper") // 扫描 Mapper 接口
+@MapperScan("com.bryan.platform.mapper") // 扫描 Mapper 接口
 @EnableTransactionManagement // 开启事务管理支持
 public class MyBatisPlusConfig {
 

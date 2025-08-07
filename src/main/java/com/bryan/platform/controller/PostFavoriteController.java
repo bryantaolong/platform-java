@@ -3,7 +3,7 @@ package com.bryan.platform.controller;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.common.enums.HttpStatus;
 import com.bryan.platform.service.user.AuthService;
-import com.bryan.platform.model.request.PostFavoriteAddRequest;
+import com.bryan.platform.model.request.post.PostFavoriteAddRequest;
 import com.bryan.platform.model.entity.post.Post;
 import com.bryan.platform.service.post.PostFavoriteService;
 import lombok.RequiredArgsConstructor;

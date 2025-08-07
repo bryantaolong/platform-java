@@ -1,4 +1,4 @@
-package com.bryan.platform.model.request;
+package com.bryan.platform.model.request.post;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

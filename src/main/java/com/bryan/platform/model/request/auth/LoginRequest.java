@@ -1,4 +1,4 @@
-package com.bryan.platform.model.request;
+package com.bryan.platform.model.request.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

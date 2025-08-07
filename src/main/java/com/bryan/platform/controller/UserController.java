@@ -2,11 +2,11 @@ package com.bryan.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.model.request.PageRequest;
-import com.bryan.platform.model.request.UserSearchRequest;
+import com.bryan.platform.model.request.user.UserSearchRequest;
 import com.bryan.platform.model.response.Result;
-import com.bryan.platform.model.request.UserUpdateRequest;
+import com.bryan.platform.model.request.user.UserUpdateRequest;
 import com.bryan.platform.model.entity.user.User;
-import com.bryan.platform.model.request.ChangePasswordRequest;
+import com.bryan.platform.model.request.user.ChangePasswordRequest;
 import com.bryan.platform.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.bryan.platform.model.request;
+package com.bryan.platform.model.request.user;
 
 import com.bryan.platform.common.enums.UserStatusEnum;
 import jakarta.validation.constraints.*;

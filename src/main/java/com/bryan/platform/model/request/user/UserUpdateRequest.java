@@ -1,4 +1,4 @@
-package com.bryan.platform.model.request;
+package com.bryan.platform.model.request.user;
 
 import jakarta.validation.constraints.*;
 import lombok.Getter;

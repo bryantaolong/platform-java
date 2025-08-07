@@ -1,4 +1,4 @@
-package com.bryan.platform.dao.mapper;
+package com.bryan.platform.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.bryan.platform.model.entity.user.User;

@@ -1,4 +1,4 @@
-package com.bryan.platform.dao.repository;
+package com.bryan.platform.repository;
 
 import com.bryan.platform.model.entity.post.Post;
 import org.springframework.data.domain.Page;

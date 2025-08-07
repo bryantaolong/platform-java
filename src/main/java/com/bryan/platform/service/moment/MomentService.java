@@ -1,6 +1,6 @@
 package com.bryan.platform.service.moment;
 
-import com.bryan.platform.dao.repository.MomentRepository;
+import com.bryan.platform.repository.MomentRepository;
 import com.bryan.platform.model.entity.moment.Moment;
 import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.service.user.UserFollowService;
