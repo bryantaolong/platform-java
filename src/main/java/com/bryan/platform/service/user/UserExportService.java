@@ -8,14 +8,13 @@ import com.alibaba.excel.write.handler.CellWriteHandler;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.excel.write.metadata.holder.WriteSheetHolder;
 import com.alibaba.excel.write.metadata.holder.WriteTableHolder;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.common.exception.BusinessException;
-import com.bryan.platform.mapper.UserMapper;
 import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.request.user.UserExportRequest;
 import com.bryan.platform.model.vo.UserExportVO;
 import com.bryan.platform.model.converter.UserConverter;
+import com.bryan.platform.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +44,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserExportService {
 
-    private final UserMapper userMapper;
+    private final UserRepository userRepository;
 
     /**
      * 导出所有字段（全量导出）
@@ -65,12 +64,9 @@ public class UserExportService {
                     .registerWriteHandler(new CustomCellWriteHandler()) // 保持样式
                     .build();
 
-            // 3. 构建查询条件
-            QueryWrapper<User> queryWrapper = buildQueryWrapper(exportRequest);
-
-            // 4. 执行导出（复用相同分批逻辑）
+            // 3. 执行导出（复用相同分批逻辑）
             WriteSheet writeSheet = EasyExcel.writerSheet("用户列表").build();
-            executeBatchExport(excelWriter, writeSheet, queryWrapper);
+            executeBatchExport(excelWriter, writeSheet, exportRequest);
 
         } catch (IOException e) {
             throw new BusinessException("全量导出失败，请检查系统资源");
@@ -97,12 +93,9 @@ public class UserExportService {
                     .registerWriteHandler(new CustomCellWriteHandler())
                     .build();
 
-            // 4. 构建查询条件
-            QueryWrapper<User> queryWrapper = buildQueryWrapper(exportRequest);
-
-            // 5. 分批查询写入
+            // 4. 分批查询写入
             WriteSheet writeSheet = EasyExcel.writerSheet("用户列表").build();
-            executeBatchExport(excelWriter, writeSheet, queryWrapper);
+            executeBatchExport(excelWriter, writeSheet, exportRequest);
 
         } catch (IOException e) {
             throw new BusinessException("用户数据导出失败，请稍后重试");
@@ -163,30 +156,17 @@ public class UserExportService {
     // -------------------- 以下为内部辅助方法 --------------------
 
     /**
-     * 构建查询条件
-     */
-    private QueryWrapper<User> buildQueryWrapper(UserExportRequest request) {
-        QueryWrapper<User> wrapper = new QueryWrapper<>();
-        if (request.getStatus() != null) {
-            wrapper.eq("status", request.getStatus());
-        }
-        // 可扩展其他查询条件
-        return wrapper;
-    }
-
-    /**
      * 执行分批导出
      */
     private void executeBatchExport(ExcelWriter excelWriter,
                                     WriteSheet writeSheet,
-                                    QueryWrapper<User> queryWrapper) {
+                                    UserExportRequest exportRequest) throws IOException {
         int pageNum = 1;
         int pageSize = 500; // 推荐更大的批次量（性能优化）
         int totalExported = 0;
 
         while (true) {
-            Page<User> page = new Page<>(pageNum, pageSize);
-            Page<User> result = userMapper.selectPage(page, queryWrapper);
+            Page<User> result = userRepository.findAll(pageNum, pageSize, exportRequest);
             List<UserExportVO> exportData = convertToVO(result.getRecords());
 
             if (CollectionUtils.isEmpty(exportData)) {
