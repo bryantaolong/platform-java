@@ -42,20 +42,26 @@ public class PostFavorite implements Serializable {
     private String postId;
 
     /* ---------- 通用字段 ---------- */
+    @Column(name = "deleted")
     private Integer deleted = 0;
 
     @Version
+    @Column(name = "version")
     private Integer version = 0;
 
     @CreatedDate
+    @Column(name = "create_time")
     private LocalDateTime createTime;
 
     @LastModifiedDate
+    @Column(name = "update_time")
     private LocalDateTime updateTime;
 
     @CreatedBy
+    @Column(name = "create_by")
     private String createBy;
 
     @LastModifiedBy
+    @Column(name = "update_by")
     private String updateBy;
 }

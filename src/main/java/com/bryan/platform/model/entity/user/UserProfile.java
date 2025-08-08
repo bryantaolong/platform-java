@@ -51,23 +51,26 @@ public class UserProfile {
     private String avatar;
 
     /* ---------- 通用字段 ---------- */
-    // 逻辑删除
+    @Column(name = "deleted")
     private Integer deleted = 0;
 
-    // 乐观锁
     @Version
-    private Integer version;
+    @Column(name = "version")
+    private Integer version = 0;
 
-    // === 审计字段 ===
     @CreatedDate
+    @Column(name = "create_time")
     private LocalDateTime createTime;
 
     @LastModifiedDate
+    @Column(name = "update_time")
     private LocalDateTime updateTime;
 
     @CreatedBy
+    @Column(name = "create_by")
     private String createBy;
 
     @LastModifiedBy
+    @Column(name = "update_by")
     private String updateBy;
 }
