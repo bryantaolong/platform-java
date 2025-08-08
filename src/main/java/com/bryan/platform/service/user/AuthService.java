@@ -1,12 +1,11 @@
 package com.bryan.platform.service.user;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bryan.platform.common.enums.UserStatusEnum;
 import com.bryan.platform.common.exception.BusinessException;
+import com.bryan.platform.repository.UserRepository;
 import com.bryan.platform.service.redis.RedisStringService;
 import com.bryan.platform.util.http.HttpUtils;
 import com.bryan.platform.util.jwt.JwtUtils;
-import com.bryan.platform.mapper.UserMapper;
 import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.request.auth.LoginRequest;
 import com.bryan.platform.model.request.auth.RegisterRequest;
@@ -35,7 +34,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthService implements UserDetailsService {
 
-    private final UserMapper userMapper;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisStringService redisStringService;
 
@@ -49,10 +48,7 @@ public class AuthService implements UserDetailsService {
      */
     public User register(RegisterRequest registerRequest) {
         // 1. 检查用户名是否已存在
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", registerRequest.getUsername());
-
-        if (userMapper.selectOne(queryWrapper) != null) {
+        if(userRepository.findByUsername(registerRequest.getUsername()) != null) {
             throw new BusinessException("用户名已存在");
         }
 
@@ -69,8 +65,8 @@ public class AuthService implements UserDetailsService {
                 .build();
 
         // 3. 插入用户数据
-        int inserted = userMapper.insert(user);
-        if (inserted == 0) {
+        User saved = userRepository.save(user);
+        if (saved == null) {
             throw new BusinessException("插入数据库失败");
         }
 
@@ -89,9 +85,7 @@ public class AuthService implements UserDetailsService {
      */
     public String login(LoginRequest loginRequest) {
         // 1. 验证用户凭证
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", loginRequest.getUsername());
-        User user = userMapper.selectOne(queryWrapper);
+        User user = userRepository.findByUsername(loginRequest.getUsername());
 
         if (user == null) {
             throw new BusinessException("用户名或密码错误");
@@ -121,7 +115,7 @@ public class AuthService implements UserDetailsService {
         user.setLoginTime(LocalDateTime.now());
         user.setLoginIp(HttpUtils.getClientIp());
         user.setLoginFailCount(0); // 重置密码输入错误次数
-        userMapper.updateById(user);
+        userRepository.save(user);
 
         // 4. 生成新的JWT Token
         Map<String, Object> claims = new HashMap<>();
@@ -174,7 +168,7 @@ public class AuthService implements UserDetailsService {
         Long userId = JwtUtils.getCurrentUserId();
 
         // 2. 查询数据库返回用户信息
-        return userMapper.selectById(userId);
+        return userRepository.findById(userId);
     }
 
     /**
@@ -262,10 +256,7 @@ public class AuthService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // 1. 根据用户名查询用户
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
-
-        User user = userMapper.selectOne(queryWrapper);
+        User user = userRepository.findByUsername(username);
 
         // 2. 用户不存在则抛出异常
         if (user == null) {

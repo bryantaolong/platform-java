@@ -1,9 +1,9 @@
 package com.bryan.platform.service.post;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bryan.platform.common.exception.BusinessException;
 import com.bryan.platform.common.exception.ResourceNotFoundException;
 import com.bryan.platform.mapper.PostFavoriteMapper;
+import com.bryan.platform.repository.PostFavoriteRepository;
 import com.bryan.platform.repository.PostRepository;
 import com.bryan.platform.model.entity.post.Post;
 import com.bryan.platform.model.entity.post.PostFavorite;
@@ -38,6 +38,7 @@ public class PostFavoriteService {
 
     private final PostFavoriteMapper postFavoriteMapper;
     private final PostRepository postRepository;
+    private final PostFavoriteRepository postFavoriteRepository;
     private final UserService userService;
 
     /**
@@ -56,11 +57,7 @@ public class PostFavoriteService {
         }
 
         // 查询用户收藏的博文ID列表
-        LambdaQueryWrapper<PostFavorite> wrapper = new LambdaQueryWrapper<PostFavorite>()
-                .eq(PostFavorite::getUserId, userId)
-                .select(PostFavorite::getPostId);
-
-        List<String> postIds = postFavoriteMapper.selectList(wrapper)
+        List<String> postIds = postFavoriteRepository.findAllByUserIdAndPostId(userId)
                 .stream()
                 .map(PostFavorite::getPostId)
                 .collect(Collectors.toList());
@@ -106,8 +103,8 @@ public class PostFavoriteService {
                 .postId(postId)
                 .build();
 
-        int rowsAffected = postFavoriteMapper.insert(favorite);
-        if (rowsAffected > 0) {
+        PostFavorite saved = postFavoriteRepository.save(favorite);
+        if (saved != null) {
             log.info("用户ID: {} 收藏博文ID: {}", userId, postId);
             return true;
         }
@@ -123,12 +120,7 @@ public class PostFavoriteService {
      * @throws ResourceNotFoundException 如果未收藏该博文
      */
     public boolean deleteFavorite(Long userId, String postId) {
-        // 直接删除收藏记录（物理删除）
-        LambdaQueryWrapper<PostFavorite> wrapper = new LambdaQueryWrapper<PostFavorite>()
-                .eq(PostFavorite::getUserId, userId)
-                .eq(PostFavorite::getPostId, postId);
-
-        int rowsAffected = postFavoriteMapper.delete(wrapper);
+        int rowsAffected = postFavoriteRepository.deleteByUserIdAndPostId(userId, postId);
 
         if (rowsAffected > 0) {
             log.info("用户ID: {} 取消收藏博文ID: {}", userId, postId);
@@ -145,15 +137,10 @@ public class PostFavoriteService {
      * @return true 表示已收藏；false 表示未收藏
      */
     public boolean isFavorite(Long userId, String postId) {
-        LambdaQueryWrapper<PostFavorite> wrapper = new LambdaQueryWrapper<PostFavorite>()
-                .eq(PostFavorite::getUserId, userId)
-                .eq(PostFavorite::getPostId, postId);
-        return postFavoriteMapper.selectCount(wrapper) > 0;
+        return postFavoriteRepository.countByUserIdAndPostId(userId, postId) > 0;
     }
 
     public long countUserFavorites(Long userId) {
-        LambdaQueryWrapper<PostFavorite> wrapper = new LambdaQueryWrapper<PostFavorite>()
-                .eq(PostFavorite::getUserId, userId);
-        return postFavoriteMapper.selectCount(wrapper);
+        return postFavoriteRepository.count(userId);
     }
 }
