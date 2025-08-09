@@ -17,6 +17,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserRoleService {
+
     private final UserRoleRepository userRoleRepository;
 
     public List<RoleOptionDTO> listAll() {

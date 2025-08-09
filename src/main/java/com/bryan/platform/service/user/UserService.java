@@ -2,7 +2,7 @@ package com.bryan.platform.service.user;
 
 import com.bryan.platform.domain.entity.user.UserRole;
 import com.bryan.platform.domain.enums.UserStatusEnum;
-import com.bryan.platform.domain.request.ChangeRoleRequest;
+import com.bryan.platform.domain.request.user.ChangeRoleRequest;
 import com.bryan.platform.exception.BusinessException;
 import com.bryan.platform.exception.ResourceNotFoundException;
 import com.bryan.platform.domain.request.user.UserSearchRequest;

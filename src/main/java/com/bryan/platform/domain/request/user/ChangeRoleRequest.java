@@ -1,4 +1,4 @@
-package com.bryan.platform.domain.request;
+package com.bryan.platform.domain.request.user;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

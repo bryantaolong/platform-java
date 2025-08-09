@@ -1,6 +1,6 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.domain.request.ChangeRoleRequest;
+import com.bryan.platform.domain.request.user.ChangeRoleRequest;
 import com.bryan.platform.domain.request.user.UserSearchRequest;
 import com.bryan.platform.domain.response.Result;
 import com.bryan.platform.domain.request.user.UserUpdateRequest;
