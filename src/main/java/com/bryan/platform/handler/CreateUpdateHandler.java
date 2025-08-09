@@ -1,7 +1,7 @@
 package com.bryan.platform.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.domain.entity.user.User;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

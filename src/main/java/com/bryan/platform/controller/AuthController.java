@@ -1,9 +1,9 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.model.response.Result;
-import com.bryan.platform.model.request.auth.LoginRequest;
-import com.bryan.platform.model.entity.user.User;
-import com.bryan.platform.model.request.auth.RegisterRequest;
+import com.bryan.platform.domain.response.Result;
+import com.bryan.platform.domain.request.auth.LoginRequest;
+import com.bryan.platform.domain.entity.user.User;
+import com.bryan.platform.domain.request.auth.RegisterRequest;
 import com.bryan.platform.service.user.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

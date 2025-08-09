@@ -1,7 +1,7 @@
 package com.bryan.platform.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.bryan.platform.model.entity.user.UserFollow;
+import com.bryan.platform.domain.entity.user.UserFollow;
 import org.apache.ibatis.annotations.*;
 
 /**

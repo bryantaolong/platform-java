@@ -2,7 +2,7 @@ package com.bryan.platform.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bryan.platform.mapper.PostFavoriteMapper;
-import com.bryan.platform.model.entity.post.PostFavorite;
+import com.bryan.platform.domain.entity.post.PostFavorite;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

@@ -1,7 +1,7 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.model.request.user.UserExportRequest;
-import com.bryan.platform.model.vo.UserExportVO;
+import com.bryan.platform.domain.request.user.UserExportRequest;
+import com.bryan.platform.domain.vo.UserExportVO;
 import com.bryan.platform.service.user.UserExportService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

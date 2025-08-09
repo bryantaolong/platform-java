@@ -1,9 +1,9 @@
 package com.bryan.platform.service.post;
 
-import com.bryan.platform.model.entity.Comment;
-import com.bryan.platform.model.entity.post.Post;
+import com.bryan.platform.domain.entity.Comment;
+import com.bryan.platform.domain.entity.post.Post;
 import com.bryan.platform.repository.PostRepository;
-import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.domain.entity.user.User;
 import com.bryan.platform.service.user.UserFollowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
