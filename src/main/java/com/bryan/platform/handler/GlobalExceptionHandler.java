@@ -1,10 +1,10 @@
 package com.bryan.platform.handler;
 
-import com.bryan.platform.common.exception.BusinessException;
-import com.bryan.platform.common.exception.ResourceNotFoundException;
-import com.bryan.platform.common.exception.UnauthorizedException;
+import com.bryan.platform.exception.BusinessException;
+import com.bryan.platform.exception.ResourceNotFoundException;
+import com.bryan.platform.exception.UnauthorizedException;
 import com.bryan.platform.model.response.Result;
-import com.bryan.platform.common.enums.HttpStatus;
+import com.bryan.platform.model.enums.HttpStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.FieldError;
@@ -18,8 +18,6 @@ import java.util.stream.Collectors;
  * 全局异常处理器（替代 WebMvcConfig 中的异常处理逻辑）
  *
  * @author Bryan Long
- * @version  v1.0
- * @since  2025/6/19 - 20:02
  */
 @Slf4j
 @RestControllerAdvice

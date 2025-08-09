@@ -20,8 +20,6 @@ import java.util.stream.Collectors;
  * 动态服务层 - 处理动态相关的业务逻辑
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/7/12
  */
 @Service
 @RequiredArgsConstructor

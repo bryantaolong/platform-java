@@ -14,8 +14,6 @@ import java.util.Map;
  * UserExportController
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/7/26
  */
 @RestController
 @RequestMapping("/api/user/export")

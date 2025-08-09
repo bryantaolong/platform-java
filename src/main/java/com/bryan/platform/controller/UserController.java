@@ -19,9 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * 包括用户信息查询、更新、角色变更、密码修改、逻辑删除及用户数据导出等功能。
  * 依赖 Spring Security 进行权限控制，支持管理员和普通用户不同权限的接口访问。
  *
- * @author Bryan
- * @version 1.0
- * @since 2025/6/19
+ * @author Bryan Long
  */
 @RestController
 @RequestMapping("/api/user")

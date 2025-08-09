@@ -12,8 +12,6 @@ import java.util.Optional;
  * PostFavoriteRepository
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/8/7
  */
 @Repository
 public interface PostFavoriteRepository extends JpaRepository<PostFavorite, Long> {

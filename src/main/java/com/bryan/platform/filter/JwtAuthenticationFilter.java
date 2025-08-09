@@ -10,7 +10,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import com.bryan.platform.common.enums.HttpStatus;
+import com.bryan.platform.model.enums.HttpStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,8 +29,6 @@ import java.util.stream.Collectors;
  * JWT 认证过滤器，用于解析Token并设置Spring Security上下文。
  *
  * @author Bryan Long
- * @since 2025/6/19 - 20:02
- * @version 1.0
  */
 @Component
 @RequiredArgsConstructor

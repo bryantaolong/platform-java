@@ -18,8 +18,6 @@ import java.time.LocalDateTime;
  * 记录用户对特定博文的收藏行为。存储在 PostgreSQL 数据库。
  *
  * @author Bryan Long
- * @since 2025/6/22 - 16:14
- * @version 2.0
  */
 @Entity
 @Table(name = "post_favorite")

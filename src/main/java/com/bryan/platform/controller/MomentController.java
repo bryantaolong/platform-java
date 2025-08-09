@@ -1,6 +1,6 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.common.enums.HttpStatus;
+import com.bryan.platform.model.enums.HttpStatus;
 import com.bryan.platform.model.entity.moment.Moment;
 import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.response.Result;
@@ -21,8 +21,6 @@ import java.util.List;
  * 动态控制器 - 提供动态相关的RESTful接口，集成权限控制和数据校验
  *
  * @author Bryan Long
- * @version 2.0
- * @since 2025/7/15
  */
 @RestController
 @RequestMapping("/api/moments")

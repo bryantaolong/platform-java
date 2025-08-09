@@ -1,4 +1,4 @@
-package com.bryan.platform.common.enums;
+package com.bryan.platform.model.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,8 +7,6 @@ import lombok.Getter;
  * GenderEnum 性别枚举
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/8/5
  */
 @Getter
 @AllArgsConstructor

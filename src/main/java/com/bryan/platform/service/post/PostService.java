@@ -1,6 +1,6 @@
 package com.bryan.platform.service.post;
 
-import com.bryan.platform.common.enums.PostStatusEnum;
+import com.bryan.platform.model.enums.PostStatusEnum;
 import com.bryan.platform.model.entity.Comment;
 import com.bryan.platform.model.entity.post.Post;
 import com.bryan.platform.repository.PostRepository;
@@ -21,8 +21,6 @@ import java.util.stream.Collectors;
  * 提供博文的增删改查、评论、推荐、浏览统计等功能
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/20
  */
 @Service
 @RequiredArgsConstructor

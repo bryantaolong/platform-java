@@ -8,8 +8,6 @@ import lombok.Getter;
  * 登录请求对象
  *
  * @author Bryan Long
- * @since 2025/6/19 - 19:59
- * @version 1.0
  */
 @Getter
 public class LoginRequest {

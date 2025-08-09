@@ -1,6 +1,6 @@
 package com.bryan.platform.repository;
 
-import com.bryan.platform.common.enums.UserStatusEnum;
+import com.bryan.platform.model.enums.UserStatusEnum;
 import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.request.user.UserExportRequest;
 import com.bryan.platform.model.request.user.UserSearchRequest;
@@ -26,8 +26,6 @@ import java.util.Optional;
  * UserRepository
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/8/7
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>,

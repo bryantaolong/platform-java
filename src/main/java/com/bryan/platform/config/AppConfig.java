@@ -9,8 +9,6 @@ import org.springframework.web.client.RestTemplate;
  * AppConfig Application configuration class
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/25-11:20
  */
 @Configuration
 public class AppConfig {

@@ -1,6 +1,6 @@
 package com.bryan.platform.model.entity.user;
 
-import com.bryan.platform.common.enums.GenderEnum;
+import com.bryan.platform.model.enums.GenderEnum;
 import jakarta.persistence.*;
 import jakarta.persistence.Version;
 import lombok.*;

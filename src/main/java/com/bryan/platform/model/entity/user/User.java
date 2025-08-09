@@ -1,6 +1,6 @@
 package com.bryan.platform.model.entity.user;
 
-import com.bryan.platform.common.enums.UserStatusEnum;
+import com.bryan.platform.model.enums.UserStatusEnum;
 import jakarta.persistence.*;
 import jakarta.persistence.Version;
 import lombok.*;
@@ -26,8 +26,6 @@ import java.util.stream.Collectors;
  * User 用户实体类，实现 UserDetails 接口用于 Spring Security。
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/19 - 19:45
  */
 @Entity
 @Table(name = "\"user\"")

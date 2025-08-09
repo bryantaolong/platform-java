@@ -1,6 +1,6 @@
 package com.bryan.platform.repository;
 
-import com.bryan.platform.common.enums.PostStatusEnum;
+import com.bryan.platform.model.enums.PostStatusEnum;
 import com.bryan.platform.model.entity.post.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,6 +1,6 @@
 package com.bryan.platform.model.entity.post;
 
-import com.bryan.platform.common.enums.PostStatusEnum;
+import com.bryan.platform.model.enums.PostStatusEnum;
 import com.bryan.platform.model.entity.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,8 +23,6 @@ import java.util.List;
  * 博文实体，作为 MongoDB 的顶层文档。
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/19
  */
 @Data
 @Document(collection = "posts") // 映射到 MongoDB 的 'posts' 集合

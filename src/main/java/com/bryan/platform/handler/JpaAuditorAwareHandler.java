@@ -13,11 +13,9 @@ import java.util.Optional;
  * JPA 等价的“创建人/更新人”自动填充器
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/8/6
  */
 @Component
-public class JpaAuditorAware implements AuditorAware<String> {
+public class JpaAuditorAwareHandler implements AuditorAware<String> {
 
     public static final String SYSTEM_USER = "system";
 

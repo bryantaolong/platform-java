@@ -10,8 +10,6 @@ import lombok.Getter;
  * 用户注册请求对象
  *
  * @author Bryan Long
- * @since 2025/6/19 - 19:54
- * @version 1.0
  */
 @Getter
 public class RegisterRequest {

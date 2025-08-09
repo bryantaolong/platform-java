@@ -12,8 +12,6 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * RedisConfig Redis 配置类
  *
  * @author Bryan Long
- * @since 2025/6/19 - 20:00
- * @version 1.0
  */
 @Configuration
 @EnableCaching

@@ -14,8 +14,6 @@ import java.util.List;
  * Moment 动态数据访问层
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/7/11
  */
 @Repository
 public interface MomentRepository extends MongoRepository<Moment, String> {

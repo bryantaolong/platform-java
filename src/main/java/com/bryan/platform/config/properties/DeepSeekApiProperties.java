@@ -9,8 +9,6 @@ import org.springframework.stereotype.Component;
  * DeepSeekApiProperties
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/25 - 11:24
  */
 @Component
 @ConfigurationProperties(prefix = "deepseek.api")

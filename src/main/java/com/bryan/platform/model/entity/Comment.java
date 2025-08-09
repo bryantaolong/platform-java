@@ -16,8 +16,6 @@ import java.time.LocalDateTime;
  * 评论实体，作为 MongoDB 博文的内嵌文档。
  *
  * @author Bryan Long
- * @since 2025/6/20
- * @version 1.0
  */
 @Data
 @Builder

@@ -15,8 +15,6 @@ import java.util.Optional;
  * UserProfileService
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/8/7
  */
 @Service
 @Transactional

@@ -1,8 +1,8 @@
 package com.bryan.platform.service.user;
 
-import com.bryan.platform.common.enums.UserStatusEnum;
-import com.bryan.platform.common.exception.BusinessException;
-import com.bryan.platform.common.exception.ResourceNotFoundException;
+import com.bryan.platform.model.enums.UserStatusEnum;
+import com.bryan.platform.exception.BusinessException;
+import com.bryan.platform.exception.ResourceNotFoundException;
 import com.bryan.platform.model.request.user.UserSearchRequest;
 import com.bryan.platform.model.request.user.UserUpdateRequest;
 import com.bryan.platform.model.entity.user.User;

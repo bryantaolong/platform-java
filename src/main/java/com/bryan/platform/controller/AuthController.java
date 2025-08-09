@@ -17,9 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * 控制器：认证与授权接口
  * 提供用户注册、登录、当前用户信息获取及 Token 校验等接口。
  *
- * @author Bryan
- * @version 1.0
- * @since 2025/6/28
+ * @author Bryan Long
  */
 @RestController
 @RequestMapping("/api/auth")

@@ -17,8 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * Spring Security 配置类
  *
  * @author Bryan Long
- * @since 2025/6/19 - 19:51
- * @version 1.0
  */
 @Configuration
 @EnableWebSecurity
