@@ -8,8 +8,6 @@ import org.apache.ibatis.annotations.Mapper;
  * UserProfileMapper
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/8/1
  */
 @Mapper
 public interface UserProfileMapper extends BaseMapper<UserProfile> {

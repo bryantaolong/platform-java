@@ -13,8 +13,6 @@ import java.time.LocalDateTime;
  * 用户关注关系实体
  *
  * @author Bryan Long
- * @since 2025/6/23 - 18:47
- * @version 1.0
  */
 @Data
 @TableName("user_follows")

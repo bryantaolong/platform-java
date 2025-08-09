@@ -1,7 +1,7 @@
 package com.bryan.platform.model.entity.user;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.bryan.platform.common.enums.GenderEnum;
+import com.bryan.platform.model.enums.GenderEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

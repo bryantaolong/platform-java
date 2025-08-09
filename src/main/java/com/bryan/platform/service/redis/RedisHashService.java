@@ -16,8 +16,6 @@ import java.util.Set;
  * 使其与 RedisConfig 中配置的序列化器类型更加匹配，提升类型安全性。
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/20
  */
 @Slf4j
 @Service

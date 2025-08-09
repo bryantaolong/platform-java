@@ -22,9 +22,7 @@ import java.util.List;
  * 控制器：博文管理接口
  * 提供博文的增删改查、评论管理、全文搜索与推荐功能，集成 MongoDB 存储与 Spring Security 安全控制。
  *
- * @author Bryan
- * @version v1.2
- * @since 2025/6/20
+ * @author Bryan Long
  */
 @RestController
 @RequestMapping("/api/posts")

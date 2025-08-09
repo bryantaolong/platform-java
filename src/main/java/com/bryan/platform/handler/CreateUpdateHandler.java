@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
  * CreateUpdateHandler MyBatis-Plus 自动填充处理器
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/8/5
  */
 @Component
 public class CreateUpdateHandler implements MetaObjectHandler {

@@ -16,9 +16,7 @@ import java.util.Map;
  * 控制器：AI 聊天接口
  * 提供与 AI 聊天机器人进行对话的接口，接受用户输入并返回 AI 的回复。
  *
- * @author Bryan
- * @version 1.0
- * @since 2025/6/25
+ * @author Bryan Long
  */
 @Slf4j
 @RestController

@@ -6,8 +6,6 @@ import lombok.Data;
  * DeepSeek 消息实体
  *
  * @author Bryan Long
- * @since 2025/6/25 - 11:13
- * @version 1.0
  */
 @Data
 public class DeepSeekMessage {

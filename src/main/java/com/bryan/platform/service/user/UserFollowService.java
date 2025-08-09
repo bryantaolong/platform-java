@@ -1,7 +1,7 @@
 package com.bryan.platform.service.user;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bryan.platform.common.exception.BusinessException;
+import com.bryan.platform.exception.BusinessException;
 import com.bryan.platform.model.entity.user.User;
 import com.bryan.platform.model.entity.user.UserFollow;
 import com.bryan.platform.repository.UserFollowRepository;
@@ -19,8 +19,6 @@ import java.util.stream.Collectors;
  * 提供用户关注/取关、查询关注列表和粉丝列表、是否关注判断等功能。
  *
  * @author Bryan Long
- * @version v1.1（支持事务 + 业务异常）
- * @since 2025/6/23
  */
 @Slf4j
 @Service

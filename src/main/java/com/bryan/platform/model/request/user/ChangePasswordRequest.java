@@ -9,8 +9,6 @@ import lombok.Getter;
  * 用于封装用户修改密码时需要提供的旧密码和新密码信息
  *
  * @author Bryan Long
- * @since 2025/6/21-19:06
- * @version 1.0
  */
 @Getter
 public class ChangePasswordRequest {

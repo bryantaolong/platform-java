@@ -7,8 +7,6 @@ import lombok.Getter;
  * 用户更新请求对象
  *
  * @author Bryan Long
- * @since 2025/6/21 - 19:37
- * @version 1.0
  */
 @Getter
 public class UserUpdateRequest {
