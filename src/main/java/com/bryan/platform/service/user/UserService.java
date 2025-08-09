@@ -1,6 +1,8 @@
 package com.bryan.platform.service.user;
 
+import com.bryan.platform.domain.entity.user.UserRole;
 import com.bryan.platform.domain.enums.UserStatusEnum;
+import com.bryan.platform.domain.request.ChangeRoleRequest;
 import com.bryan.platform.exception.BusinessException;
 import com.bryan.platform.exception.ResourceNotFoundException;
 import com.bryan.platform.domain.request.user.UserSearchRequest;
@@ -9,6 +11,7 @@ import com.bryan.platform.domain.entity.user.User;
 import com.bryan.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 用户服务实现类，处理用户注册、登录、信息管理、导出等业务逻辑。
@@ -32,6 +36,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserRoleService userRoleService;
 
     /* ---------- 查询 ---------- */
 
@@ -73,7 +78,7 @@ public class UserService {
      * @param pageable 分页请求
      * @return 符合查询条件的分页对象（Page）
      */
-    public org.springframework.data.domain.Page<User> searchUsers(UserSearchRequest req, Pageable pageable) {
+    public Page<User> searchUsers(UserSearchRequest req, Pageable pageable) {
         return userRepository.searchUsers(req, pageable);
     }
 
@@ -112,16 +117,31 @@ public class UserService {
     /**
      * 修改用户角色。
      *
-     * @param id 用户ID
-     * @param roles  新角色字符串（多个角色用逗号分隔）
+     * @param userId 用户ID
+     * @param req  新角色字符串（多个角色用逗号分隔）
      * @return 更新后的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      */
     @Transactional
-    public User changeRole(Long id, String roles) {
-        int rows = userRepository.updateRoles(id, roles);
-        if (rows == 0) throw new ResourceNotFoundException("用户不存在");
-        return getUserById(id);
+    public User changeRoleByIds(Long userId, ChangeRoleRequest req) {
+        List<Long> ids = req.getRoleIds();
+        List<UserRole> roles = userRoleService.findByIds(ids);
+
+        // 校验 id 是否全部存在
+        if (roles.size() != ids.size()) {
+            Set<Long> exist = roles.stream().map(UserRole::getId).collect(Collectors.toSet());
+            ids.removeAll(exist);
+            throw new IllegalArgumentException("角色不存在：" + ids);
+        }
+
+        String roleNames = roles.stream()
+                .map(UserRole::getRoleName)
+                .collect(Collectors.joining(","));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("用户不存在"));
+        user.setRoles(roleNames);
+        return userRepository.save(user);
     }
 
     /**

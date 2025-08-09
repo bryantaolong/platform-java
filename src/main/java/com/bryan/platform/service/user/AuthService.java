@@ -1,8 +1,10 @@
 package com.bryan.platform.service.user;
 
+import com.bryan.platform.domain.entity.user.UserRole;
 import com.bryan.platform.domain.enums.UserStatusEnum;
 import com.bryan.platform.exception.BusinessException;
 import com.bryan.platform.repository.UserRepository;
+import com.bryan.platform.repository.UserRoleRepository;
 import com.bryan.platform.service.redis.RedisStringService;
 import com.bryan.platform.util.http.HttpUtils;
 import com.bryan.platform.util.jwt.JwtUtils;
@@ -33,6 +35,7 @@ import java.util.Map;
 public class AuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisStringService redisStringService;
 
@@ -53,13 +56,17 @@ public class AuthService implements UserDetailsService {
             throw new BusinessException("用户名已存在");
         }
 
+        // 查出默认角色
+        UserRole defaultRole = userRoleRepository.findByIsDefaultTrue()
+                .orElseThrow(() -> new BusinessException("系统未配置默认角色"));
+
         // 构建用户实体，密码加密
         User user = User.builder()
                 .username(req.getUsername())
                 .password(passwordEncoder.encode(req.getPassword()))
                 .phoneNumber(req.getPhoneNumber())
                 .email(req.getEmail())
-                .roles("ROLE_USER")
+                .roles(defaultRole.getRoleName())
                 .passwordResetTime(LocalDateTime.now())
                 .build();
 
