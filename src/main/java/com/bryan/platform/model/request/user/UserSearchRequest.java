@@ -1,6 +1,6 @@
 package com.bryan.platform.model.request.user;
 
-import com.bryan.platform.common.enums.UserStatusEnum;
+import com.bryan.platform.model.enums.UserStatusEnum;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 
@@ -10,8 +10,6 @@ import java.time.LocalDateTime;
  * UserSearchRequest
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/7/27
  */
 @Getter
 public class UserSearchRequest {

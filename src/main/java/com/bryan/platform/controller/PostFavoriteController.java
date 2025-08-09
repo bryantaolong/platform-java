@@ -1,7 +1,7 @@
 package com.bryan.platform.controller;
 
 import com.bryan.platform.model.response.Result;
-import com.bryan.platform.common.enums.HttpStatus;
+import com.bryan.platform.model.enums.HttpStatus;
 import com.bryan.platform.service.user.AuthService;
 import com.bryan.platform.model.request.post.PostFavoriteAddRequest;
 import com.bryan.platform.model.entity.post.Post;
@@ -21,9 +21,7 @@ import jakarta.validation.Valid;
  * 控制器：博文收藏相关接口
  * 提供博文收藏的增删查操作，包括分页查询用户收藏、添加收藏、取消收藏和检查收藏状态。
  *
- * @author Bryan
- * @version 1.0
- * @since 2025/6/22
+ * @author Bryan Long
  */
 @Slf4j
 @RestController

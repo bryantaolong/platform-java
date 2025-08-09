@@ -1,4 +1,4 @@
-package com.bryan.platform.common.exception;
+package com.bryan.platform.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * 例如，订单状态冲突、数据校验失败等。
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/19 - 20:30
  */
 @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 public class BusinessException extends RuntimeException {

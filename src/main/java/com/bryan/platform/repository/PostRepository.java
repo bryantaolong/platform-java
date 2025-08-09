@@ -14,8 +14,6 @@ import java.util.Optional;
  * 博文数据访问层，使用Spring Data MongoDB实现
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/20
  */
 @Repository // 标记为Repository组件
 public interface PostRepository extends MongoRepository<Post, String> { // ID类型为String

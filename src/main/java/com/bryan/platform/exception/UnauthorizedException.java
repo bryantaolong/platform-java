@@ -1,4 +1,4 @@
-package com.bryan.platform.common.exception;
+package com.bryan.platform.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * 通过 {@code @ResponseStatus(HttpStatus.UNAUTHORIZED)} 直接绑定 HTTP 状态码 401 (Unauthorized)。
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/19 - 20:29
  */
 @ResponseStatus(HttpStatus.UNAUTHORIZED) // 将此异常直接映射到 HTTP 401 状态码
 public class UnauthorizedException extends RuntimeException {

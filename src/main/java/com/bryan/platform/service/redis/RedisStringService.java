@@ -12,8 +12,6 @@ import java.time.Duration;
  * 优化了 RedisTemplate 的注入泛型，使其与 RedisConfig 中配置的序列化器类型匹配。
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/20
  */
 @Slf4j
 @Service

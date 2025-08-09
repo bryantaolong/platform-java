@@ -1,7 +1,7 @@
 package com.bryan.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bryan.platform.common.enums.HttpStatus;
+import com.bryan.platform.model.enums.HttpStatus;
 import com.bryan.platform.service.user.AuthService;
 import com.bryan.platform.model.response.Result;
 import com.bryan.platform.model.entity.user.User;
@@ -16,9 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * 依赖 AuthService 获取当前用户信息，UserFollowService 处理关注业务逻辑。
  * </p>
  *
- * @author Bryan
- * @version 1.0
- * @since 2025/6/23
+ * @author Bryan Long
  */
 @RestController
 @RequestMapping("/api/user_follow")

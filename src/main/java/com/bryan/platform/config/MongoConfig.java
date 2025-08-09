@@ -17,8 +17,6 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
  * MongoConfig MongoDB 配置类，用于创建文本索引和启用审计功能。
  *
  * @author Bryan Long
- * @since 2025/6/20
- * @version 1.0
  */
 @Slf4j
 @Configuration

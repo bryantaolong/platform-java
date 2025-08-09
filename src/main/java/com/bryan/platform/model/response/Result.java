@@ -1,6 +1,6 @@
 package com.bryan.platform.model.response;
 
-import com.bryan.platform.common.enums.HttpStatus;
+import com.bryan.platform.model.enums.HttpStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
  * 统一响应封装
  *
  * @author Bryan Long
- * @since 2025/6/19 - 19:51
- * @version 1.0
  */
 @Data
 @NoArgsConstructor

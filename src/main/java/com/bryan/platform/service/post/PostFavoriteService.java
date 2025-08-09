@@ -1,7 +1,7 @@
 package com.bryan.platform.service.post;
 
-import com.bryan.platform.common.exception.BusinessException;
-import com.bryan.platform.common.exception.ResourceNotFoundException;
+import com.bryan.platform.exception.BusinessException;
+import com.bryan.platform.exception.ResourceNotFoundException;
 import com.bryan.platform.mapper.PostFavoriteMapper;
 import com.bryan.platform.repository.PostFavoriteRepository;
 import com.bryan.platform.repository.PostRepository;
@@ -27,8 +27,6 @@ import java.util.stream.Collectors;
  * 处理用户对博文的收藏、取消收藏、查询收藏列表等功能
  *
  * @author Bryan Long
- * @version 2.0
- * @since 2025/6/22
  */
 @Slf4j
 @Service

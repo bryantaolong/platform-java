@@ -20,8 +20,6 @@ import java.util.stream.Collectors;
  * 提供博文的增删改查、评论、推荐、浏览统计等功能
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/20
  */
 @Service
 @RequiredArgsConstructor

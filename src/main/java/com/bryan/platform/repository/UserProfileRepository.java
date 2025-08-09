@@ -14,5 +14,4 @@ import org.springframework.stereotype.Repository;
 public class UserProfileRepository {
 
     private final UserProfileMapper userProfileMapper;
-
 }

@@ -17,8 +17,6 @@ import java.util.*;
  * 负责调用 DeepSeek API 实现聊天回复功能
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/6/25
  */
 @Service
 @RequiredArgsConstructor

@@ -22,8 +22,6 @@ import java.util.List;
  * Moment 动态/朋友圈实体类
  *
  * @author Bryan Long
- * @version 1.0
- * @since 2025/7/11
  */
 @Data
 @Document(collection = "moments")

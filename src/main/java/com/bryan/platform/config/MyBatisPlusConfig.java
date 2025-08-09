@@ -12,8 +12,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * MyBatisPlusConfig
  *
  * @author Bryan Long
- * @since 2025/6/19 - 19:53
- * @version 1.0
  */
 @Configuration
 @MapperScan("com.bryan.platform.mapper") // 扫描 Mapper 接口

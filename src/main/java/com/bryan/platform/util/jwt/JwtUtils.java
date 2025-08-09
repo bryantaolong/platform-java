@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Bryan Long
- * @version v1.0
- * @since 2025/7/25
  */
 public class JwtUtils {
 
