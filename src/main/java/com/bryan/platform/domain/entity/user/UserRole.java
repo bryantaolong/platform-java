@@ -1,7 +1,10 @@
-package com.bryan.platform.domain.entity;
+package com.bryan.platform.domain.entity.user;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -12,9 +15,17 @@ import java.time.LocalDateTime;
  * @author Bryan Long
  */
 @Data
-public class BaseEntity implements Serializable {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@TableName("\"user_role\"")
+public class UserRole implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
+
+    private String roleName;
+
+    private Boolean isDefault;
 
     /** 逻辑删除 */
     @TableLogic
