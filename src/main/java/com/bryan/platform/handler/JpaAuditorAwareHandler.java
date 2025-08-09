@@ -1,6 +1,6 @@
 package com.bryan.platform.handler;
 
-import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.domain.entity.user.User;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;

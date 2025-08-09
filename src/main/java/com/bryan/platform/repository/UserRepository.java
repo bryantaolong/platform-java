@@ -1,9 +1,9 @@
 package com.bryan.platform.repository;
 
-import com.bryan.platform.model.enums.UserStatusEnum;
-import com.bryan.platform.model.entity.user.User;
-import com.bryan.platform.model.request.user.UserExportRequest;
-import com.bryan.platform.model.request.user.UserSearchRequest;
+import com.bryan.platform.domain.enums.UserStatusEnum;
+import com.bryan.platform.domain.entity.user.User;
+import com.bryan.platform.domain.request.user.UserExportRequest;
+import com.bryan.platform.domain.request.user.UserSearchRequest;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;

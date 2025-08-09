@@ -1,11 +1,11 @@
 package com.bryan.platform.service.user;
 
-import com.bryan.platform.model.enums.UserStatusEnum;
+import com.bryan.platform.domain.enums.UserStatusEnum;
 import com.bryan.platform.exception.BusinessException;
 import com.bryan.platform.exception.ResourceNotFoundException;
-import com.bryan.platform.model.request.user.UserSearchRequest;
-import com.bryan.platform.model.request.user.UserUpdateRequest;
-import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.domain.request.user.UserSearchRequest;
+import com.bryan.platform.domain.request.user.UserUpdateRequest;
+import com.bryan.platform.domain.entity.user.User;
 import com.bryan.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

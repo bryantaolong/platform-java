@@ -1,8 +1,8 @@
 package com.bryan.platform.service.user;
 
 import com.bryan.platform.exception.BusinessException;
-import com.bryan.platform.model.entity.user.User;
-import com.bryan.platform.model.entity.user.UserFollow;
+import com.bryan.platform.domain.entity.user.User;
+import com.bryan.platform.domain.entity.user.UserFollow;
 import com.bryan.platform.repository.UserFollowRepository;
 import com.bryan.platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

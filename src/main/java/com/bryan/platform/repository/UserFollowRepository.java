@@ -1,6 +1,6 @@
 package com.bryan.platform.repository;
 
-import com.bryan.platform.model.entity.user.UserFollow;
+import com.bryan.platform.domain.entity.user.UserFollow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

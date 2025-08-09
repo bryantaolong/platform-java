@@ -1,6 +1,6 @@
 package com.bryan.platform.repository;
 
-import com.bryan.platform.model.entity.moment.Moment;
+import com.bryan.platform.domain.entity.moment.Moment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;

@@ -1,16 +1,16 @@
 package com.bryan.platform.filter;
 
-import com.bryan.platform.model.response.Result;
+import com.bryan.platform.domain.response.Result;
 import com.bryan.platform.service.user.AuthService;
 import com.bryan.platform.service.redis.RedisStringService;
 import com.bryan.platform.util.jwt.JwtUtils;
-import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.domain.entity.user.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import com.bryan.platform.model.enums.HttpStatus;
+import com.bryan.platform.domain.enums.HttpStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
