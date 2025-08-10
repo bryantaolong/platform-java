@@ -46,18 +46,18 @@ public class UserFollow implements Serializable {
     private Integer version = 0;
 
     @CreatedDate
-    @Column(name = "create_time")
-    private LocalDateTime createTime;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(name = "update_time")
-    private LocalDateTime updateTime;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @CreatedBy
-    @Column(name = "create_by")
+    @Column(name = "created_by")
     private String createBy;
 
     @LastModifiedBy
-    @Column(name = "update_by")
+    @Column(name = "updated_by")
     private String updateBy;
 }

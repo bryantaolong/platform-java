@@ -105,7 +105,7 @@ public class UserService {
             Optional.ofNullable(req.getUsername()).ifPresent(u::setUsername);
 
             // 更新电话号码
-            Optional.ofNullable(req.getPhoneNumber()).ifPresent(u::setPhoneNumber);
+            Optional.ofNullable(req.getPhone()).ifPresent(u::setPhone);
 
             // 更新邮箱信息
             Optional.ofNullable(req.getEmail()).ifPresent(u::setEmail);

@@ -72,7 +72,7 @@ public class UserFollowService {
         if (!userRepository.existsById(userId)) {
             throw new BusinessException("用户不存在");
         }
-        Page<UserFollow> page = userFollowRepository.findByFollowerIdAndDeletedOrderByCreateTimeDesc(userId, 0, pageable);
+        Page<UserFollow> page = userFollowRepository.findByFollowerIdAndDeletedOrderByCreatedAtDesc(userId, 0, pageable);
         List<Long> userIds = page.getContent()
                 .stream()
                 .map(UserFollow::getFollowingId)
@@ -88,7 +88,7 @@ public class UserFollowService {
         if (!userRepository.existsById(userId)) {
             throw new BusinessException("用户不存在");
         }
-        Page<UserFollow> page = userFollowRepository.findByFollowingIdAndDeletedOrderByCreateTimeDesc(userId, 0, pageable);
+        Page<UserFollow> page = userFollowRepository.findByFollowingIdAndDeletedOrderByCreatedAtDesc(userId, 0, pageable);
         List<Long> userIds = page.getContent()
                 .stream()
                 .map(UserFollow::getFollowerId)

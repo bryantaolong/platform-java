@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @SQLRestriction("deleted = 0")
-@SQLDelete(sql = "UPDATE user_role SET deleted = 1, update_time = NOW() WHERE id = ? AND version = ?")
+@SQLDelete(sql = "UPDATE user_role SET deleted = 1, updated_at = NOW() WHERE id = ? AND version = ?")
 @EntityListeners(AuditingEntityListener.class)
 public class UserRole implements Serializable {
 
@@ -47,14 +47,18 @@ public class UserRole implements Serializable {
     private Integer version = 0;
 
     @CreatedDate
-    private LocalDateTime createTime;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
-    private LocalDateTime updateTime;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @CreatedBy
+    @Column(name = "created_by")
     private String createBy;
 
     @LastModifiedBy
+    @Column(name = "updated_by")
     private String updateBy;
 }

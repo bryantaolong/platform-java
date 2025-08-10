@@ -20,7 +20,7 @@ public class UserSearchRequest {
 
     // 手机号校验（更精确的中国手机号校验）
     @Pattern(regexp = "^(1[3-9]\\d{9})?$", message = "手机号格式不正确") // 允许空值
-    private String phoneNumber;
+    private String phone;
 
     // 邮箱校验（更宽松的格式）
     @Email(message = "邮箱格式不正确")
@@ -36,14 +36,14 @@ public class UserSearchRequest {
 
     // 时间范围校验
     @PastOrPresent(message = "登录时间不能是未来时间")
-    private LocalDateTime loginTime;
+    private LocalDateTime lastLoginAt;
 
     // IP地址校验
     @Pattern(regexp = "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$", message = "IP地址格式不正确")
-    private String loginIp;
+    private String lastLoginIp;
 
     @PastOrPresent(message = "密码重置时间不能是未来时间")
-    private LocalDateTime passwordResetTime;
+    private LocalDateTime passwordResetAt;
 
     // 登录失败次数校验
     @Min(value = 0, message = "登录失败次数不能为负数")
@@ -52,7 +52,7 @@ public class UserSearchRequest {
 
     // 账户锁定时间校验
     @PastOrPresent(message = "账户锁定时间不能是未来时间")
-    private LocalDateTime accountLockTime;
+    private LocalDateTime lockedAt;
 
     // 删除标记校验
     @Min(value = 0, message = "删除标记不合法")
@@ -64,7 +64,7 @@ public class UserSearchRequest {
     private Integer version;
 
     @PastOrPresent(message = "创建时间不能是未来时间")
-    private LocalDateTime createTime;
+    private LocalDateTime createdAt;
 
     @PastOrPresent(message = "开始时间不能是未来时间")
     private LocalDateTime createTimeStart;
@@ -72,11 +72,8 @@ public class UserSearchRequest {
     @PastOrPresent(message = "结束时间不能是未来时间")
     private LocalDateTime createTimeEnd;
 
-    @Size(max = 50, message = "创建人名称过长")
-    private String createBy;
-
     @PastOrPresent(message = "更新时间不能是未来时间")
-    private LocalDateTime updateTime;
+    private LocalDateTime updatedAt;
 
     @PastOrPresent(message = "开始时间不能是未来时间")
     private LocalDateTime updateTimeStart;
@@ -84,8 +81,11 @@ public class UserSearchRequest {
     @PastOrPresent(message = "结束时间不能是未来时间")
     private LocalDateTime updateTimeEnd;
 
+    @Size(max = 50, message = "创建人名称过长")
+    private String createdBy;
+
     @Size(max = 50, message = "更新人名称过长")
-    private String updateBy;
+    private String updatedBy;
 
     // 自定义校验方法
     @AssertTrue(message = "创建时间范围不合法")

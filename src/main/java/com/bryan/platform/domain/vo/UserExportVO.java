@@ -34,7 +34,7 @@ public class UserExportVO {
 
     @ExcelProperty("手机号")
     @ColumnWidth(15)
-    private String phoneNumber;
+    private String phone;
 
     @ExcelProperty("邮箱")
     @ColumnWidth(25)
@@ -51,16 +51,16 @@ public class UserExportVO {
     @ExcelProperty("最后登陆时间")
     @ColumnWidth(20)
     @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime loginTime;
+    private LocalDateTime lastLoginAt;
 
     @ExcelProperty("最后登录IP")
     @ColumnWidth(20)
-    private String loginIp;
+    private String lastLoginIp;
 
     @ExcelProperty("密码重置时间")
     @ColumnWidth(20)
     @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime passwordResetTime;
+    private LocalDateTime passwordResetAt;
 
     @ExcelProperty("登录失败次数")
     @ColumnWidth(15)
@@ -69,7 +69,7 @@ public class UserExportVO {
     @ExcelProperty("账户锁定时间")
     @ColumnWidth(20)
     @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime accountLockTime;
+    private LocalDateTime lockedAt;
 
     @ExcelProperty("删除状态")
     @ColumnWidth(12)
@@ -82,20 +82,20 @@ public class UserExportVO {
     @ExcelProperty("创建时间")
     @ColumnWidth(20)
     @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createTime;
-
-    @ExcelProperty("创建人")
-    @ColumnWidth(15)
-    private String createBy;
+    private LocalDateTime createdAt;
 
     @ExcelProperty("更新时间")
     @ColumnWidth(20)
     @DateTimeFormat("yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updateTime;
+    private LocalDateTime updatedAt;
+
+    @ExcelProperty("创建人")
+    @ColumnWidth(15)
+    private String createdBy;
 
     @ExcelProperty("更新人")
     @ColumnWidth(15)
-    private String updateBy;
+    private String updatedBy;
 
     /* =====================
        样式占位字段，不会被导出

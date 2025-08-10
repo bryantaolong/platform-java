@@ -64,10 +64,10 @@ public class AuthService implements UserDetailsService {
         User user = User.builder()
                 .username(req.getUsername())
                 .password(passwordEncoder.encode(req.getPassword()))
-                .phoneNumber(req.getPhoneNumber())
+                .phone(req.getPhone())
                 .email(req.getEmail())
                 .roles(defaultRole.getRoleName())
-                .passwordResetTime(LocalDateTime.now())
+                .passwordResetAt(LocalDateTime.now())
                 .build();
 
         // 插入用户数据
@@ -97,7 +97,7 @@ public class AuthService implements UserDetailsService {
             // 如果输入密码错误次数达到限额-硬编码为 5，则锁定账号
             if (user.getLoginFailCount() >= 5) {
                 user.setStatus(UserStatusEnum.LOCKED);
-                user.setAccountLockTime(LocalDateTime.now());
+                user.setLockedAt(LocalDateTime.now());
             }
             userRepository.save(user);
             throw new BusinessException("用户名或密码错误");
@@ -111,8 +111,8 @@ public class AuthService implements UserDetailsService {
         }
 
         // 更新登录信息
-        user.setLoginTime(LocalDateTime.now());
-        user.setLoginIp(HttpUtils.getClientIp());
+        user.setLastLoginAT(LocalDateTime.now());
+        user.setLastLoginIp(HttpUtils.getClientIp());
         user.setLoginFailCount(0);
         userRepository.save(user);
 

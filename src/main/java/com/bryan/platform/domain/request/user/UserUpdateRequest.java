@@ -22,7 +22,7 @@ public class UserUpdateRequest {
      * 在更新时是可选的，如果提供则更新，如果不提供则保持不变。
      */
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    private String phoneNumber;
+    private String phone;
 
     /**
      * 邮箱。

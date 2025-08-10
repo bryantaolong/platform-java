@@ -17,7 +17,7 @@ import java.util.Optional;
 public interface PostFavoriteRepository extends JpaRepository<PostFavorite, Long> {
 
     /** 分页：用户收藏的博文 */
-    Page<PostFavorite> findByUserIdAndDeletedOrderByCreateTimeDesc(Long userId, Integer deleted, Pageable pageable);
+    Page<PostFavorite> findByUserIdAndDeletedOrderByCreatedAtDesc(Long userId, Integer deleted, Pageable pageable);
 
     /** 是否已收藏 */
     Optional<PostFavorite> findByUserIdAndPostIdAndDeleted(Long userId, String postId, Integer deleted);

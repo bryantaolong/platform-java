@@ -36,7 +36,7 @@ public interface UserRepository extends JpaRepository<User, Long>,
 
     boolean existsByUsername(String username);
 
-    boolean existsByPhoneNumber(String phoneNumber);
+    boolean existsByPhone(String phone);
 
     boolean existsByEmail(String email);
 
@@ -51,7 +51,7 @@ public interface UserRepository extends JpaRepository<User, Long>,
     int updateRoles(@Param("id") Long id, @Param("roles") String roles);
 
     @Modifying
-    @Query("UPDATE User u SET u.password = :pwd, u.passwordResetTime = :time WHERE u.id = :id")
+    @Query("UPDATE User u SET u.password = :pwd, u.passwordResetAt = :time WHERE u.id = :id")
     int updatePassword(@Param("id") Long id,
                        @Param("pwd") String password,
                        @Param("time") LocalDateTime time);
@@ -74,28 +74,28 @@ public interface UserRepository extends JpaRepository<User, Long>,
             Predicate p = cb.conjunction(); // 1=1
 
             p = like(p, root, cb, "username",        req.getUsername());
-            p = like(p, root, cb, "phoneNumber",     req.getPhoneNumber());
+            p = like(p, root, cb, "phone",           req.getPhone());
             p = like(p, root, cb, "email",           req.getEmail());
             p = like(p, root, cb, "roles",           req.getRoles());
-            p = like(p, root, cb, "loginIp",         req.getLoginIp());
-            p = like(p, root, cb, "createBy",        req.getCreateBy());
-            p = like(p, root, cb, "updateBy",        req.getUpdateBy());
+            p = like(p, root, cb, "lastLoginIp",     req.getLastLoginIp());
+            p = like(p, root, cb, "createdBy",       req.getCreatedBy());
+            p = like(p, root, cb, "updatedBy",       req.getUpdatedBy());
 
-            p = eq(p, root, cb, "status",             req.getStatus());
-            p = eq(p, root, cb, "loginTime",          req.getLoginTime());
-            p = eq(p, root, cb, "passwordResetTime",  req.getPasswordResetTime());
-            p = eq(p, root, cb, "loginFailCount",     req.getLoginFailCount());
-            p = eq(p, root, cb, "accountLockTime",    req.getAccountLockTime());
-            p = eq(p, root, cb, "deleted",            req.getDeleted());
-            p = eq(p, root, cb, "version",            req.getVersion());
+            p = eq(p, root, cb, "status",            req.getStatus());
+            p = eq(p, root, cb, "lastLoginAt",       req.getLastLoginAt());
+            p = eq(p, root, cb, "passwordResetAt",   req.getPasswordResetAt());
+            p = eq(p, root, cb, "loginFailCount",    req.getLoginFailCount());
+            p = eq(p, root, cb, "lockedAt",          req.getLockedAt());
+            p = eq(p, root, cb, "deleted",           req.getDeleted());
+            p = eq(p, root, cb, "version",           req.getVersion());
 
-            p = between(p, root, cb, "createTime",
+            p = between(p, root, cb, "createdAt",
                     req.getCreateTimeStart(), req.getCreateTimeEnd());
-            p = between(p, root, cb, "updateTime",
+            p = between(p, root, cb, "updatedAt",
                     req.getUpdateTimeStart(), req.getUpdateTimeEnd());
 
             // 默认排序：创建时间倒序（与 MP 一致）
-            cq.orderBy(cb.desc(root.get("createTime")));
+            cq.orderBy(cb.desc(root.get("createdAt")));
             return p;
         }
 

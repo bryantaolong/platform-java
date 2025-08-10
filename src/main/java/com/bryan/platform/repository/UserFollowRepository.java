@@ -20,10 +20,10 @@ public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
     Optional<UserFollow> findByFollowerIdAndFollowingIdAndDeleted(Long followerId, Long followingId, Integer deleted);
 
     /* 分页：关注列表 */
-    Page<UserFollow> findByFollowerIdAndDeletedOrderByCreateTimeDesc(Long followerId, Integer deleted, Pageable pageable);
+    Page<UserFollow> findByFollowerIdAndDeletedOrderByCreatedAtDesc(Long followerId, Integer deleted, Pageable pageable);
 
     /* 分页：粉丝列表 */
-    Page<UserFollow> findByFollowingIdAndDeletedOrderByCreateTimeDesc(Long followingId, Integer deleted, Pageable pageable);
+    Page<UserFollow> findByFollowingIdAndDeletedOrderByCreatedAtDesc(Long followingId, Integer deleted, Pageable pageable);
 
     /* 统计关注数 */
     long countByFollowerIdAndDeleted(Long followerId, Integer deleted);

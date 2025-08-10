@@ -41,7 +41,7 @@ public class PostFavoriteService {
      */
     public Page<Post> getFavoritePostsByUserId(Long userId, Pageable pageable) {
         userService.getUserById(userId);          // 不存在抛异常
-        Page<PostFavorite> favoritePage = postFavoriteRepository.findByUserIdAndDeletedOrderByCreateTimeDesc(userId, 0, pageable);
+        Page<PostFavorite> favoritePage = postFavoriteRepository.findByUserIdAndDeletedOrderByCreatedAtDesc(userId, 0, pageable);
 
         List<String> postIds = favoritePage.getContent()
                 .stream()
