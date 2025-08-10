@@ -21,6 +21,8 @@ logging:
 
 # MyBatis-Plus 配置（通用）
 mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.bryan.platform.domain.entity
   configuration:
     map-underscore-to-camel-case: true
   global-config:

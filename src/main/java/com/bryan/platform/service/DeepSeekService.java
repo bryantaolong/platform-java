@@ -1,9 +1,9 @@
 package com.bryan.platform.service;
 
 import com.bryan.platform.config.properties.DeepSeekApiProperties;
-import com.bryan.platform.model.entity.DeepSeekMessage;
-import com.bryan.platform.model.request.DeepSeekRequest;
-import com.bryan.platform.model.response.DeepSeekResponse;
+import com.bryan.platform.domain.entity.DeepSeekMessage;
+import com.bryan.platform.domain.request.DeepSeekRequest;
+import com.bryan.platform.domain.response.DeepSeekResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;

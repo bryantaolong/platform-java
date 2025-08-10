@@ -1,7 +1,7 @@
 package com.bryan.platform.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.bryan.platform.model.entity.post.PostFavorite;
+import com.bryan.platform.domain.entity.post.PostFavorite;
 import org.apache.ibatis.annotations.*;
 
 /**

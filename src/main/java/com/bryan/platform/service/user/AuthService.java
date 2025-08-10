@@ -1,14 +1,16 @@
 package com.bryan.platform.service.user;
 
-import com.bryan.platform.model.enums.UserStatusEnum;
+import com.bryan.platform.domain.entity.user.UserRole;
+import com.bryan.platform.domain.enums.UserStatusEnum;
 import com.bryan.platform.exception.BusinessException;
 import com.bryan.platform.repository.UserRepository;
+import com.bryan.platform.repository.UserRoleRepository;
 import com.bryan.platform.service.redis.RedisStringService;
 import com.bryan.platform.util.http.HttpUtils;
 import com.bryan.platform.util.jwt.JwtUtils;
-import com.bryan.platform.model.entity.user.User;
-import com.bryan.platform.model.request.auth.LoginRequest;
-import com.bryan.platform.model.request.auth.RegisterRequest;
+import com.bryan.platform.domain.entity.user.User;
+import com.bryan.platform.domain.request.auth.LoginRequest;
+import com.bryan.platform.domain.request.auth.RegisterRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,6 +35,7 @@ import java.util.Map;
 public class AuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisStringService redisStringService;
 
@@ -50,19 +53,21 @@ public class AuthService implements UserDetailsService {
             throw new BusinessException("用户名已存在");
         }
 
-        // 2. 构建用户实体，密码加密
+        // 2. 查出默认角色
+        UserRole defaultRole = userRoleRepository.findByIsDefaultTrue()
+                .orElseThrow(() -> new BusinessException("系统未配置默认角色"));
+
+        // 3. 构建用户实体，密码加密
         User user = User.builder()
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .phoneNumber(registerRequest.getPhoneNumber())
+                .phone(registerRequest.getPhone())
                 .email(registerRequest.getEmail())
-                .roles("ROLE_USER")
-                .passwordResetTime(LocalDateTime.now())
-                .createBy(registerRequest.getUsername())
-                .updateBy(registerRequest.getUsername())
+                .roles(defaultRole.getRoleName())
+                .passwordResetAt(LocalDateTime.now())
                 .build();
 
-        // 3. 插入用户数据
+        // 4. 插入用户数据
         User saved = userRepository.save(user);
         if (saved == null) {
             throw new BusinessException("插入数据库失败");
@@ -70,7 +75,7 @@ public class AuthService implements UserDetailsService {
 
         log.info("用户注册成功: id: {}, username: {} ", user.getId(), user.getUsername());
 
-        // 4. 返回新注册用户
+        // 5. 返回新注册用户
         return user;
     }
 
@@ -95,7 +100,7 @@ public class AuthService implements UserDetailsService {
             // 如果输入密码错误次数达到限额-硬编码为 5，则锁定账号
             if(user.getLoginFailCount() >= 5) {
                 user.setStatus(UserStatusEnum.NORMAL);
-                user.setAccountLockTime(LocalDateTime.now());
+                user.setLockedAt(LocalDateTime.now());
                 throw new BusinessException("输入密码错误次数过多，账号锁定");
             }
             throw new BusinessException("用户名或密码错误");
@@ -110,8 +115,8 @@ public class AuthService implements UserDetailsService {
         }
 
         // 3. 更新用户登录信息
-        user.setLoginTime(LocalDateTime.now());
-        user.setLoginIp(HttpUtils.getClientIp());
+        user.setLastLoginAt(LocalDateTime.now());
+        user.setLastLoginIp(HttpUtils.getClientIp());
         user.setLoginFailCount(0); // 重置密码输入错误次数
         userRepository.save(user);
 

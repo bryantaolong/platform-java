@@ -1,12 +1,13 @@
 package com.bryan.platform.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bryan.platform.model.request.PageRequest;
-import com.bryan.platform.model.request.user.UserSearchRequest;
-import com.bryan.platform.model.response.Result;
-import com.bryan.platform.model.request.user.UserUpdateRequest;
-import com.bryan.platform.model.entity.user.User;
-import com.bryan.platform.model.request.user.ChangePasswordRequest;
+import com.bryan.platform.domain.request.PageRequest;
+import com.bryan.platform.domain.request.user.ChangeRoleRequest;
+import com.bryan.platform.domain.request.user.UserSearchRequest;
+import com.bryan.platform.domain.response.Result;
+import com.bryan.platform.domain.request.user.UserUpdateRequest;
+import com.bryan.platform.domain.entity.user.User;
+import com.bryan.platform.domain.request.user.ChangePasswordRequest;
 import com.bryan.platform.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -109,16 +110,14 @@ public class UserController {
      * <p>仅管理员可操作。</p>
      *
      * @param userId 目标用户ID
-     * @param roles  新角色字符串，逗号分隔（如 "ROLE_USER,ROLE_ADMIN"）
+     * @param req  新角色字符串，逗号分隔（如 "ROLE_USER,ROLE_ADMIN"）
      * @return 更新后的用户实体
      */
-    @PutMapping("/{userId}/role")
+    @PutMapping("/users/{userId}/roles")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result<User> changeRole(
-            @PathVariable Long userId,
-            @RequestBody String roles) {
-        // 1. 调用服务变更角色
-        return Result.success(userService.changeRole(userId, roles));
+    public Result<User> changeRoleByIds(@PathVariable Long userId,
+                                        @Valid @RequestBody ChangeRoleRequest req) {
+        return Result.success(userService.changeRoleByIds(userId, req));
     }
 
     /**

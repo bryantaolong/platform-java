@@ -3,11 +3,9 @@ package com.bryan.platform.repository;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.mapper.UserFollowMapper;
-import com.bryan.platform.model.entity.user.UserFollow;
+import com.bryan.platform.domain.entity.user.UserFollow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * UserFollowRepository

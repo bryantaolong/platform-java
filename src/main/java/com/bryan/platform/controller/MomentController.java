@@ -1,9 +1,9 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.model.enums.HttpStatus;
-import com.bryan.platform.model.entity.moment.Moment;
-import com.bryan.platform.model.entity.user.User;
-import com.bryan.platform.model.response.Result;
+import com.bryan.platform.domain.enums.HttpStatus;
+import com.bryan.platform.domain.entity.moment.Moment;
+import com.bryan.platform.domain.entity.user.User;
+import com.bryan.platform.domain.response.Result;
 import com.bryan.platform.service.moment.MomentService;
 import com.bryan.platform.service.user.AuthService;
 import lombok.RequiredArgsConstructor;

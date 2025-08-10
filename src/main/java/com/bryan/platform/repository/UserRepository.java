@@ -3,11 +3,10 @@ package com.bryan.platform.repository;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bryan.platform.mapper.UserMapper;
-import com.bryan.platform.model.entity.user.User;
-import com.bryan.platform.model.entity.user.UserFollow;
-import com.bryan.platform.model.request.PageRequest;
-import com.bryan.platform.model.request.user.UserExportRequest;
-import com.bryan.platform.model.request.user.UserSearchRequest;
+import com.bryan.platform.domain.entity.user.User;
+import com.bryan.platform.domain.request.PageRequest;
+import com.bryan.platform.domain.request.user.UserExportRequest;
+import com.bryan.platform.domain.request.user.UserSearchRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -64,30 +63,30 @@ public class UserRepository {
 
         // 1. 字符串类型字段的模糊查询
         addLikeCondition(queryWrapper, "username", searchRequest.getUsername());
-        addLikeCondition(queryWrapper, "phone_number", searchRequest.getPhoneNumber());
+        addLikeCondition(queryWrapper, "phone", searchRequest.getPhone());
         addLikeCondition(queryWrapper, "email", searchRequest.getEmail());
         addLikeCondition(queryWrapper, "roles", searchRequest.getRoles());
-        addLikeCondition(queryWrapper, "login_ip", searchRequest.getLoginIp());
-        addLikeCondition(queryWrapper, "create_by", searchRequest.getCreateBy());
-        addLikeCondition(queryWrapper, "update_by", searchRequest.getUpdateBy());
+        addLikeCondition(queryWrapper, "last_login_ip", searchRequest.getLastLoginIp());
+        addLikeCondition(queryWrapper, "created_by", searchRequest.getCreatedBy());
+        addLikeCondition(queryWrapper, "updated_by", searchRequest.getUpdatedBy());
 
         // 2. 精确匹配字段
         addEqCondition(queryWrapper, "status", searchRequest.getStatus());
-        addEqCondition(queryWrapper, "login_time", searchRequest.getLoginTime());
-        addEqCondition(queryWrapper, "password_reset_time", searchRequest.getPasswordResetTime());
+        addEqCondition(queryWrapper, "last_login_at", searchRequest.getLastLoginAt());
+        addEqCondition(queryWrapper, "password_reset_at", searchRequest.getPasswordResetAt());
         addEqCondition(queryWrapper, "login_fail_count", searchRequest.getLoginFailCount());
-        addEqCondition(queryWrapper, "account_lock_time", searchRequest.getAccountLockTime());
+        addEqCondition(queryWrapper, "locked_at", searchRequest.getLockedAt());
         addEqCondition(queryWrapper, "deleted", searchRequest.getDeleted());
         addEqCondition(queryWrapper, "version", searchRequest.getVersion());
 
         // 3. 时间范围查询
-        handleTimeQuery(queryWrapper, "create_time",
-                searchRequest.getCreateTime(),
+        handleTimeQuery(queryWrapper, "created_at",
+                searchRequest.getCreatedAt(),
                 searchRequest.getCreateTimeStart(),
                 searchRequest.getCreateTimeEnd());
 
-        handleTimeQuery(queryWrapper, "update_time",
-                searchRequest.getUpdateTime(),
+        handleTimeQuery(queryWrapper, "updated_at",
+                searchRequest.getUpdatedAt(),
                 searchRequest.getUpdateTimeStart(),
                 searchRequest.getUpdateTimeEnd());
 

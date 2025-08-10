@@ -1,9 +1,9 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.model.response.Result;
-import com.bryan.platform.model.entity.Comment;
-import com.bryan.platform.model.entity.post.Post;
-import com.bryan.platform.model.entity.user.User;
+import com.bryan.platform.domain.response.Result;
+import com.bryan.platform.domain.entity.Comment;
+import com.bryan.platform.domain.entity.post.Post;
+import com.bryan.platform.domain.entity.user.User;
 import com.bryan.platform.service.user.AuthService;
 import com.bryan.platform.service.post.PostService;
 import lombok.RequiredArgsConstructor;
