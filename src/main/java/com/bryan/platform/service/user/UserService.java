@@ -106,8 +106,8 @@ public class UserService {
                     }
 
                     // 2. 更新电话号码
-                    if (userUpdateRequest.getPhoneNumber() != null) {
-                        existingUser.setPhoneNumber(userUpdateRequest.getPhoneNumber());
+                    if (userUpdateRequest.getPhone() != null) {
+                        existingUser.setPhone(userUpdateRequest.getPhone());
                     }
 
                     // 3. 更新邮箱信息
@@ -180,7 +180,7 @@ public class UserService {
                     existingUser.setPassword(passwordEncoder.encode(newPassword));
 
                     // 3. 设置重置密码时间
-                    existingUser.setPasswordResetTime(LocalDateTime.now());
+                    existingUser.setPasswordResetAt(LocalDateTime.now());
 
                     // 4. 更新数据库
                     userRepository.save(existingUser);
@@ -208,7 +208,7 @@ public class UserService {
                     existingUser.setPassword(passwordEncoder.encode(newPassword));
 
                     // 2. 设置重置密码时间
-                    existingUser.setPasswordResetTime(LocalDateTime.now());
+                    existingUser.setPasswordResetAt(LocalDateTime.now());
 
                     // 3. 更新数据库
                     userRepository.save(existingUser);

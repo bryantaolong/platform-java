@@ -2,6 +2,7 @@ package com.bryan.platform.service.post;
 
 import com.bryan.platform.domain.entity.Comment;
 import com.bryan.platform.domain.entity.post.Post;
+import com.bryan.platform.domain.enums.PostStatusEnum;
 import com.bryan.platform.repository.PostRepository;
 import com.bryan.platform.domain.entity.user.User;
 import com.bryan.platform.service.user.UserFollowService;
@@ -46,7 +47,7 @@ public class PostService {
      * @return 博文分页结果
      */
     public Page<Post> getPublishedPosts(Pageable pageable) {
-        return postRepository.findByStatusOrderByCreatedAtDesc(Post.PostStatus.PUBLISHED, pageable);
+        return postRepository.findByStatusOrderByCreatedAtDesc(PostStatusEnum.PUBLISHED, pageable);
     }
 
     /**
@@ -119,7 +120,7 @@ public class PostService {
         // 4. 查询对应用户的已发布博文
         return postRepository.findByAuthorIdInAndStatusOrderByCreatedAtDesc(
                 followingIds,
-                Post.PostStatus.PUBLISHED,
+                PostStatusEnum.PUBLISHED,
                 pageable
         );
     }
@@ -141,7 +142,7 @@ public class PostService {
         post.setSlug(generateUniqueSlug(post.getTitle(), null));
 
         // 3. 设置默认状态及时间
-        post.setStatus(Post.PostStatus.DRAFT);
+        post.setStatus(PostStatusEnum.DRAFT);
         if (post.getCreatedAt() == null) {
             post.setCreatedAt(LocalDateTime.now());
         }
@@ -287,7 +288,7 @@ public class PostService {
         }
 
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postRepository.findByTagsInAndStatusOrderByCreatedAtDesc(tags, Post.PostStatus.PUBLISHED, pageable)
+        return postRepository.findByTagsInAndStatusOrderByCreatedAtDesc(tags, PostStatusEnum.PUBLISHED, pageable)
                 .getContent();
     }
 

@@ -1,6 +1,7 @@
 package com.bryan.platform.repository;
 
 import com.bryan.platform.domain.entity.post.Post;
+import com.bryan.platform.domain.enums.PostStatusEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -19,16 +20,16 @@ import java.util.Optional;
 public interface PostRepository extends MongoRepository<Post, String> { // ID类型为String
 
     // 查询已发布的博文，按创建时间降序排列（用于分页）
-    Page<Post> findByStatusOrderByCreatedAtDesc(Post.PostStatus status, Pageable pageable);
+    Page<Post> findByStatusOrderByCreatedAtDesc(PostStatusEnum status, Pageable pageable);
 
     Page<Post> findByAuthorIdOrderByCreatedAtDesc(Long authorId, Pageable pageable);
 
-    Page<Post> findByAuthorIdAndStatus(Long authorId, Post.PostStatus status, Pageable pageable);
+    Page<Post> findByAuthorIdAndStatus(Long authorId, PostStatusEnum status, Pageable pageable);
 
     // 根据多个作者ID和状态查询博文，按创建时间降序排列
     Page<Post> findByAuthorIdInAndStatusOrderByCreatedAtDesc(
             List<Long> authorIds,
-            Post.PostStatus status,
+            PostStatusEnum status,
             Pageable pageable
     );
 
@@ -43,7 +44,7 @@ public interface PostRepository extends MongoRepository<Post, String> { // ID类
 
     // 根据标签列表查询已发布的博文，按创建时间降序排列
     // 核心变更：返回类型从List<Post>改为Page<Post>以支持分页内容获取
-    Page<Post> findByTagsInAndStatusOrderByCreatedAtDesc(List<String> tags, Post.PostStatus status, Pageable pageable);
+    Page<Post> findByTagsInAndStatusOrderByCreatedAtDesc(List<String> tags, PostStatusEnum status, Pageable pageable);
 
     /**
      * 根据一组ID查询博文列表，并分页排序

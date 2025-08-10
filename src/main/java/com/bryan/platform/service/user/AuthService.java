@@ -61,10 +61,10 @@ public class AuthService implements UserDetailsService {
         User user = User.builder()
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .phoneNumber(registerRequest.getPhoneNumber())
+                .phone(registerRequest.getPhone())
                 .email(registerRequest.getEmail())
                 .roles(defaultRole.getRoleName())
-                .passwordResetTime(LocalDateTime.now())
+                .passwordResetAt(LocalDateTime.now())
                 .build();
 
         // 4. 插入用户数据
@@ -100,7 +100,7 @@ public class AuthService implements UserDetailsService {
             // 如果输入密码错误次数达到限额-硬编码为 5，则锁定账号
             if(user.getLoginFailCount() >= 5) {
                 user.setStatus(UserStatusEnum.NORMAL);
-                user.setAccountLockTime(LocalDateTime.now());
+                user.setLockedAt(LocalDateTime.now());
                 throw new BusinessException("输入密码错误次数过多，账号锁定");
             }
             throw new BusinessException("用户名或密码错误");
@@ -115,8 +115,8 @@ public class AuthService implements UserDetailsService {
         }
 
         // 3. 更新用户登录信息
-        user.setLoginTime(LocalDateTime.now());
-        user.setLoginIp(HttpUtils.getClientIp());
+        user.setLastLoginAt(LocalDateTime.now());
+        user.setLastLoginIp(HttpUtils.getClientIp());
         user.setLoginFailCount(0); // 重置密码输入错误次数
         userRepository.save(user);
 

@@ -34,7 +34,7 @@ public class RegisterRequest {
      * 在注册时是可选的，如果提供则添加，如果不提供则不添加。
      */
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "电话号码格式不正确")
-    private String phoneNumber;
+    private String phone;
 
     /**
      * 邮箱地址。

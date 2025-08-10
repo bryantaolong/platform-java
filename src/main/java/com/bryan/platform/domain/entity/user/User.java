@@ -36,7 +36,7 @@ public class User implements Serializable, UserDetails {
 
     private String password;
 
-    private String phoneNumber;
+    private String phone;
 
     private String email;
 
@@ -47,15 +47,15 @@ public class User implements Serializable, UserDetails {
     /** 逗号分隔的角色标识 */
     private String roles;
 
-    private LocalDateTime loginTime;
+    private LocalDateTime lastLoginAt;
 
-    private String loginIp;
+    private String lastLoginIp;
 
-    private LocalDateTime passwordResetTime;
+    private LocalDateTime passwordResetAt;
 
     private Integer loginFailCount; // 登录失败次数
 
-    private LocalDateTime accountLockTime; // 账户锁定时间
+    private LocalDateTime lockedAt; // 账户锁定时间
 
     /** 逻辑删除 */
     @TableLogic
@@ -67,19 +67,19 @@ public class User implements Serializable, UserDetails {
 
     /** 创建时间 */
     @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    private LocalDateTime createdAt;
 
     /** 更新时间 */
     @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
+    private LocalDateTime updatedAt;
 
     /** 创建人 */
     @TableField(fill = FieldFill.INSERT)
-    private String createBy;
+    private String createdBy;
 
     /** 更新人 */
     @TableField(fill = FieldFill.INSERT_UPDATE)
-    private String updateBy;
+    private String updatedBy;
 
     /**
      * 获取用户权限（Spring Security要求）。
@@ -109,9 +109,9 @@ public class User implements Serializable, UserDetails {
             return true;
         }
         // 锁定状态：判断锁定时间是否已过 1 小时
-        if (this.status == UserStatusEnum.LOCKED && this.accountLockTime != null) {
+        if (this.status == UserStatusEnum.LOCKED && this.lockedAt != null) {
             return LocalDateTime.now()
-                    .isAfter(this.accountLockTime.plusHours(1));
+                    .isAfter(this.lockedAt.plusHours(1));
         }
         return false;
     }

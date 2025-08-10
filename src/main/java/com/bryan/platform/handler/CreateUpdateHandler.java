@@ -17,29 +17,29 @@ import java.time.LocalDateTime;
 public class CreateUpdateHandler implements MetaObjectHandler {
 
     /**
-     * 在插入操作时自动填充 createTime 和 updateTime 字段
-     * 在插入时填充 createBy 和 updateBy
+     * 在插入操作时自动填充 createdAt 和 updatedAt 字段
+     * 在插入时填充 createdBy 和 updatedBy
      */
     @Override
     public void insertFill(MetaObject metaObject) {
-        this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-        this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        this.strictInsertFill(metaObject, "createdAt", LocalDateTime.class, LocalDateTime.now());
+        this.strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, LocalDateTime.now());
 
         String currentUsername = getCurrentUsername(); // 从上下文中获取当前用户
-        this.strictInsertFill(metaObject, "createBy", String.class, currentUsername);
-        this.strictInsertFill(metaObject, "updateBy", String.class, currentUsername);
+        this.strictInsertFill(metaObject, "createdBy", String.class, currentUsername);
+        this.strictInsertFill(metaObject, "updatedBy", String.class, currentUsername);
     }
 
     /**
-     * 在更新操作时自动填充 updateTime 字段
-     * 在更新时填充 updateBy
+     * 在更新操作时自动填充 updatedAt 字段
+     * 在更新时填充 updatedBy
      */
     @Override
     public void updateFill(MetaObject metaObject) {
-        this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        this.strictUpdateFill(metaObject, "updatedAt", LocalDateTime.class, LocalDateTime.now());
 
         String currentUsername = getCurrentUsername(); // 从上下文中获取当前用户
-        this.strictUpdateFill(metaObject, "updateBy", String.class, currentUsername);
+        this.strictUpdateFill(metaObject, "updatedBy", String.class, currentUsername);
     }
 
     /**
