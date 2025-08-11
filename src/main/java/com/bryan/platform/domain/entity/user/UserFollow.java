@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
  * @author Bryan Long
  */
 @Data
-@TableName("user_follows")
-@KeySequence(value = "user_follows_id_seq")
+@TableName("user_follow")
+@KeySequence(value = "user_follow_id_seq")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder

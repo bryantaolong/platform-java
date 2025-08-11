@@ -1,7 +1,43 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.bryan.platform.mapper.PostFavoriteMapper">
 
+    <resultMap id="BaseResultMap" type="com.bryan.platform.domain.entity.post.PostFavorite">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="post_id" property="postId"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO post_favorite(user_id, post_id, created_at)
+        VALUES (#{userId}, #{postId}, #{createdAt})
+    </insert>
+
+    <select id="selectPostIdsByUserId" resultType="java.lang.String">
+        SELECT post_id
+        FROM post_favorite
+        WHERE user_id = #{userId}
+    </select>
+
+    <delete id="deleteByUserIdAndPostId">
+        DELETE FROM post_favorite
+        WHERE user_id = #{userId}
+          AND post_id = #{postId}
+    </delete>
+
+    <select id="countByUserId" resultType="long">
+        SELECT COUNT(*)
+        FROM post_favorite
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="countByUserIdAndPostId" resultType="long">
+        SELECT COUNT(*)
+        FROM post_favorite
+        WHERE user_id = #{userId}
+          AND post_id = #{postId}
+    </select>
 </mapper>

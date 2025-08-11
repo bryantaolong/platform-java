@@ -141,7 +141,7 @@ CREATE INDEX idx_post_favorite_user_id ON post_favorite (user_id);
 CREATE INDEX idx_post_favorite_post_id ON post_favorite (post_id);
 
 -- user_follow
-CREATE TABLE user_follows (
+CREATE TABLE user_follow (
                               id BIGSERIAL PRIMARY KEY,
                               follower_id BIGINT NOT NULL,
                               following_id BIGINT NOT NULL,
@@ -149,20 +149,20 @@ CREATE TABLE user_follows (
                               CONSTRAINT uk_follower_following UNIQUE (follower_id, following_id)
 );
 
-COMMENT ON TABLE user_follows IS '用户关注关系表';
-COMMENT ON COLUMN user_follows.id IS '主键ID';
-COMMENT ON COLUMN user_follows.follower_id IS '关注者ID';
-COMMENT ON COLUMN user_follows.following_id IS '被关注者ID';
-COMMENT ON COLUMN user_follows.created_at IS '关注时间';
+COMMENT ON TABLE user_follow IS '用户关注关系表';
+COMMENT ON COLUMN user_follow.id IS '主键ID';
+COMMENT ON COLUMN user_follow.follower_id IS '关注者ID';
+COMMENT ON COLUMN user_follow.following_id IS '被关注者ID';
+COMMENT ON COLUMN user_follow.created_at IS '关注时间';
 
 -- 添加外键约束
-ALTER TABLE user_follows ADD CONSTRAINT fk_user_follows_follower
+ALTER TABLE user_follow ADD CONSTRAINT fk_user_follow_follower
     FOREIGN KEY (follower_id) REFERENCES "user" (id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE user_follows ADD CONSTRAINT fk_user_follows_following
+ALTER TABLE user_follow ADD CONSTRAINT fk_user_follows_following
     FOREIGN KEY (following_id) REFERENCES "user" (id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 -- 创建索引
-CREATE INDEX idx_follower_id ON user_follows (follower_id);
-CREATE INDEX idx_following_id ON user_follows (following_id);
+CREATE INDEX idx_follower_id ON user_follow (follower_id);
+CREATE INDEX idx_following_id ON user_follow (following_id);
 

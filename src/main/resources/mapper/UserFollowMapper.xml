@@ -1,7 +1,57 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.bryan.platform.mapper.UserFollowMapper">
 
+    <resultMap id="BaseResultMap" type="com.bryan.platform.domain.entity.user.UserFollow">
+        <id column="id" property="id"/>
+        <result column="follower_id"  property="followerId"/>
+        <result column="following_id" property="followingId"/>
+        <result column="created_at"   property="createdAt"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_follow(follower_id, following_id, created_at)
+        VALUES (#{followerId}, #{followingId}, #{createdAt})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, follower_id, following_id, created_at
+        FROM user_follow
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectPageByFollowerId" resultMap="BaseResultMap">
+        SELECT id, follower_id, following_id, created_at
+        FROM user_follow
+        WHERE follower_id = #{followerId}
+        ORDER BY id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByFollowerId" resultType="long">
+        SELECT COUNT(*)
+        FROM user_follow
+        WHERE follower_id = #{followerId}
+    </select>
+
+    <delete id="deleteByFollowerIdAndFollowingId">
+        DELETE FROM user_follow
+        WHERE follower_id = #{followerId}
+          AND following_id = #{followingId}
+    </delete>
+
+    <select id="countByFollowerIdAndFollowingId" resultType="long">
+        SELECT COUNT(*)
+        FROM user_follow
+        WHERE follower_id = #{followerId}
+          AND following_id = #{followingId}
+    </select>
+
+    <select id="countByFollowingId" resultType="long">
+        SELECT COUNT(*)
+        FROM user_follow
+        WHERE following_id = #{followingId}
+    </select>
 </mapper>
