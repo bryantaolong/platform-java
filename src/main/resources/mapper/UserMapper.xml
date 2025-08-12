@@ -1,7 +1,150 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.bryan.platform.mapper.UserMapper">
+<mapper namespace="com.bryan.system.mapper.UserMapper">
 
+    <resultMap id="BaseResultMap" type="com.bryan.system.domain.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="roles" property="roles"/>
+        <result column="status" property="status"/>
+        <result column="login_fail_count" property="loginFailCount"/>
+        <result column="last_login_at" property="lastLoginAt"/>
+        <result column="last_login_ip" property="lastLoginIp"/>
+        <result column="password_reset_at" property="passwordResetAt"/>
+        <result column="locked_at" property="lockedAt"/>
+        <result column="deleted" property="deleted"/>
+        <result column="version" property="version"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="updated_by" property="updatedBy"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, username, password, phone, email, roles, status,
+        login_fail_count, last_login_at, last_login_ip,
+        password_reset_at, locked_at, deleted, version,
+        created_at, created_by, updated_at, updated_by
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (
+            username, password, phone, email, roles, status,
+            login_fail_count, last_login_at, last_login_ip,
+            password_reset_at, locked_at, deleted, version,
+            created_at, created_by, updated_at, updated_by
+        ) VALUES (
+                     #{username}, #{password}, #{phone}, #{email}, #{roles}, #{status},
+                     #{loginFailCount}, #{lastLoginAt}, #{lastLoginIp},
+                     #{passwordResetAt}, #{lockedAt}, #{deleted}, #{version},
+                     #{createdAt}, #{createdBy}, #{updatedAt}, #{updatedBy}
+                 )
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM sys_user
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM sys_user
+        WHERE username = #{username}
+        LIMIT 1
+    </select>
+
+    <!-- 分页查询 -->
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM sys_user
+        <where>
+            <include refid="SearchWhere"/>
+            <include refid="ExportWhere"/>
+        </where>
+        ORDER BY id ASC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*)
+        FROM sys_user
+        <where>
+            <include refid="SearchWhere"/>
+            <include refid="ExportWhere"/>
+        </where>
+    </select>
+
+    <!-- 搜索条件 -->
+    <sql id="SearchWhere">
+        <if test="req != null">
+            <if test="req.username != null and req.username != ''">
+                AND username LIKE '%' || #{req.username} || '%'
+            </if>
+            <if test="req.phone != null and req.phone != ''">
+                AND phone LIKE '%' || #{req.phone} || '%'
+            </if>
+            <if test="req.email != null and req.email != ''">
+                AND email LIKE '%' || #{req.email} || '%'
+            </if>
+            <if test="req.roles != null and req.roles != ''">
+                AND roles LIKE '%' || #{req.roles} || '%'
+            </if>
+            <if test="req.lastLoginIp != null and req.lastLoginIp != ''">
+                AND last_login_ip LIKE '%' || #{req.lastLoginIp} || '%'
+            </if>
+            <if test="req.createdBy != null and req.createdBy != ''">
+                AND created_by LIKE '%' || #{req.createdBy} || '%'
+            </if>
+            <if test="req.updatedBy != null and req.updatedBy != ''">
+                AND updated_by LIKE '%' || #{req.updatedBy} || '%'
+            </if>
+
+            <if test="req.status != null">
+                AND status = #{req.status}
+            </if>
+            <if test="req.loginFailCount != null">
+                AND login_fail_count = #{req.loginFailCount}
+            </if>
+            <if test="req.deleted != null">
+                AND deleted = #{req.deleted}
+            </if>
+            <if test="req.version != null">
+                AND version = #{req.version}
+            </if>
+
+            <!-- 时间范围 -->
+            <if test="req.createdAt != null">
+                AND created_at = #{req.createdAt}
+            </if>
+            <if test="req.createTimeStart != null">
+                AND created_at &gt;= #{req.createTimeStart}
+            </if>
+            <if test="req.createTimeEnd != null">
+                AND created_at &lt;= #{req.createTimeEnd}
+            </if>
+
+            <if test="req.updatedAt != null">
+                AND updated_at = #{req.updatedAt}
+            </if>
+            <if test="req.updateTimeStart != null">
+                AND updated_at &gt;= #{req.updateTimeStart}
+            </if>
+            <if test="req.updateTimeEnd != null">
+                AND updated_at &lt;= #{req.updateTimeEnd}
+            </if>
+        </if>
+    </sql>
+
+    <!-- 导出条件 -->
+    <sql id="ExportWhere">
+        <if test="export != null and export.status != null">
+            AND status = #{export.status}
+        </if>
+    </sql>
 </mapper>
