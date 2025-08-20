@@ -1,6 +1,5 @@
 package com.bryan.platform.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.bryan.platform.domain.entity.user.UserFollow;
 import org.apache.ibatis.annotations.*;
 
@@ -12,15 +11,19 @@ import java.util.List;
  * @author Bryan Long
  */
 @Mapper
-public interface UserFollowMapper extends BaseMapper<UserFollow> {
+public interface UserFollowMapper {
 
-//    int insert(UserFollow record);
+    int insert(UserFollow record);
 
-//    UserFollow selectById(Long id);
+    UserFollow selectById(Long id);
 
     List<UserFollow> selectPageByFollowerId(@Param("followerId") Long followerId,
                                             @Param("offset") long offset,
                                             @Param("size") int size);
+
+    List<UserFollow> selectPageByFollowingId(@Param("followingId") Long followingId,
+                                             @Param("offset") long offset,
+                                             @Param("size") int size);
 
     long countByFollowerId(@Param("followerId") Long followerId);
 

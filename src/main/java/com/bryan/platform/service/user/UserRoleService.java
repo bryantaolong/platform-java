@@ -2,7 +2,7 @@ package com.bryan.platform.service.user;
 
 import com.bryan.platform.domain.dto.RoleOptionDTO;
 import com.bryan.platform.domain.entity.user.UserRole;
-import com.bryan.platform.repository.UserRoleRepository;
+import com.bryan.platform.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,16 +18,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserRoleService {
 
-    private final UserRoleRepository userRoleRepository;
+    private final UserRoleMapper userRoleMapper;
 
     public List<RoleOptionDTO> listAll() {
-        return userRoleRepository.findAll()
+        return userRoleMapper.selectAll()
                 .stream()
                 .map(r -> new RoleOptionDTO(r.getId(), r.getRoleName()))
                 .toList();
     }
 
     public List<UserRole> findByIds(Collection<Long> ids) {
-        return userRoleRepository.findAllByIdIn(ids);
+        return userRoleMapper.selectByIdList(ids);
     }
 }

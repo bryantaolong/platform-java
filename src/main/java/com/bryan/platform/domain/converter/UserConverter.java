@@ -1,7 +1,7 @@
 package com.bryan.platform.domain.converter;
 
+import com.bryan.platform.domain.entity.user.SysUser;
 import com.bryan.platform.domain.enums.UserStatusEnum;
-import com.bryan.platform.domain.entity.user.User;
 import com.bryan.platform.domain.vo.UserExportVO;
 
 /**
@@ -11,7 +11,7 @@ import com.bryan.platform.domain.vo.UserExportVO;
  */
 public class UserConverter {
 
-    public static UserExportVO toExportVO(User user) {
+    public static UserExportVO toExportVO(SysUser user) {
         if (user == null) {
             return null;
         }

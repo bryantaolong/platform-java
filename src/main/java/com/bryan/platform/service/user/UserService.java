@@ -1,16 +1,16 @@
 package com.bryan.platform.service.user;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bryan.platform.domain.entity.user.SysUser;
 import com.bryan.platform.domain.entity.user.UserRole;
 import com.bryan.platform.domain.enums.UserStatusEnum;
-import com.bryan.platform.domain.request.user.ChangeRoleRequest;
-import com.bryan.platform.exception.BusinessException;
-import com.bryan.platform.exception.ResourceNotFoundException;
 import com.bryan.platform.domain.request.PageRequest;
+import com.bryan.platform.domain.request.user.ChangeRoleRequest;
 import com.bryan.platform.domain.request.user.UserSearchRequest;
 import com.bryan.platform.domain.request.user.UserUpdateRequest;
-import com.bryan.platform.domain.entity.user.User;
-import com.bryan.platform.repository.UserRepository;
+import com.bryan.platform.domain.response.PageResult;
+import com.bryan.platform.exception.BusinessException;
+import com.bryan.platform.exception.ResourceNotFoundException;
+import com.bryan.platform.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -31,17 +33,36 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserRoleService userRoleService;
+
+    private PageResult<SysUser> page(long pageNum,
+                                     long pageSize,
+                                     List<SysUser> rows,
+                                     long total) {
+        return PageResult.<SysUser>builder()
+                .rows(rows)
+                .total(total)
+                .pageNum(pageNum)
+                .pageSize(pageSize)
+                .build();
+    }
 
     /**
      * 获取所有用户列表（不分页）。
      *
      * @return 包含所有用户的分页对象（Page）。
      */
-    public Page<User> getAllUsers(PageRequest pageRequest) {
-        return userRepository.findAll(pageRequest.getPageNum(), pageRequest.getPageSize());
+    public PageResult<SysUser> getAllUsers(PageRequest pageRequest) {
+        long offset = (pageRequest.getPageNum() - 1) * pageRequest.getPageSize();
+        List<SysUser> rows = userMapper.selectPage(
+                offset,
+                pageRequest.getPageSize(),
+                null,
+                null);
+        long total = userMapper.count(null, null);
+        return page(pageRequest.getPageNum(), pageRequest.getPageSize(), rows, total);
     }
 
     /**
@@ -51,15 +72,9 @@ public class UserService {
      * @return 用户实体对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      */
-    public User getUserById(Long userId) {
-        // 1. 根据ID查询用户
-        User user = userRepository.findById(userId);
-
-        if (user == null) {
-            throw new ResourceNotFoundException("用户不存在");
-        }
-
-        return user;
+    public SysUser getUserById(Long userId) {
+        return Optional.ofNullable(userMapper.selectById(userId))
+                .orElseThrow(() -> new ResourceNotFoundException("用户不存在"));
     }
 
     /**
@@ -68,8 +83,8 @@ public class UserService {
      * @param username 用户名
      * @return 用户实体对象
      */
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public SysUser getUserByUsername(String username) {
+        return userMapper.selectByUsername(username);
     }
 
     /**
@@ -79,50 +94,54 @@ public class UserService {
      * @param pageRequest 分页请求
      * @return 符合查询条件的分页对象（Page）
      */
-    public Page<User> searchUsers(UserSearchRequest searchRequest, PageRequest pageRequest) {
-        return userRepository.searchUsers(searchRequest, pageRequest);
+    public PageResult<SysUser> searchUsers(UserSearchRequest searchRequest,
+                                           PageRequest pageRequest) {
+        long offset = (pageRequest.getPageNum() - 1) * pageRequest.getPageSize();
+        List<SysUser> rows = userMapper.selectPage(
+                offset,
+                pageRequest.getPageSize(),
+                searchRequest,
+                null);
+        long total = userMapper.count(searchRequest, null);
+        return page(pageRequest.getPageNum(), pageRequest.getPageSize(), rows, total);
+    }
+
+    public SysUser save(SysUser sysUser) {
+        if (sysUser.getId() == null) {
+            userMapper.insert(sysUser);
+        } else {
+            userMapper.update(sysUser);
+        }
+        return sysUser;
     }
 
     /**
      * 更新用户基础信息（用户名和邮箱）。
      *
      * @param userId            用户ID
-     * @param userUpdateRequest 用户更新请求体
+     * @param req 用户更新请求体
      * @return 更新后的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      * @throws BusinessException         用户名重复时抛出
      */
-    public User updateUser(Long userId, UserUpdateRequest userUpdateRequest) {
-        return Optional.ofNullable(userRepository.findById(userId))
-                .map(existingUser -> {
-                    // 1. 检查用户名是否重复
-                    if (userUpdateRequest.getUsername() != null &&
-                            !userUpdateRequest.getUsername().equals(existingUser.getUsername())) {
-                        User userWithSameUsername = userRepository.findByUsername(userUpdateRequest.getUsername());
-                        if (userWithSameUsername != null && !userWithSameUsername.getId().equals(userId)) {
-                            throw new BusinessException("用户名已存在");
-                        }
-                        existingUser.setUsername(userUpdateRequest.getUsername());
-                    }
+    public SysUser updateUser(Long userId, UserUpdateRequest req) {
+        SysUser user = getUserById(userId);
 
-                    // 2. 更新电话号码
-                    if (userUpdateRequest.getPhone() != null) {
-                        existingUser.setPhone(userUpdateRequest.getPhone());
-                    }
+        // 用户名不能重复
+        if (req.getUsername() != null &&
+                !req.getUsername().equals(user.getUsername())) {
+            SysUser sameName = userMapper.selectByUsername(req.getUsername());
+            if (sameName != null && !sameName.getId().equals(userId)) {
+                throw new BusinessException("用户名已存在");
+            }
+            user.setUsername(req.getUsername());
+        }
+        if (req.getPhone() != null) user.setPhone(req.getPhone());
+        if (req.getEmail() != null) user.setEmail(req.getEmail());
 
-                    // 3. 更新邮箱信息
-                    if (userUpdateRequest.getEmail() != null) {
-                        existingUser.setEmail(userUpdateRequest.getEmail());
-                    }
-
-                    // 4. 执行数据库更新
-                    userRepository.save(existingUser);
-
-                    // 5. 记录日志并返回
-                    log.info("用户ID: {} 的信息更新成功", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+        userMapper.update(user);
+        log.info("用户ID: {} 的信息更新成功", userId);
+        return user;
     }
 
     /**
@@ -134,28 +153,24 @@ public class UserService {
      * @throws ResourceNotFoundException 用户不存在时抛出
      */
     @Transactional
-    public User changeRoleByIds(Long userId, ChangeRoleRequest req) {
+    public SysUser changeRoleByIds(Long userId, ChangeRoleRequest req) {
         List<Long> ids = req.getRoleIds();
         List<UserRole> roles = userRoleService.findByIds(ids);
 
-        // 校验 id 是否全部存在
         if (roles.size() != ids.size()) {
-            Set<Long> exist = roles.stream().map(UserRole::getId).collect(Collectors.toSet());
+            Set<Long> exist = roles.stream()
+                    .map(UserRole::getId)
+                    .collect(Collectors.toSet());
             ids.removeAll(exist);
             throw new IllegalArgumentException("角色不存在：" + ids);
         }
-
         String roleNames = roles.stream()
                 .map(UserRole::getRoleName)
                 .collect(Collectors.joining(","));
-
-        User user = userRepository.findById(userId);
-        if (user == null) {
-            throw new ResourceNotFoundException("用户不存在");
-        }
-
+        SysUser user = getUserById(userId);
         user.setRoles(roleNames);
-        return userRepository.save(user);
+        userMapper.update(user);
+        return user;
     }
 
     /**
@@ -168,28 +183,18 @@ public class UserService {
      * @throws ResourceNotFoundException 用户不存在时抛出
      * @throws BusinessException         旧密码验证失败时抛出
      */
-    public User changePassword(Long userId, String oldPassword, String newPassword) {
-        return Optional.ofNullable(userRepository.findById(userId))
-                .map(existingUser -> {
-                    // 1. 验证旧密码是否正确
-                    if (!passwordEncoder.matches(oldPassword, existingUser.getPassword())) {
-                        throw new BusinessException("旧密码不正确");
-                    }
-
-                    // 2. 设置新密码（加密）
-                    existingUser.setPassword(passwordEncoder.encode(newPassword));
-
-                    // 3. 设置重置密码时间
-                    existingUser.setPasswordResetAt(LocalDateTime.now());
-
-                    // 4. 更新数据库
-                    userRepository.save(existingUser);
-
-                    // 5. 记录日志
-                    log.info("用户ID: {} 的密码更新成功", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    public SysUser changePassword(Long userId,
+                                  String oldPassword,
+                                  String newPassword) {
+        SysUser user = getUserById(userId);
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BusinessException("旧密码不正确");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordResetAt(LocalDateTime.now());
+        userMapper.update(user);
+        log.info("用户ID: {} 的密码更新成功", userId);
+        return user;
     }
 
     /**
@@ -201,23 +206,13 @@ public class UserService {
      * @throws ResourceNotFoundException 用户不存在时抛出
      * @throws BusinessException         旧密码验证失败时抛出
      */
-    public User changePasswordForcefully(Long userId, String newPassword) {
-        return Optional.ofNullable(userRepository.findById(userId))
-                .map(existingUser -> {
-                    // 1. 设置新密码（加密）
-                    existingUser.setPassword(passwordEncoder.encode(newPassword));
-
-                    // 2. 设置重置密码时间
-                    existingUser.setPasswordResetAt(LocalDateTime.now());
-
-                    // 3. 更新数据库
-                    userRepository.save(existingUser);
-
-                    // 4. 记录日志
-                    log.info("用户ID: {} 的密码强制修改成功", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    public SysUser changePasswordForcefully(Long userId, String newPassword) {
+        SysUser user = getUserById(userId);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordResetAt(LocalDateTime.now());
+        userMapper.update(user);
+        log.info("用户ID: {} 的密码强制修改成功", userId);
+        return user;
     }
 
     /**
@@ -227,20 +222,12 @@ public class UserService {
      * @return 更新后的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      */
-    public User blockUser(Long userId) {
-        return Optional.ofNullable(userRepository.findById(userId))
-                .map(existingUser -> {
-                    // 1. 设置状态为封禁
-                    existingUser.setStatus(UserStatusEnum.BANNED);
-
-                    // 2. 更新数据库
-                    userRepository.save(existingUser);
-
-                    // 3. 记录日志
-                    log.info("用户ID: {} 封禁成功", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    public SysUser blockUser(Long userId) {
+        SysUser user = getUserById(userId);
+        user.setStatus(UserStatusEnum.BANNED);
+        userMapper.update(user);
+        log.info("用户ID: {} 封禁成功", userId);
+        return user;
     }
 
     /**
@@ -250,20 +237,12 @@ public class UserService {
      * @return 更新后的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      */
-    public User unblockUser(Long userId) {
-        return Optional.ofNullable(userRepository.findById(userId))
-                .map(existingUser -> {
-                    // 1. 设置状态为正常
-                    existingUser.setStatus(UserStatusEnum.NORMAL);
-
-                    // 2. 更新数据库
-                    userRepository.save(existingUser);
-
-                    // 3. 记录日志
-                    log.info("用户ID: {} 解封成功", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    public SysUser unblockUser(Long userId) {
+        SysUser user = getUserById(userId);
+        user.setStatus(UserStatusEnum.NORMAL);
+        userMapper.update(user);
+        log.info("用户ID: {} 解封成功", userId);
+        return user;
     }
 
     /**
@@ -273,19 +252,10 @@ public class UserService {
      * @return 被删除的用户对象
      * @throws ResourceNotFoundException 用户不存在时抛出
      */
-    public User deleteUser(Long userId) {
-        return Optional.ofNullable(userRepository.findById(userId))
-                .map(existingUser -> {
-                    // 1. 更新数据库
-                    userRepository.save(existingUser);
-
-                    // 2. 执行逻辑删除
-                    userRepository.save(existingUser);
-
-                    // 3. 记录日志
-                    log.info("用户ID: {} 删除成功 (逻辑删除)", userId);
-                    return existingUser;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("用户ID: " + userId + " 不存在"));
+    public SysUser deleteUser(Long userId) {
+        SysUser user = getUserById(userId);
+        userMapper.updateDeletedById(userId, 1);
+        log.info("用户ID: {} 删除成功 (逻辑删除)", userId);
+        return user;
     }
 }

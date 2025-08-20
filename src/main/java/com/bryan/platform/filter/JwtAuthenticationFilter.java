@@ -4,7 +4,7 @@ import com.bryan.platform.domain.response.Result;
 import com.bryan.platform.service.user.AuthService;
 import com.bryan.platform.service.redis.RedisStringService;
 import com.bryan.platform.util.jwt.JwtUtils;
-import com.bryan.platform.domain.entity.user.User;
+import com.bryan.platform.domain.entity.user.SysUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -80,7 +80,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 权限信息直接从 Token 中获取，提高性能并符合JWT无状态原则。
             // 但为了安全起见，通常还会从数据库加载用户主体（User对象），以验证用户状态等。
             // 这里我们仍然从数据库加载用户，以确保用户是存在的且状态正常。
-            User user = authService.getCurrentUser();
+            SysUser user = authService.getCurrentUser();
             if (user == null || !user.isEnabled() || !user.isAccountNonLocked()) {
                 // 如果用户不存在或被禁用/锁定，则视为认证失败
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);

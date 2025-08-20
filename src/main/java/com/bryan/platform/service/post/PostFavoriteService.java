@@ -1,13 +1,12 @@
 package com.bryan.platform.service.post;
 
+import com.bryan.platform.domain.entity.user.SysUser;
 import com.bryan.platform.exception.BusinessException;
 import com.bryan.platform.exception.ResourceNotFoundException;
 import com.bryan.platform.mapper.PostFavoriteMapper;
-import com.bryan.platform.repository.PostFavoriteRepository;
 import com.bryan.platform.repository.PostRepository;
 import com.bryan.platform.domain.entity.post.Post;
 import com.bryan.platform.domain.entity.post.PostFavorite;
-import com.bryan.platform.domain.entity.user.User;
 import com.bryan.platform.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +16,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 博文收藏服务类
@@ -36,7 +34,6 @@ public class PostFavoriteService {
 
     private final PostFavoriteMapper postFavoriteMapper;
     private final PostRepository postRepository;
-    private final PostFavoriteRepository postFavoriteRepository;
     private final UserService userService;
 
     /**
@@ -49,16 +46,13 @@ public class PostFavoriteService {
      */
     public Page<Post> getFavoritePostsByUserId(Long userId, Pageable pageable) {
         // 校验用户是否存在
-        User user = userService.getUserById(userId);
+        SysUser user = userService.getUserById(userId);
         if (user == null) {
             throw new ResourceNotFoundException("用户未找到，ID: " + userId);
         }
 
         // 查询用户收藏的博文ID列表
-        List<String> postIds = postFavoriteRepository.findAllByUserIdAndPostId(userId)
-                .stream()
-                .map(PostFavorite::getPostId)
-                .collect(Collectors.toList());
+        List<String> postIds = postFavoriteMapper.selectPostIdsByUserId(userId);
 
         if (postIds.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
@@ -78,35 +72,24 @@ public class PostFavoriteService {
      * @throws BusinessException 如果已收藏且未删除
      */
     public boolean addFavorite(Long userId, String postId) {
-        // 校验用户是否存在
-        User user = userService.getUserById(userId);
-        if (user == null) {
-            throw new ResourceNotFoundException("收藏用户未找到，ID: " + userId);
-        }
+        userService.getUserById(userId);
 
         // 校验博文是否存在
-        Optional<Post> postOptional = postRepository.findById(postId);
-        if (postOptional.isEmpty()) {
-            throw new ResourceNotFoundException("被收藏博文未找到，ID: " + postId);
+        if (!postRepository.existsById(postId)) {
+            throw new ResourceNotFoundException("博文不存在，ID: " + postId);
         }
 
-        // 检查是否已收藏
-        if (isFavorite(userId, postId)) {
+        if (postFavoriteMapper.countByUserIdAndPostId(userId, postId) > 0) {
             throw new BusinessException("该博文已被收藏，无需重复收藏");
         }
 
-        // 插入新的收藏记录
-        PostFavorite favorite = PostFavorite.builder()
-                .userId(userId)
-                .postId(postId)
-                .build();
-
-        PostFavorite saved = postFavoriteRepository.save(favorite);
-        if (saved != null) {
-            log.info("用户ID: {} 收藏博文ID: {}", userId, postId);
-            return true;
-        }
-        return false;
+        int rows = postFavoriteMapper.insert(
+                PostFavorite.builder()
+                        .userId(userId)
+                        .postId(postId)
+                        .createdAt(LocalDateTime.now())
+                        .build());
+        return rows > 0;
     }
 
     /**
@@ -118,15 +101,14 @@ public class PostFavoriteService {
      * @throws ResourceNotFoundException 如果未收藏该博文
      */
     public boolean deleteFavorite(Long userId, String postId) {
-        int rowsAffected = postFavoriteRepository.deleteByUserIdAndPostId(userId, postId);
-
-        if (rowsAffected > 0) {
-            log.info("用户ID: {} 取消收藏博文ID: {}", userId, postId);
-            return true;
+        int rows = postFavoriteMapper.deleteByUserIdAndPostId(userId, postId);
+        if (rows == 0) {
+            throw new ResourceNotFoundException("用户未收藏该博文");
         }
-        throw new ResourceNotFoundException("用户ID: " + userId + " 未收藏博文ID: " + postId);
+        return true;
     }
 
+    /* ------------------ 工具方法 ------------------ */
     /**
      * 检查用户是否已收藏指定博文
      *
@@ -135,10 +117,10 @@ public class PostFavoriteService {
      * @return true 表示已收藏；false 表示未收藏
      */
     public boolean isFavorite(Long userId, String postId) {
-        return postFavoriteRepository.countByUserIdAndPostId(userId, postId) > 0;
+        return postFavoriteMapper.countByUserIdAndPostId(userId, postId) > 0;
     }
 
     public long countUserFavorites(Long userId) {
-        return postFavoriteRepository.count(userId);
+        return postFavoriteMapper.countByUserId(userId);
     }
 }

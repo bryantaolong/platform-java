@@ -3,8 +3,9 @@ package com.bryan.platform.service.post;
 import com.bryan.platform.domain.entity.Comment;
 import com.bryan.platform.domain.entity.post.Post;
 import com.bryan.platform.domain.enums.PostStatusEnum;
+import com.bryan.platform.domain.response.PageResult;
 import com.bryan.platform.repository.PostRepository;
-import com.bryan.platform.domain.entity.user.User;
+import com.bryan.platform.domain.entity.user.SysUser;
 import com.bryan.platform.service.user.UserFollowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,21 +101,21 @@ public class PostService {
      */
     public Page<Post> getFollowingPosts(Long userId, Pageable pageable) {
         // 1. 获取关注的用户列表
-        var followingUsers = userFollowService.getFollowingUsers(
+        PageResult<SysUser> followingUsers = userFollowService.getFollowingUsers(
                 userId,
                 pageable.getPageNumber() + 1,
                 pageable.getPageSize()
         );
 
         // 2. 若无关注用户，返回空分页
-        if (followingUsers.getRecords().isEmpty()) {
+        if (followingUsers.getRows().isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
         // 3. 获取被关注用户的 ID 列表
-        List<Long> followingIds = followingUsers.getRecords()
+        List<Long> followingIds = followingUsers.getRows()
                 .stream()
-                .map(User::getId)
+                .map(SysUser::getId)
                 .collect(Collectors.toList());
 
         // 4. 查询对应用户的已发布博文

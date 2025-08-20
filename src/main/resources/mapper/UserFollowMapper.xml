@@ -30,6 +30,14 @@
         LIMIT #{size} OFFSET #{offset}
     </select>
 
+    <select id="selectPageByFollowingId" resultMap="BaseResultMap">
+        SELECT id, follower_id, following_id, created_at
+        FROM user_follow
+        WHERE following_id = #{followingId}
+        ORDER BY id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
     <select id="countByFollowerId" resultType="long">
         SELECT COUNT(*)
         FROM user_follow
