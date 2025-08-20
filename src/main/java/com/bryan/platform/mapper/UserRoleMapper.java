@@ -1,6 +1,5 @@
 package com.bryan.platform.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.bryan.platform.domain.entity.user.UserRole;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -14,7 +13,7 @@ import java.util.List;
  * @author Bryan Long
  */
 @Mapper
-public interface UserRoleMapper extends BaseMapper<UserRole> {
+public interface UserRoleMapper{
 
     UserRole selectOneByIsDefaultTrue();
 

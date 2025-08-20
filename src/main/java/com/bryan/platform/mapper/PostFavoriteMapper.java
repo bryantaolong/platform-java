@@ -1,6 +1,5 @@
 package com.bryan.platform.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.bryan.platform.domain.entity.post.PostFavorite;
 import org.apache.ibatis.annotations.*;
 
@@ -12,9 +11,9 @@ import java.util.List;
  * @author Bryan Long
  */
 @Mapper
-public interface PostFavoriteMapper extends BaseMapper<PostFavorite> {
+public interface PostFavoriteMapper {
 
-//    int insert(PostFavorite record);
+    int insert(PostFavorite record);
 
     List<String> selectPostIdsByUserId(@Param("userId") Long userId);
 

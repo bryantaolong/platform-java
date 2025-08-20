@@ -19,17 +19,13 @@ logging:
       max-file-size: 10MB
       max-history: 30
 
-# MyBatis-Plus 配置（通用）
-mybatis-plus:
+# MyBatis 配置（通用）
+mybatis:
   mapper-locations: classpath*:/mapper/**/*.xml
   type-aliases-package: com.bryan.platform.domain.entity
   configuration:
     map-underscore-to-camel-case: true
-  global-config:
-    db-config:
-      logic-delete-field: deleted
-      logic-not-delete-value: 0
-      logic-delete-value: 1
+    default-enum-type-handler: org.apache.ibatis.type.EnumOrdinalTypeHandler
 
 # 第三方 API 配置（通用）
 deepseek:

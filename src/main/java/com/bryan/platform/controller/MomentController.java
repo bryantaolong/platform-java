@@ -1,8 +1,8 @@
 package com.bryan.platform.controller;
 
+import com.bryan.platform.domain.entity.user.SysUser;
 import com.bryan.platform.domain.enums.HttpStatus;
 import com.bryan.platform.domain.entity.moment.Moment;
-import com.bryan.platform.domain.entity.user.User;
 import com.bryan.platform.domain.response.Result;
 import com.bryan.platform.service.moment.MomentService;
 import com.bryan.platform.service.user.AuthService;
@@ -40,7 +40,7 @@ public class MomentController {
     @PostMapping
     public Result<Moment> createMoment(@RequestBody Moment moment) {
         // 1. 获取当前用户信息
-        User currentUser = authService.getCurrentUser();
+        SysUser currentUser = authService.getCurrentUser();
 
         // 2. 设置作者信息
         moment.setAuthorId(currentUser.getId());

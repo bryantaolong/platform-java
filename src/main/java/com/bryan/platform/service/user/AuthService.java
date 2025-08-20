@@ -1,14 +1,14 @@
 package com.bryan.platform.service.user;
 
+import com.bryan.platform.domain.entity.user.SysUser;
 import com.bryan.platform.domain.entity.user.UserRole;
 import com.bryan.platform.domain.enums.UserStatusEnum;
 import com.bryan.platform.exception.BusinessException;
-import com.bryan.platform.repository.UserRepository;
-import com.bryan.platform.repository.UserRoleRepository;
+import com.bryan.platform.mapper.UserMapper;
+import com.bryan.platform.mapper.UserRoleMapper;
 import com.bryan.platform.service.redis.RedisStringService;
 import com.bryan.platform.util.http.HttpUtils;
 import com.bryan.platform.util.jwt.JwtUtils;
-import com.bryan.platform.domain.entity.user.User;
 import com.bryan.platform.domain.request.auth.LoginRequest;
 import com.bryan.platform.domain.request.auth.RegisterRequest;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +34,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthService implements UserDetailsService {
 
-    private final UserRepository userRepository;
-    private final UserRoleRepository userRoleRepository;
+    private final UserMapper userMapper;
+    private final UserRoleMapper userRoleMapper;
     private final PasswordEncoder passwordEncoder;
     private final RedisStringService redisStringService;
 
@@ -47,18 +47,20 @@ public class AuthService implements UserDetailsService {
      * @throws BusinessException 用户名已存在
      * @throws BusinessException 插入数据库失败
      */
-    public User register(RegisterRequest registerRequest) {
+    public SysUser register(RegisterRequest registerRequest) {
         // 1. 检查用户名是否已存在
-        if(userRepository.findByUsername(registerRequest.getUsername()) != null) {
+        if(userMapper.selectByUsername(registerRequest.getUsername()) != null) {
             throw new BusinessException("用户名已存在");
         }
 
         // 2. 查出默认角色
-        UserRole defaultRole = userRoleRepository.findByIsDefaultTrue()
-                .orElseThrow(() -> new BusinessException("系统未配置默认角色"));
+        UserRole defaultRole = userRoleMapper.selectOneByIsDefaultTrue();
+        if(defaultRole == null) {
+            throw new BusinessException("系统未配置默认角色");
+        }
 
         // 3. 构建用户实体，密码加密
-        User user = User.builder()
+        SysUser sysUser = SysUser.builder()
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .phone(registerRequest.getPhone())
@@ -68,15 +70,15 @@ public class AuthService implements UserDetailsService {
                 .build();
 
         // 4. 插入用户数据
-        User saved = userRepository.save(user);
-        if (saved == null) {
+        int saved = userMapper.insert(sysUser);
+        if (saved == 0) {
             throw new BusinessException("插入数据库失败");
         }
 
-        log.info("用户注册成功: id: {}, username: {} ", user.getId(), user.getUsername());
+        log.info("用户注册成功: id: {}, username: {} ", sysUser.getId(), sysUser.getUsername());
 
         // 5. 返回新注册用户
-        return user;
+        return sysUser;
     }
 
     /**
@@ -88,48 +90,48 @@ public class AuthService implements UserDetailsService {
      */
     public String login(LoginRequest loginRequest) {
         // 1. 验证用户凭证
-        User user = userRepository.findByUsername(loginRequest.getUsername());
+        SysUser sysUser = userMapper.selectByUsername(loginRequest.getUsername());
 
-        if (user == null) {
+        if (sysUser == null) {
             throw new BusinessException("用户名或密码错误");
         }
 
-        if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
-            user.setLoginFailCount(user.getLoginFailCount() + 1);
+        if(!passwordEncoder.matches(loginRequest.getPassword(), sysUser.getPassword())){
+            sysUser.setLoginFailCount(sysUser.getLoginFailCount() + 1);
 
             // 如果输入密码错误次数达到限额-硬编码为 5，则锁定账号
-            if(user.getLoginFailCount() >= 5) {
-                user.setStatus(UserStatusEnum.NORMAL);
-                user.setLockedAt(LocalDateTime.now());
+            if(sysUser.getLoginFailCount() >= 5) {
+                sysUser.setStatus(UserStatusEnum.NORMAL);
+                sysUser.setPasswordResetAt(LocalDateTime.now());
                 throw new BusinessException("输入密码错误次数过多，账号锁定");
             }
             throw new BusinessException("用户名或密码错误");
         }
 
         // 2. 检查现有Token（使用JwtUtils验证有效性）
-        String existingToken = redisStringService.get(user.getUsername());
+        String existingToken = redisStringService.get(sysUser.getUsername());
         if (existingToken != null && JwtUtils.validateToken(existingToken)) {
             // 刷新Redis中的Token过期时间
-            redisStringService.setExpire(user.getUsername(), 86400000 / 1000);
+            redisStringService.setExpire(sysUser.getUsername(), 86400000 / 1000);
             return existingToken;
         }
 
         // 3. 更新用户登录信息
-        user.setLastLoginAt(LocalDateTime.now());
-        user.setLastLoginIp(HttpUtils.getClientIp());
-        user.setLoginFailCount(0); // 重置密码输入错误次数
-        userRepository.save(user);
+        sysUser.setLastLoginAt(LocalDateTime.now());
+        sysUser.setLastLoginIp(HttpUtils.getClientIp());
+        sysUser.setLoginFailCount(0); // 重置密码输入错误次数
+        userMapper.update(sysUser);
 
         // 4. 生成新的JWT Token
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", user.getUsername());
-        claims.put("roles", user.getRoles());
+        claims.put("username", sysUser.getUsername());
+        claims.put("roles", sysUser.getRoles());
 
-        String token = JwtUtils.generateToken(user.getId().toString(), claims);
+        String token = JwtUtils.generateToken(sysUser.getId().toString(), claims);
 
         // 5. 存储到Redis（设置与JWT相同的过期时间）
         boolean saved = redisStringService.set(
-                user.getUsername(),
+                sysUser.getUsername(),
                 token,
                 86400000 / 1000
         );
@@ -166,12 +168,12 @@ public class AuthService implements UserDetailsService {
      *
      * @return 当前用户实体
      */
-    public User getCurrentUser() {
+    public SysUser getCurrentUser() {
         // 1. 获取当前用户 ID
         Long userId = JwtUtils.getCurrentUserId();
 
         // 2. 查询数据库返回用户信息
-        return userRepository.findById(userId);
+        return userMapper.selectById(userId);
     }
 
     /**
@@ -222,15 +224,15 @@ public class AuthService implements UserDetailsService {
      */
     public String refreshToken() {
         // 1. 获取当前用户信息
-        User user = getCurrentUser();
+        SysUser sysUser = getCurrentUser();
 
         // 2. 构建 JWT claims，包含用户角色
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", user.getUsername());
-        claims.put("roles", user.getRoles());
+        claims.put("username", sysUser.getUsername());
+        claims.put("roles", sysUser.getRoles());
 
         // 3. 生成并返回 Token
-        return JwtUtils.generateToken(user.getId().toString(), claims);
+        return JwtUtils.generateToken(sysUser.getId().toString(), claims);
     }
 
     /**
@@ -259,14 +261,14 @@ public class AuthService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // 1. 根据用户名查询用户
-        User user = userRepository.findByUsername(username);
+        SysUser sysUser = userMapper.selectByUsername(username);
 
         // 2. 用户不存在则抛出异常
-        if (user == null) {
+        if (sysUser == null) {
             throw new UsernameNotFoundException("用户不存在: " + username);
         }
 
         // 3. 返回用户详情（已实现 UserDetails）
-        return user;
+        return sysUser;
     }
 }

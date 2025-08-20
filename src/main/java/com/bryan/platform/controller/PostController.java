@@ -3,7 +3,7 @@ package com.bryan.platform.controller;
 import com.bryan.platform.domain.response.Result;
 import com.bryan.platform.domain.entity.Comment;
 import com.bryan.platform.domain.entity.post.Post;
-import com.bryan.platform.domain.entity.user.User;
+import com.bryan.platform.domain.entity.user.SysUser;
 import com.bryan.platform.service.user.AuthService;
 import com.bryan.platform.service.post.PostService;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class PostController {
     @PostMapping("/post")
     public Result<Post> createPost(@RequestBody Post post) {
         // 1. 获取当前用户信息
-        User currentUser = authService.getCurrentUser();
+        SysUser currentUser = authService.getCurrentUser();
         // 2. 创建博文
         return Result.success(postService.createPost(post, currentUser.getId(), currentUser.getUsername()));
     }
@@ -242,7 +242,7 @@ public class PostController {
             @PathVariable String postId,
             @RequestBody Comment comment) {
         // 1. 获取当前用户信息
-        User currentUser = authService.getCurrentUser();
+        SysUser currentUser = authService.getCurrentUser();
         Long authorId = currentUser.getId();
         String authorName = currentUser.getUsername();
         // 2. 添加评论

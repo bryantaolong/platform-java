@@ -8,13 +8,12 @@ import com.alibaba.excel.write.handler.CellWriteHandler;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.excel.write.metadata.holder.WriteSheetHolder;
 import com.alibaba.excel.write.metadata.holder.WriteTableHolder;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bryan.platform.domain.entity.user.SysUser;
 import com.bryan.platform.exception.BusinessException;
-import com.bryan.platform.domain.entity.user.User;
 import com.bryan.platform.domain.request.user.UserExportRequest;
 import com.bryan.platform.domain.vo.UserExportVO;
 import com.bryan.platform.domain.converter.UserConverter;
-import com.bryan.platform.repository.UserRepository;
+import com.bryan.platform.mapper.UserMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +41,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserExportService {
 
-    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     /**
      * 导出所有字段（全量导出）
@@ -158,29 +157,28 @@ public class UserExportService {
      */
     private void executeBatchExport(ExcelWriter excelWriter,
                                     WriteSheet writeSheet,
-                                    UserExportRequest exportRequest) throws IOException {
+                                    UserExportRequest exportRequest) {
         int pageNum = 1;
-        int pageSize = 500; // 推荐更大的批次量（性能优化）
+        int pageSize = 1000;
         int totalExported = 0;
 
         while (true) {
-            Page<User> result = userRepository.findAll(pageNum, pageSize, exportRequest);
-            List<UserExportVO> exportData = convertToVO(result.getRecords());
-
-            if (CollectionUtils.isEmpty(exportData)) {
+            long offset = (long) (pageNum - 1) * pageSize;
+            List<SysUser> records = userMapper.selectPage(offset,
+                    pageSize,
+                    null,
+                    exportRequest);
+            if (CollectionUtils.isEmpty(records)) {
                 break;
             }
-
-            excelWriter.write(exportData, writeSheet);
-            totalExported += exportData.size();
+            List<UserExportVO> vos = records.stream()
+                    .map(UserConverter::toExportVO)
+                    .toList();
+            excelWriter.write(vos, writeSheet);
+            totalExported += vos.size();
             log.info("已导出 {} 条数据", totalExported);
-
-            if (!result.hasNext()) {
-                break;
-            }
             pageNum++;
         }
-
         excelWriter.finish();
         log.info("导出完成，总计 {} 条数据", totalExported);
     }
@@ -188,8 +186,8 @@ public class UserExportService {
     /**
      * 实体转换
      */
-    private List<UserExportVO> convertToVO(List<User> users) {
-        return users.stream()
+    private List<UserExportVO> convertToVO(List<SysUser> sysUsers) {
+        return sysUsers.stream()
                 .map(UserConverter::toExportVO)
                 .collect(Collectors.toList());
     }

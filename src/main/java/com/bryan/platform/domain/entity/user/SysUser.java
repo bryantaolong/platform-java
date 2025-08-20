@@ -1,6 +1,5 @@
 package com.bryan.platform.domain.entity.user;
 
-import com.baomidou.mybatisplus.annotation.*;
 import com.bryan.platform.domain.enums.UserStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,10 +25,8 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("\"user\"")
-@KeySequence(value = "user_id_seq") // 指定序列名称
-public class User implements Serializable, UserDetails {
-    @TableId(type = IdType.AUTO)
+public class SysUser implements Serializable, UserDetails {
+
     private Long id;
 
     private String username;
@@ -41,7 +38,6 @@ public class User implements Serializable, UserDetails {
     private String email;
 
     /** 使用枚举 */
-    @EnumValue
     private UserStatusEnum status;
 
     /** 逗号分隔的角色标识 */
@@ -58,27 +54,21 @@ public class User implements Serializable, UserDetails {
     private LocalDateTime lockedAt; // 账户锁定时间
 
     /** 逻辑删除 */
-    @TableLogic
     private Integer deleted;
 
     /** 乐观锁 */
-    @Version
     private Integer version;
 
     /** 创建时间 */
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     /** 更新时间 */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 
     /** 创建人 */
-    @TableField(fill = FieldFill.INSERT)
     private String createdBy;
 
     /** 更新人 */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private String updatedBy;
 
     /**

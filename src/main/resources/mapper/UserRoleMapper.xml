@@ -2,9 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.bryan.system.mapper.UserRoleMapper">
+<mapper namespace="com.bryan.platform.mapper.UserRoleMapper">
 
-    <resultMap id="BaseResultMap" type="com.bryan.system.domain.entity.UserRole">
+    <resultMap id="BaseResultMap" type="com.bryan.platform.domain.entity.user.UserRole">
         <id column="id" property="id"/>
         <result column="role_name" property="roleName"/>
         <result column="is_default" property="isDefault"/>

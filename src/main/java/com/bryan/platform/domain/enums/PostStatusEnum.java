@@ -8,5 +8,5 @@ package com.bryan.platform.domain.enums;
 public enum PostStatusEnum {
     DRAFT,
     PUBLISHED,
-    ARCHIVED
+    ARCHIVED;
 }
