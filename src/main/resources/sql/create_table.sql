@@ -1,7 +1,7 @@
 -- user
 create sequence "user_id_seq";
 
-create table "user"
+create table "sys_user"
 (
     id                  bigint  default nextval('user_id_seq'::regclass) not null
         primary key,
@@ -24,31 +24,31 @@ create table "user"
     updated_by          varchar(255)
 );
 
-comment on table "user" is '用户表，存储系统用户的基本信息、认证信息和状态';
-comment on column "user".id is '用户ID，主键，自增长';
-comment on column "user".username is '用户名，用于登录的唯一标识';
-comment on column "user".password is '加密后的用户密码';
-comment on column "user".phone is '用户手机号码';
-comment on column "user".email is '用户电子邮箱';
-comment on column "user".status is '用户状态(0-正常 1-禁用 2-锁定)';
-comment on column "user".roles is '用户角色，多个角色用逗号分隔';
-comment on column "user".last_login_at is '最后一次登录时间';
-comment on column "user".last_login_ip is '最后一次登录IP地址';
-comment on column "user".password_reset_at is '密码重置时间';
-comment on column "user".login_fail_count is '登录失败次数';
-comment on column "user".locked_at is '账户锁定时间';
-comment on column "user".deleted is '软删除标记(0-未删除 1-已删除)';
-comment on column "user".version is '乐观锁版本号';
-comment on column "user".created_at is '记录创建时间';
-comment on column "user".updated_at is '记录更新时间';
-comment on column "user".created_by is '记录创建人';
-comment on column "user".updated_by is '记录更新人';
+comment on table "sys_user" is '用户表，存储系统用户的基本信息、认证信息和状态';
+comment on column "sys_user".id is '用户ID，主键，自增长';
+comment on column "sys_user".username is '用户名，用于登录的唯一标识';
+comment on column "sys_user".password is '加密后的用户密码';
+comment on column "sys_user".phone is '用户手机号码';
+comment on column "sys_user".email is '用户电子邮箱';
+comment on column "sys_user".status is '用户状态(0-正常 1-禁用 2-锁定)';
+comment on column "sys_user".roles is '用户角色，多个角色用逗号分隔';
+comment on column "sys_user".last_login_at is '最后一次登录时间';
+comment on column "sys_user".last_login_ip is '最后一次登录IP地址';
+comment on column "sys_user".password_reset_at is '密码重置时间';
+comment on column "sys_user".login_fail_count is '登录失败次数';
+comment on column "sys_user".locked_at is '账户锁定时间';
+comment on column "sys_user".deleted is '软删除标记(0-未删除 1-已删除)';
+comment on column "sys_user".version is '乐观锁版本号';
+comment on column "sys_user".created_at is '记录创建时间';
+comment on column "sys_user".updated_at is '记录更新时间';
+comment on column "sys_user".created_by is '记录创建人';
+comment on column "sys_user".updated_by is '记录更新人';
 
-alter table "user"
+alter table "sys_user"
     owner to platform_user;
 
 create index idx_user_username
-    on "user" (username);
+    on "sys_user" (username);
 
 comment on index idx_user_username is '用户名索引，用于加速用户名查询';
 
