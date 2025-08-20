@@ -101,7 +101,7 @@ public class PostFavoriteService {
      * @throws ResourceNotFoundException 如果未收藏该博文
      */
     public boolean deleteFavorite(Long userId, String postId) {
-        int rows = postFavoriteMapper.deleteByUserIdAndPostId(userId, postId);
+        int rows = postFavoriteMapper.updateDeletedByUserIdAndPostId(userId, postId, 1);
         if (rows == 0) {
             throw new ResourceNotFoundException("用户未收藏该博文");
         }

@@ -44,11 +44,12 @@
         WHERE follower_id = #{followerId}
     </select>
 
-    <delete id="deleteByFollowerIdAndFollowingId">
-        DELETE FROM user_follow
+    <update id="updateDeletedByFollowerIdAndFollowingId">
+        UPDATE user_follow
+        SET deleted = #{deleted}
         WHERE follower_id = #{followerId}
           AND following_id = #{followingId}
-    </delete>
+    </update>
 
     <select id="countByFollowerIdAndFollowingId" resultType="long">
         SELECT COUNT(*)

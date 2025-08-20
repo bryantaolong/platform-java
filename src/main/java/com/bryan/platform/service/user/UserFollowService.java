@@ -73,7 +73,7 @@ public class UserFollowService {
             throw new BusinessException("您尚未关注该用户");
         }
 
-        return userFollowMapper.deleteByFollowerIdAndFollowingId(followerId, followingId);
+        return userFollowMapper.updateDeletedByFollowerIdAndFollowingId(followerId, followingId, 1);
     }
 
     /**

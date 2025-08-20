@@ -17,8 +17,9 @@ public interface PostFavoriteMapper {
 
     List<String> selectPostIdsByUserId(@Param("userId") Long userId);
 
-    int deleteByUserIdAndPostId(@Param("userId") Long userId,
-                                @Param("postId") String postId);
+    int updateDeletedByUserIdAndPostId(@Param("userId") Long userId,
+                                       @Param("postId") String postId,
+                                       @Param("deleted") Integer deleted);
 
     long countByUserId(@Param("userId") Long userId);
 

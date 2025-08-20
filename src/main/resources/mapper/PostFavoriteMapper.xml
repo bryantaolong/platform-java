@@ -22,11 +22,12 @@
         WHERE user_id = #{userId}
     </select>
 
-    <delete id="deleteByUserIdAndPostId">
-        DELETE FROM post_favorite
+    <update id="updateDeletedByUserIdAndPostId">
+        UPDATE post_favorite
+        SET deleted = #{deleted}
         WHERE user_id = #{userId}
           AND post_id = #{postId}
-    </delete>
+    </update>
 
     <select id="countByUserId" resultType="long">
         SELECT COUNT(*)
