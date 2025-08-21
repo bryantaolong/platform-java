@@ -4,4 +4,79 @@
 
 <mapper namespace="com.bryan.platform.mapper.UserProfileMapper">
 
+    <resultMap id="BaseResultMap" type="com.bryan.platform.domain.entity.user.UserProfile">
+        <id column="user_id" property="userId"/>
+        <result column="real_name" property="realName"/>
+        <result column="gender" property="gender"/>
+        <result column="birthday" property="birthday"/>
+        <result column="avatar" property="avatar"/>
+        <result column="deleted" property="deleted"/>
+        <result column="version" property="version"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        user_id, real_name, gender, birthday, avatar, deleted, version,
+        created_at, created_by, updated_at, updated_by
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_profile (
+            user_id, real_name, gender, birthday, avatar, deleted, version,
+            created_at, created_by, updated_at, updated_by
+        ) VALUES (
+                     #{userId}, #{realName}, #{gender}, #{birthday}, #{avatar}, #{deleted},
+                     #{version}, #{createdAt}, #{createdBy}, #{updatedAt}, #{updatedBy}
+                 )
+    </insert>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="BaseColumns"/>
+        FROM user_profile
+        WHERE user_id = #{userId}
+        AND deleted = 0
+    </select>
+
+    <select id="selectByRealName" resultMap="BaseResultMap">
+        SELECT
+        <include refid="BaseColumns"/>
+        FROM user_profile
+        WHERE real_name = #{realName}
+        AND deleted = 0
+    </select>
+
+    <update id="update">
+        UPDATE user_profile
+        <set>
+            <if test="realName != null and realName != ''">
+                real_name = #{realName},
+            </if>
+            <if test="gender != null">
+                gender = #{gender},
+            </if>
+            <if test="birthday != null">
+                birthday = #{birthday},
+            </if>
+            <if test="avatar != null and avatar != ''">
+                avatar = #{avatar},
+            </if>
+            <if test="deleted != null">
+                deleted = #{deleted},
+            </if>
+            version = version + 1,
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt},
+            </if>
+            <if test="updatedBy != null and updatedBy != ''">
+                updated_by = #{updatedBy},
+            </if>
+        </set>
+        WHERE user_id = #{userId}
+        AND version = #{version}
+    </update>
+
 </mapper>
