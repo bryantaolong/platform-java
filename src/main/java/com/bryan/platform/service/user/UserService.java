@@ -3,7 +3,6 @@ package com.bryan.platform.service.user;
 import com.bryan.platform.domain.entity.user.SysUser;
 import com.bryan.platform.domain.entity.user.UserRole;
 import com.bryan.platform.domain.enums.UserStatusEnum;
-import com.bryan.platform.domain.request.PageRequest;
 import com.bryan.platform.domain.request.user.ChangeRoleRequest;
 import com.bryan.platform.domain.request.user.UserSearchRequest;
 import com.bryan.platform.domain.request.user.UserUpdateRequest;
@@ -54,15 +53,16 @@ public class UserService {
      *
      * @return 包含所有用户的分页对象（Page）。
      */
-    public PageResult<SysUser> getAllUsers(PageRequest pageRequest) {
-        long offset = (pageRequest.getPageNum() - 1) * pageRequest.getPageSize();
+    public PageResult<SysUser> getAllUsers(int pageNum,
+                                           int pageSize) {
+        int offset = (pageNum - 1) * pageSize;
         List<SysUser> rows = userMapper.selectPage(
                 offset,
-                pageRequest.getPageSize(),
+                pageSize,
                 null,
                 null);
         long total = userMapper.count(null, null);
-        return page(pageRequest.getPageNum(), pageRequest.getPageSize(), rows, total);
+        return page(pageNum, pageSize, rows, total);
     }
 
     /**
@@ -91,19 +91,19 @@ public class UserService {
      * 通用用户搜索，支持多条件模糊查询和分页。
      *
      * @param searchRequest 搜索请求
-     * @param pageRequest 分页请求
      * @return 符合查询条件的分页对象（Page）
      */
     public PageResult<SysUser> searchUsers(UserSearchRequest searchRequest,
-                                           PageRequest pageRequest) {
-        long offset = (pageRequest.getPageNum() - 1) * pageRequest.getPageSize();
+                                           int pageNum,
+                                           int pageSize) {
+        int offset = (pageNum - 1) * pageSize;
         List<SysUser> rows = userMapper.selectPage(
                 offset,
-                pageRequest.getPageSize(),
+                pageSize,
                 searchRequest,
                 null);
         long total = userMapper.count(searchRequest, null);
-        return page(pageRequest.getPageNum(), pageRequest.getPageSize(), rows, total);
+        return page(pageNum, pageSize, rows, total);
     }
 
     public SysUser save(SysUser sysUser) {

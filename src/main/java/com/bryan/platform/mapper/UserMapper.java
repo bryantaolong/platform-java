@@ -24,8 +24,8 @@ public interface UserMapper {
 
     SysUser selectByUsername(String username);
 
-    List<SysUser> selectPage(@Param("offset") long offset,
-                             @Param("pageSize") long pageSize,
+    List<SysUser> selectPage(@Param("offset") int offset,
+                             @Param("pageSize") int pageSize,
                              @Param("req") UserSearchRequest search,
                              @Param("export") UserExportRequest export);
 

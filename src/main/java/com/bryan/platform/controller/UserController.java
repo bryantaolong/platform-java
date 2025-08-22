@@ -1,6 +1,5 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.domain.request.PageRequest;
 import com.bryan.platform.domain.request.user.ChangeRoleRequest;
 import com.bryan.platform.domain.request.user.UserSearchRequest;
 import com.bryan.platform.domain.response.PageResult;
@@ -38,9 +37,11 @@ public class UserController {
      */
     @PostMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result<PageResult<SysUser>> getAllUsers(@RequestBody PageRequest pageRequest) {
+    public Result<PageResult<SysUser>> getAllUsers(
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize) {
         // 1. 调用服务层获取所有用户列表
-        return Result.success(userService.getAllUsers(pageRequest));
+        return Result.success(userService.getAllUsers(pageNum, pageSize));
     }
 
     /**
@@ -75,15 +76,15 @@ public class UserController {
      * 用户搜索接口，支持多条件模糊查询和分页。
      *
      * @param searchRequest 搜索条件
-     * @param pageRequest   分页参数
      * @return 用户分页结果
      */
     @PostMapping("/search")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<PageResult<SysUser>> searchUsers(
             @RequestBody UserSearchRequest searchRequest,
-            @ModelAttribute PageRequest pageRequest) {
-        PageResult<SysUser> page = userService.searchUsers(searchRequest, pageRequest);
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        PageResult<SysUser> page = userService.searchUsers(searchRequest, pageNum, pageSize);
         return Result.success(page);
     }
 
@@ -145,17 +146,17 @@ public class UserController {
      * 强制修改用户密码。
      * <p>管理员可强制修改任意用户密码。</p>
      *
-     * @param userId               目标用户ID
-     * @param newPassword          新密码
+     * @param userId                   目标用户ID
+     * @param changePasswordRequest    修改密码请求
      * @return 更新后的用户实体
      */
-    @PutMapping("/{userId}/password/force/{newPassword}")
+    @PutMapping("/{userId}/password/force")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<SysUser> changePasswordForcefully(
             @PathVariable Long userId,
-            @PathVariable  String newPassword) {
+            @RequestBody  ChangePasswordRequest changePasswordRequest) {
         // 1. 调用服务层执行密码修改
-        return Result.success(userService.changePasswordForcefully(userId, newPassword));
+        return Result.success(userService.changePasswordForcefully(userId, changePasswordRequest.getNewPassword()));
     }
 
     /**

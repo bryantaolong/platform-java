@@ -163,7 +163,7 @@ public class UserExportService {
         int totalExported = 0;
 
         while (true) {
-            long offset = (long) (pageNum - 1) * pageSize;
+            int offset = (pageNum - 1) * pageSize;
             List<SysUser> records = userMapper.selectPage(offset,
                     pageSize,
                     null,
