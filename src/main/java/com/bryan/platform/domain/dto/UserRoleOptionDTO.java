@@ -10,7 +10,7 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-public class RoleOptionDTO {
+public class UserRoleOptionDTO {
     private Long id;
     private String roleName;
 }

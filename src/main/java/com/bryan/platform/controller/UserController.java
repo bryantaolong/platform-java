@@ -1,5 +1,6 @@
 package com.bryan.platform.controller;
 
+import com.bryan.platform.domain.dto.UserUpdateDTO;
 import com.bryan.platform.domain.request.user.ChangeRoleRequest;
 import com.bryan.platform.domain.request.user.UserSearchRequest;
 import com.bryan.platform.domain.response.PageResult;
@@ -21,10 +22,10 @@ import org.springframework.web.bind.annotation.*;
  *
  * @author Bryan Long
  */
-@RestController
-@RequestMapping("/api/user")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
@@ -93,7 +94,7 @@ public class UserController {
      * <p>允许管理员更新任意用户信息，或用户本人更新自己的信息。</p>
      *
      * @param userId             目标用户ID
-     * @param userUpdateRequest  包含需要更新的信息（用户名、邮箱等）
+     * @param req  包含需要更新的信息（用户名、邮箱等）
      * @return 更新后的用户实体
      * @throws IllegalArgumentException 当权限校验失败时抛出
      */
@@ -101,9 +102,14 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN') or (#userId == authentication.principal.id)")
     public Result<SysUser> updateUser(
             @PathVariable Long userId,
-            @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
+            @RequestBody @Valid UserUpdateRequest req) {
         // 1. 调用服务更新用户信息
-        return Result.success(userService.updateUser(userId, userUpdateRequest));
+        UserUpdateDTO dto = UserUpdateDTO.builder()
+                .username(req.getUsername())
+                .phone(req.getPhone())
+                .email(req.getEmail())
+                .build();
+        return Result.success(userService.updateUser(userId, dto));
     }
 
     /**
@@ -114,7 +120,7 @@ public class UserController {
      * @param req  新角色字符串，逗号分隔（如 "ROLE_USER,ROLE_ADMIN"）
      * @return 更新后的用户实体
      */
-    @PutMapping("/users/{userId}/roles")
+    @PutMapping("/roles/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<SysUser> changeRoleByIds(@PathVariable Long userId,
                                         @Valid @RequestBody ChangeRoleRequest req) {
@@ -129,7 +135,7 @@ public class UserController {
      * @param changePasswordRequest 包含旧密码和新密码的请求体
      * @return 更新后的用户实体
      */
-    @PutMapping("/{userId}/password")
+    @PutMapping("/password/{userId}")
     @PreAuthorize("hasRole('ADMIN') or (#userId == authentication.principal.id)")
     public Result<SysUser> changePassword(
             @PathVariable Long userId,
@@ -150,7 +156,7 @@ public class UserController {
      * @param changePasswordRequest    修改密码请求
      * @return 更新后的用户实体
      */
-    @PutMapping("/{userId}/password/force")
+    @PutMapping("/password/force/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<SysUser> changePasswordForcefully(
             @PathVariable Long userId,
@@ -166,7 +172,7 @@ public class UserController {
      * @param userId 目标用户ID
      * @return 更新后的用户实体
      */
-    @PutMapping("/{userId}/block")
+    @PutMapping("/block/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<SysUser> blockUser(
             @PathVariable Long userId) {
@@ -181,7 +187,7 @@ public class UserController {
      * @param userId 目标用户ID
      * @return 更新后的用户实体
      */
-    @PutMapping("/{userId}/unblock")
+    @PutMapping("/unblock/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<SysUser> unblockUser(
             @PathVariable Long userId) {

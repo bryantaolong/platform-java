@@ -1,8 +1,10 @@
 package com.bryan.platform.domain.converter;
 
 import com.bryan.platform.domain.entity.user.SysUser;
+import com.bryan.platform.domain.entity.user.UserProfile;
 import com.bryan.platform.domain.enums.UserStatusEnum;
 import com.bryan.platform.domain.vo.UserExportVO;
+import com.bryan.platform.domain.vo.UserProfileVO;
 
 /**
  * UserConvert
@@ -10,6 +12,23 @@ import com.bryan.platform.domain.vo.UserExportVO;
  * @author Bryan Long
  */
 public class UserConverter {
+
+    public static UserProfileVO toUserProfileVO(SysUser user, UserProfile profile) {
+        if (user == null && profile == null) {
+            return null;
+        }
+
+        assert user != null;
+        return UserProfileVO.builder()
+                .username(user.getUsername())
+                .phone(user.getPhone())
+                .email(user.getEmail())
+                .realName(profile.getRealName())
+                .gender(profile.getGender())
+                .birthday(profile.getBirthday())
+                .avatar(profile.getAvatar())
+                .build();
+    }
 
     public static UserExportVO toExportVO(SysUser user) {
         if (user == null) {
@@ -30,8 +49,8 @@ public class UserConverter {
                 .lockedAt(user.getLockedAt())
                 .deleted(convertDeletedStatus(user.getDeleted()))
                 .createdAt(user.getCreatedAt())
-                .createdBy(user.getCreatedBy())
                 .updatedAt(user.getUpdatedAt())
+                .createdBy(user.getCreatedBy())
                 .updatedBy(user.getUpdatedBy())
                 .build();
     }

@@ -1,6 +1,6 @@
 package com.bryan.platform.controller;
 
-import com.bryan.platform.domain.dto.RoleOptionDTO;
+import com.bryan.platform.domain.dto.UserRoleOptionDTO;
 import com.bryan.platform.domain.response.Result;
 import com.bryan.platform.service.user.UserRoleService;
 import lombok.RequiredArgsConstructor;
@@ -17,17 +17,17 @@ import java.util.List;
  *
  * @author Bryan Long
  */
-@RestController
-@RequestMapping("/api/user/role")
-@RequiredArgsConstructor
 @Validated
+@RestController
+@RequestMapping("/api/user-roles")
+@RequiredArgsConstructor
 public class UserRoleController {
 
     private final UserRoleService userRoleService;
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result<List<RoleOptionDTO>> listRoles() {
+    public Result<List<UserRoleOptionDTO>> listRoles() {
         return Result.success(userRoleService.listAll());
     }
 }

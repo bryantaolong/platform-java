@@ -25,7 +25,7 @@ import jakarta.validation.Valid;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/post_favorite")
+@RequestMapping("/api/post-favorites")
 @RequiredArgsConstructor
 public class PostFavoriteController {
 

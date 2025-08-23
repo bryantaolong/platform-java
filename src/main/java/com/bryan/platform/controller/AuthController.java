@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.*;
  *
  * @author Bryan Long
  */
+@Validated
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Validated
 public class AuthController {
 
     private final AuthService authService;

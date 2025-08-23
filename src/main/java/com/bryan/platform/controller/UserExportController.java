@@ -6,6 +6,7 @@ import com.bryan.platform.service.user.UserExportService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -15,8 +16,9 @@ import java.util.Map;
  *
  * @author Bryan Long
  */
+@Validated
 @RestController
-@RequestMapping("/api/user/export")
+@RequestMapping("/api/users/export")
 @RequiredArgsConstructor
 public class UserExportController {
 

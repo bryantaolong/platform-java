@@ -1,7 +1,10 @@
 package com.bryan.platform.domain.request.user;
 
+import com.bryan.platform.domain.enums.GenderEnum;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
+
+import java.time.LocalDateTime;
 
 /**
  * 用户更新请求对象
@@ -30,4 +33,17 @@ public class UserUpdateRequest {
      */
     @Email(message = "邮箱格式不正确")
     private String email;
+
+    /**
+     * 真实姓名。
+     * 在更新时是可选的，如果提供则更新，如果不提供则保持不变。
+     */
+    @Size(min = 2, max = 20, message = "用户名长度应在2-20个字符之间")
+    private String realName;
+
+    private GenderEnum gender;
+
+    private LocalDateTime birthday;
+
+    private String avatar;
 }

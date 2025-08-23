@@ -1,6 +1,6 @@
 package com.bryan.platform.service.user;
 
-import com.bryan.platform.domain.dto.RoleOptionDTO;
+import com.bryan.platform.domain.dto.UserRoleOptionDTO;
 import com.bryan.platform.domain.entity.user.UserRole;
 import com.bryan.platform.mapper.UserRoleMapper;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +20,10 @@ public class UserRoleService {
 
     private final UserRoleMapper userRoleMapper;
 
-    public List<RoleOptionDTO> listAll() {
+    public List<UserRoleOptionDTO> listAll() {
         return userRoleMapper.selectAll()
                 .stream()
-                .map(r -> new RoleOptionDTO(r.getId(), r.getRoleName()))
+                .map(r -> new UserRoleOptionDTO(r.getId(), r.getRoleName()))
                 .toList();
     }
 

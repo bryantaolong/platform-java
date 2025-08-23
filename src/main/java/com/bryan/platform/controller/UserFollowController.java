@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Bryan Long
  */
 @RestController
-@RequestMapping("/api/user_follow")
+@RequestMapping("/api/user-follows")
 @RequiredArgsConstructor
 public class UserFollowController {
 
