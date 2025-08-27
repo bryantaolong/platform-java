@@ -20,6 +20,7 @@ public class UserConverter {
 
         assert user != null;
         return UserProfileVO.builder()
+                .userId(user.getId())
                 .username(user.getUsername())
                 .phone(user.getPhone())
                 .email(user.getEmail())

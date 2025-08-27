@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 @Builder
 public class UserProfileVO {
 
+    private Long userId;
+
     private String username;
 
     private String phone;
